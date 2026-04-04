@@ -35,7 +35,37 @@
 # Executables
 *.exe
 *.out
-*.app
 
-# debug information files
+# Debug information files
 *.dwo
+
+# SPIR-V compiled shaders
+*.spv
+
+# --- Android ---
+android/.gradle/
+android/.idea/
+android/build/
+android/app/build/
+android/local.properties
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# --- iOS ---
+ios/build/
+ios/DerivedData/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/
+ios/*.xcworkspace/xcuserdata/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# --- macOS ---
+.DS_Store
+*.app

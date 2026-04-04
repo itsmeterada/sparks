@@ -586,11 +586,12 @@ void VulkanEngine::render() {
                                                     mImageAvailableSemaphores[mCurrentFrame],
                                                     VK_NULL_HANDLE, &imageIndex);
 
-    if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR) {
-        recreateSwapchain();
+    if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR || acquireResult == VK_SUBOPTIMAL_KHR) {
+        // Don't recreate here — wait for surfaceChanged to provide stable dimensions.
+        // Just skip this frame.
         return;
     }
-    if (acquireResult != VK_SUCCESS && acquireResult != VK_SUBOPTIMAL_KHR) {
+    if (acquireResult != VK_SUCCESS) {
         LOGE("Failed to acquire swapchain image: %d", acquireResult);
         return;
     }
@@ -632,16 +633,10 @@ void VulkanEngine::render() {
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     // Push constants: iResolution + iTime
-    // When preTransform is ROTATE_90 or ROTATE_270, the swapchain extent is in
-    // the device's native orientation (usually portrait). The shader needs the
-    // display-oriented resolution, so we swap width/height for rotated transforms.
+    // Use ANativeWindow dimensions which always reflect the actual display orientation.
     PushConstants pc{};
-    bool rotated = (mCurrentTransform == VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR ||
-                    mCurrentTransform == VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR);
-    pc.iResolutionX = rotated ? static_cast<float>(mSwapchainExtent.height)
-                              : static_cast<float>(mSwapchainExtent.width);
-    pc.iResolutionY = rotated ? static_cast<float>(mSwapchainExtent.width)
-                              : static_cast<float>(mSwapchainExtent.height);
+    pc.iResolutionX = static_cast<float>(ANativeWindow_getWidth(mWindow));
+    pc.iResolutionY = static_cast<float>(ANativeWindow_getHeight(mWindow));
     pc.iTime = iTime;
     vkCmdPushConstants(cmd, mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &pc);
 
@@ -678,8 +673,9 @@ void VulkanEngine::render() {
     presentInfo.pImageIndices = &imageIndex;
 
     VkResult presentResult = vkQueuePresentKHR(mQueue, &presentInfo);
-    if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR) {
-        recreateSwapchain();
+    if (presentResult == VK_ERROR_OUT_OF_DATE_KHR) {
+        // Swapchain is stale. surfaceChanged will trigger a proper resize.
+        mNeedsResize = true;
     }
 
     mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;

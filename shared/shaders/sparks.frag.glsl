@@ -10,6 +10,7 @@ layout(location = 0) out vec4 outColor;
 layout(push_constant) uniform PushConstants {
     vec2 iResolution;
     float iTime;
+    int preRotate; // unused in fragment shader, but must match vertex layout
 };
 
 #define PI 3.1415927

@@ -489,9 +489,9 @@ bool VulkanEngine::createGraphicsPipeline() {
     colorBlending.attachmentCount = 1;
     colorBlending.pAttachments = &colorBlendAttachment;
 
-    // Push constants: iResolution (vec2) + iTime (float) = 12 bytes
+    // Push constants: iResolution (vec2) + iTime (float) + preRotate (int) = 16 bytes
     VkPushConstantRange pushConstantRange{};
-    pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
     pushConstantRange.offset = 0;
     pushConstantRange.size = sizeof(PushConstants);
 
@@ -632,13 +632,24 @@ void VulkanEngine::render() {
     scissor.extent = mSwapchainExtent;
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    // Push constants: iResolution + iTime
-    // Use ANativeWindow dimensions which always reflect the actual display orientation.
+    // Push constants: iResolution + iTime + preRotate
+    // iResolution = actual display dimensions from ANativeWindow.
+    // preRotate tells the vertex shader how to rotate UVs to compensate for
+    // the Vulkan surface preTransform (framebuffer may be rotated vs display).
     PushConstants pc{};
     pc.iResolutionX = static_cast<float>(ANativeWindow_getWidth(mWindow));
     pc.iResolutionY = static_cast<float>(ANativeWindow_getHeight(mWindow));
     pc.iTime = iTime;
-    vkCmdPushConstants(cmd, mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &pc);
+
+    switch (mCurrentTransform) {
+        case VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR:  pc.preRotate = 1; break;
+        case VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR: pc.preRotate = 2; break;
+        case VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR: pc.preRotate = 3; break;
+        default:                                       pc.preRotate = 0; break;
+    }
+
+    vkCmdPushConstants(cmd, mPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                       0, sizeof(PushConstants), &pc);
 
     // Draw fullscreen triangle (3 vertices, no vertex buffer)
     vkCmdDraw(cmd, 3, 1, 0, 0);

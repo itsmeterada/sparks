@@ -15,6 +15,7 @@ struct PushConstants {
     float iResolutionX;
     float iResolutionY;
     float iTime;
+    int32_t preRotate; // 0=identity, 1=rotate90, 2=rotate180, 3=rotate270
 };
 
 class VulkanEngine {

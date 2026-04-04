@@ -78,14 +78,10 @@ Java_com_sparks_demo_VulkanSurfaceView_nativeRender(JNIEnv*, jobject) {
 JNIEXPORT void JNICALL
 Java_com_sparks_demo_VulkanSurfaceView_nativeDestroy(JNIEnv*, jobject) {
     if (gEngine != nullptr) {
-        // Don't delete the engine — just pause and release the surface.
-        // The engine will be reused if a new surface is created (rotation).
-        gEngine->cleanupSurface();
-        LOGI("Surface released (engine kept alive)");
-    }
-    if (gWindow != nullptr) {
-        ANativeWindow_release(gWindow);
-        gWindow = nullptr;
+        // Just pause rendering — don't release the window or engine.
+        // nativeInit will be called again with a new surface shortly.
+        gEngine->pause();
+        LOGI("Rendering paused (engine kept alive)");
     }
 }
 

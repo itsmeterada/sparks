@@ -14,14 +14,18 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         vulkanSurfaceView = VulkanSurfaceView(this)
         setContentView(vulkanSurfaceView)
-        hideSystemBars()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) hideSystemBars()
     }
 
     override fun onResume() {
         super.onResume()
-        hideSystemBars()
         vulkanSurfaceView.onResume()
     }
 
@@ -36,7 +40,6 @@ class MainActivity : Activity() {
     }
 
     private fun hideSystemBars() {
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false)
             window.insetsController?.let { controller ->

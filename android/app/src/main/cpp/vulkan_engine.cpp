@@ -19,6 +19,7 @@ VulkanEngine::~VulkanEngine() {
     }
 
     if (mGraphicsPipeline != VK_NULL_HANDLE) vkDestroyPipeline(mDevice, mGraphicsPipeline, nullptr);
+    if (mGraphicsPipeline2 != VK_NULL_HANDLE) vkDestroyPipeline(mDevice, mGraphicsPipeline2, nullptr);
     if (mPipelineLayout != VK_NULL_HANDLE) vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
 
     cleanupSwapchain();
@@ -424,28 +425,20 @@ bool VulkanEngine::createSyncObjects() {
 
 bool VulkanEngine::createGraphicsPipeline() {
     auto vertCode = loadShaderFromAsset(mAssetManager, "shaders/fullscreen.vert.spv");
-    auto fragCode = loadShaderFromAsset(mAssetManager, "shaders/sparks.frag.spv");
-    if (vertCode.empty() || fragCode.empty()) {
+    auto fragCode1 = loadShaderFromAsset(mAssetManager, "shaders/sparks.frag.spv");
+    auto fragCode2 = loadShaderFromAsset(mAssetManager, "shaders/cosmic.frag.spv");
+    if (vertCode.empty() || fragCode1.empty() || fragCode2.empty()) {
         LOGE("Failed to load shaders");
         return false;
     }
 
     VkShaderModule vertModule = createShaderModule(mDevice, vertCode);
-    VkShaderModule fragModule = createShaderModule(mDevice, fragCode);
-    if (vertModule == VK_NULL_HANDLE || fragModule == VK_NULL_HANDLE) {
+    VkShaderModule fragModule1 = createShaderModule(mDevice, fragCode1);
+    VkShaderModule fragModule2 = createShaderModule(mDevice, fragCode2);
+    if (vertModule == VK_NULL_HANDLE || fragModule1 == VK_NULL_HANDLE || fragModule2 == VK_NULL_HANDLE) {
         LOGE("Failed to create shader modules");
         return false;
     }
-
-    VkPipelineShaderStageCreateInfo stages[2]{};
-    stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-    stages[0].module = vertModule;
-    stages[0].pName = "main";
-    stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    stages[1].module = fragModule;
-    stages[1].pName = "main";
 
     // No vertex input - fullscreen triangle generated in vertex shader
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
@@ -512,10 +505,10 @@ bool VulkanEngine::createGraphicsPipeline() {
     dynamicState.dynamicStateCount = 2;
     dynamicState.pDynamicStates = dynamicStates;
 
+    // Shared pipeline create info
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.stageCount = 2;
-    pipelineInfo.pStages = stages;
     pipelineInfo.pVertexInputState = &vertexInputInfo;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
     pipelineInfo.pViewportState = &viewportState;
@@ -527,17 +520,51 @@ bool VulkanEngine::createGraphicsPipeline() {
     pipelineInfo.renderPass = mRenderPass;
     pipelineInfo.subpass = 0;
 
+    // Pipeline 1: sparks
+    VkPipelineShaderStageCreateInfo stages1[2]{};
+    stages1[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stages1[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+    stages1[0].module = vertModule;
+    stages1[0].pName = "main";
+    stages1[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stages1[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    stages1[1].module = fragModule1;
+    stages1[1].pName = "main";
+
+    pipelineInfo.pStages = stages1;
     VkResult result = vkCreateGraphicsPipelines(mDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &mGraphicsPipeline);
-
-    vkDestroyShaderModule(mDevice, vertModule, nullptr);
-    vkDestroyShaderModule(mDevice, fragModule, nullptr);
-
     if (result != VK_SUCCESS) {
-        LOGE("Failed to create graphics pipeline: %d", result);
+        LOGE("Failed to create graphics pipeline 1: %d", result);
+        vkDestroyShaderModule(mDevice, vertModule, nullptr);
+        vkDestroyShaderModule(mDevice, fragModule1, nullptr);
+        vkDestroyShaderModule(mDevice, fragModule2, nullptr);
         return false;
     }
 
-    LOGI("Graphics pipeline created");
+    // Pipeline 2: cosmic
+    VkPipelineShaderStageCreateInfo stages2[2]{};
+    stages2[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stages2[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+    stages2[0].module = vertModule;
+    stages2[0].pName = "main";
+    stages2[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stages2[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    stages2[1].module = fragModule2;
+    stages2[1].pName = "main";
+
+    pipelineInfo.pStages = stages2;
+    result = vkCreateGraphicsPipelines(mDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &mGraphicsPipeline2);
+
+    vkDestroyShaderModule(mDevice, vertModule, nullptr);
+    vkDestroyShaderModule(mDevice, fragModule1, nullptr);
+    vkDestroyShaderModule(mDevice, fragModule2, nullptr);
+
+    if (result != VK_SUCCESS) {
+        LOGE("Failed to create graphics pipeline 2: %d", result);
+        return false;
+    }
+
+    LOGI("Both graphics pipelines created");
     return true;
 }
 
@@ -619,7 +646,8 @@ void VulkanEngine::render() {
 
     vkCmdBeginRenderPass(cmd, &rpBegin, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
+    VkPipeline activePipeline = (mCurrentShader == 0) ? mGraphicsPipeline : mGraphicsPipeline2;
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, activePipeline);
 
     // Set dynamic viewport and scissor
     VkViewport viewport{};
@@ -695,4 +723,9 @@ void VulkanEngine::render() {
 void VulkanEngine::onResize(uint32_t width, uint32_t height) {
     if (width == 0 || height == 0) return;
     mNeedsResize = true;
+}
+
+void VulkanEngine::toggleShader() {
+    mCurrentShader = (mCurrentShader + 1) % 2;
+    LOGI("Switched to shader %d", mCurrentShader);
 }

@@ -29,6 +29,7 @@ public:
     void cleanupSurface();
     void render();
     void onResize(uint32_t width, uint32_t height);
+    void toggleShader();
 
     bool isInitialized() const { return mInitialized; }
 
@@ -68,6 +69,8 @@ private:
     std::vector<VkFramebuffer> mFramebuffers;
     VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
     VkPipeline mGraphicsPipeline = VK_NULL_HANDLE;
+    VkPipeline mGraphicsPipeline2 = VK_NULL_HANDLE;
+    int mCurrentShader = 0; // 0 = sparks, 1 = cosmic
 
     VkCommandPool mCommandPool = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> mCommandBuffers;

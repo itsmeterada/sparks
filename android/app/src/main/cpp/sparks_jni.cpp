@@ -87,7 +87,11 @@ Java_com_sparks_demo_VulkanSurfaceView_nativeDestroy(JNIEnv*, jobject) {
 
 JNIEXPORT void JNICALL
 Java_com_sparks_demo_VulkanSurfaceView_nativeTouch(JNIEnv*, jobject, jfloat x, jfloat y, jint action) {
-    (void)x; (void)y; (void)action;
+    (void)x; (void)y;
+    // Toggle shader on tap (ACTION_DOWN = 0)
+    if (action == 0 && gEngine != nullptr) {
+        gEngine->toggleShader();
+    }
 }
 
 JNIEXPORT void JNICALL

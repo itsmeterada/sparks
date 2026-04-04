@@ -25,6 +25,13 @@ class MetalViewController: UIViewController, MTKViewDelegate {
         metalView.delegate = self
 
         renderer = MetalRenderer(device: device, colorPixelFormat: metalView.colorPixelFormat)
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        metalView.addGestureRecognizer(tap)
+    }
+
+    @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
+        renderer.toggleShader()
     }
 
     override var prefersStatusBarHidden: Bool {

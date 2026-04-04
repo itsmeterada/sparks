@@ -11,9 +11,10 @@ class MetalRenderer {
 
     private let device: MTLDevice
     private let commandQueue: MTLCommandQueue
-    private let renderPipelineState: MTLRenderPipelineState
+    private let pipelineStates: [MTLRenderPipelineState]
 
     private let startTime: CFAbsoluteTime
+    private var currentShader: Int = 0 // 0 = sparks, 1 = cosmic
 
     var screenSize: CGSize = CGSize(width: 1, height: 1)
 
@@ -30,16 +31,24 @@ class MetalRenderer {
             fatalError("Failed to create default Metal library")
         }
 
-        let descriptor = MTLRenderPipelineDescriptor()
-        descriptor.vertexFunction = library.makeFunction(name: "sparks_vertex")
-        descriptor.fragmentFunction = library.makeFunction(name: "sparks_fragment")
-        descriptor.colorAttachments[0].pixelFormat = colorPixelFormat
-
-        do {
-            self.renderPipelineState = try device.makeRenderPipelineState(descriptor: descriptor)
-        } catch {
-            fatalError("Failed to create render pipeline state: \(error)")
+        let fragmentNames = ["sparks_fragment", "cosmic_fragment"]
+        var states: [MTLRenderPipelineState] = []
+        for name in fragmentNames {
+            let descriptor = MTLRenderPipelineDescriptor()
+            descriptor.vertexFunction = library.makeFunction(name: "sparks_vertex")
+            descriptor.fragmentFunction = library.makeFunction(name: name)
+            descriptor.colorAttachments[0].pixelFormat = colorPixelFormat
+            do {
+                states.append(try device.makeRenderPipelineState(descriptor: descriptor))
+            } catch {
+                fatalError("Failed to create render pipeline state for \(name): \(error)")
+            }
         }
+        self.pipelineStates = states
+    }
+
+    func toggleShader() {
+        currentShader = (currentShader + 1) % pipelineStates.count
     }
 
     func draw(in view: MTKView) {
@@ -60,7 +69,7 @@ class MetalRenderer {
             return
         }
 
-        encoder.setRenderPipelineState(renderPipelineState)
+        encoder.setRenderPipelineState(pipelineStates[currentShader])
         encoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 0)
 
         // Draw fullscreen triangle (3 vertices, no vertex buffer)

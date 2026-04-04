@@ -1,10 +1,13 @@
 # Sparks
 
-フルスクリーンGPUシェーダーデモ — レイヤードVoronoiパーティクルとプロシージャルスモークによる炎の火花アニメーション。
+フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。画面タップでシェーダーを切り替え。
 
-![Sparks スクリーンショット](./screenshot.png)
+| シェーダー1: Sparks | シェーダー2: Cosmic |
+|:---:|:---:|
+| ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) |
 
-Jan Mróz (jaszunio15) 氏の [Shadertoy シェーダー](https://www.shadertoy.com/view/4tXXzj) をネイティブモバイルに移植。ライセンス: CC BY 3.0。
+- **シェーダー1**: Jan Mróz (jaszunio15) 氏の [Sparks](https://www.shadertoy.com/view/4tXXzj) — レイヤードVoronoiパーティクルとプロシージャルスモークによる炎の火花。ライセンス: CC BY 3.0。
+- **シェーダー2**: Nguyen2007 氏の [Cosmic](https://www.shadertoy.com/view/XXyGzh) — プロシージャルな宇宙的アブストラクトエフェクト。ライセンス: CC BY-NC-SA 3.0。
 
 [English version](README_en.md)
 
@@ -21,8 +24,9 @@ Jan Mróz (jaszunio15) 氏の [Shadertoy シェーダー](https://www.shadertoy.
 sparks/
 ├── shared/shaders/     # シェーダーソース (GLSL + MSL)
 │   ├── fullscreen.vert.glsl   # フルスクリーン三角形 頂点シェーダー
-│   ├── sparks.frag.glsl       # メインエフェクト フラグメントシェーダー (Vulkan)
-│   ├── sparks.metal           # Metal 頂点 + フラグメントシェーダー
+│   ├── sparks.frag.glsl       # シェーダー1 フラグメントシェーダー (Vulkan)
+│   ├── cosmic.frag.glsl       # シェーダー2 フラグメントシェーダー (Vulkan)
+│   ├── sparks.metal           # Metal 頂点 + フラグメントシェーダー (両シェーダー)
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
 └── ios/                # Xcode プロジェクト (Metal)
@@ -30,13 +34,18 @@ sparks/
 
 ## 仕組み
 
-エフェクト全体がフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。
+各エフェクトはフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。画面タップで2つのシェーダーを切り替えられます。
 
+### シェーダー1: Sparks
 - **Voronoiベースの火花パーティクル**: アニメーションするVoronoiセルのレイヤードグリッド、各セルにブルーム付きの光る火花
 - **プロシージャルスモーク**: 方向性のあるレイヤードバリューノイズ、追加ノイズで有機的な穴を生成
 - **温度カラーパレット**: 白 → 黄 → 橙 → 赤 の火花グラデーション
-- **ビネット**: エッジを暗くして映画的なフレーミング
 - **15パーティクルレイヤー**: サイズ/アルファ変調で擬似3D深度を表現
+
+### シェーダー2: Cosmic
+- **反復変換**: 19回の反復ループで複雑なフラクタル的パターンを生成
+- **回転行列変形**: 各反復でUV座標を回転行列で変換し、有機的な動きを実現
+- **トーンマッピング**: 非線形のカラー圧縮で宇宙的な色彩を表現
 
 Uniform は `iResolution` (vec2) と `iTime` (float) のみ。
 
@@ -61,4 +70,5 @@ Uniform は `iResolution` (vec2) と `iTime` (float) のみ。
 
 ## クレジット
 
-- 元シェーダー: [Jan Mróz (jaszunio15)](https://www.shadertoy.com/user/jaszunio15) — CC BY 3.0
+- シェーダー1: [Jan Mróz (jaszunio15)](https://www.shadertoy.com/user/jaszunio15) — CC BY 3.0
+- シェーダー2: [Nguyen2007](https://www.shadertoy.com/view/XXyGzh) — CC BY-NC-SA 3.0

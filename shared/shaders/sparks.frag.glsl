@@ -172,7 +172,7 @@ vec3 layeredParticles(in vec2 uv, in float sizeMod, in float alphaMod, in int la
 }
 
 void main() {
-    vec2 fragCoord = vUV * iResolution;
+    vec2 fragCoord = vec2(vUV.x, 1.0 - vUV.y) * iResolution;
     vec2 uv = (2.0 * fragCoord - iResolution.xy) / iResolution.x;
 
     float vignette = 1.0 - smoothstep(0.4, 1.4, length(uv + vec2(0.0, 0.3)));

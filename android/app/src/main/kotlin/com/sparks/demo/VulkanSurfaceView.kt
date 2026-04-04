@@ -63,6 +63,7 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
 
     fun onDestroy() {
         stopRenderThread()
+        nativeShutdown()
     }
 
     private fun startRenderThread() {
@@ -100,6 +101,7 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
     private external fun nativeDestroy()
     private external fun nativeTouch(x: Float, y: Float, action: Int)
     private external fun nativeResize(width: Int, height: Int)
+    private external fun nativeShutdown()
 
     companion object {
         init {

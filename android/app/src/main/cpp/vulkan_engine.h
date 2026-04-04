@@ -23,8 +23,13 @@ public:
     ~VulkanEngine();
 
     bool init(ANativeWindow* window, AAssetManager* assetManager);
+    bool reinitSurface(ANativeWindow* window);
+    void pause();
+    void cleanupSurface();
     void render();
     void onResize(uint32_t width, uint32_t height);
+
+    bool isInitialized() const { return mInitialized; }
 
 private:
     bool createInstance();
@@ -76,4 +81,5 @@ private:
 
     bool mNeedsResize = false;
     bool mInitialized = false;
+    bool mPaused = false;
 };

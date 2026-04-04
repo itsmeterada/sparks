@@ -14,47 +14,49 @@
 static VulkanEngine* gEngine = nullptr;
 static ANativeWindow* gWindow = nullptr;
 
+static AAssetManager* getAssetManager(JNIEnv* env) {
+    jclass contextClass = env->FindClass("android/app/ActivityThread");
+    jmethodID currentAppMethod = env->GetStaticMethodID(contextClass, "currentApplication",
+                                                         "()Landroid/app/Application;");
+    jobject appContext = env->CallStaticObjectMethod(contextClass, currentAppMethod);
+    if (appContext == nullptr) return nullptr;
+
+    jclass contextCls = env->FindClass("android/content/Context");
+    jmethodID getAssetsMethod = env->GetMethodID(contextCls, "getAssets",
+                                                  "()Landroid/content/res/AssetManager;");
+    jobject jAssetManager = env->CallObjectMethod(appContext, getAssetsMethod);
+    if (jAssetManager == nullptr) return nullptr;
+
+    return AAssetManager_fromJava(env, jAssetManager);
+}
+
 extern "C" {
 
 JNIEXPORT void JNICALL
-Java_com_sparks_demo_VulkanSurfaceView_nativeInit(JNIEnv* env, jobject /* thiz */, jobject surface) {
-    if (gEngine != nullptr) {
-        delete gEngine;
-        gEngine = nullptr;
-    }
-    if (gWindow != nullptr) {
-        ANativeWindow_release(gWindow);
-        gWindow = nullptr;
-    }
-
-    gWindow = ANativeWindow_fromSurface(env, surface);
-    if (gWindow == nullptr) {
+Java_com_sparks_demo_VulkanSurfaceView_nativeInit(JNIEnv* env, jobject, jobject surface) {
+    ANativeWindow* newWindow = ANativeWindow_fromSurface(env, surface);
+    if (newWindow == nullptr) {
         LOGE("Failed to get ANativeWindow from Surface");
         return;
     }
 
-    // Get AAssetManager from the app context
-    jclass surfaceViewClass = env->GetObjectClass(/* thiz */ surface);
-    // We need the asset manager from the context. Get it via the activity.
-    // Since we receive a Surface object, we need to get the AssetManager differently.
-    // We'll pass nullptr and load shaders from a fallback embedded approach,
-    // but the proper way is to get it from the Context.
-    // Let's get the AssetManager through the Android context.
-
-    // Get the context from the calling class
-    jclass contextClass = env->FindClass("android/app/ActivityThread");
-    jmethodID currentAppMethod = env->GetStaticMethodID(contextClass, "currentApplication", "()Landroid/app/Application;");
-    jobject appContext = env->CallStaticObjectMethod(contextClass, currentAppMethod);
-
-    AAssetManager* assetManager = nullptr;
-    if (appContext != nullptr) {
-        jclass contextCls = env->FindClass("android/content/Context");
-        jmethodID getAssetsMethod = env->GetMethodID(contextCls, "getAssets", "()Landroid/content/res/AssetManager;");
-        jobject jAssetManager = env->CallObjectMethod(appContext, getAssetsMethod);
-        if (jAssetManager != nullptr) {
-            assetManager = AAssetManager_fromJava(env, jAssetManager);
-        }
+    if (gWindow != nullptr) {
+        ANativeWindow_release(gWindow);
     }
+    gWindow = newWindow;
+
+    // If engine already exists, just reinit the surface (fast path for rotation)
+    if (gEngine != nullptr && gEngine->isInitialized()) {
+        if (gEngine->reinitSurface(gWindow)) {
+            LOGI("Surface reinitialized (engine reused)");
+            return;
+        }
+        // reinit failed, fall through to full init
+        delete gEngine;
+        gEngine = nullptr;
+    }
+
+    AAssetManager* assetManager = getAssetManager(env);
 
     gEngine = new VulkanEngine();
     if (!gEngine->init(gWindow, assetManager)) {
@@ -67,14 +69,41 @@ Java_com_sparks_demo_VulkanSurfaceView_nativeInit(JNIEnv* env, jobject /* thiz *
 }
 
 JNIEXPORT void JNICALL
-Java_com_sparks_demo_VulkanSurfaceView_nativeRender(JNIEnv* /* env */, jobject /* thiz */) {
+Java_com_sparks_demo_VulkanSurfaceView_nativeRender(JNIEnv*, jobject) {
     if (gEngine != nullptr) {
         gEngine->render();
     }
 }
 
 JNIEXPORT void JNICALL
-Java_com_sparks_demo_VulkanSurfaceView_nativeDestroy(JNIEnv* /* env */, jobject /* thiz */) {
+Java_com_sparks_demo_VulkanSurfaceView_nativeDestroy(JNIEnv*, jobject) {
+    if (gEngine != nullptr) {
+        // Don't delete the engine — just pause and release the surface.
+        // The engine will be reused if a new surface is created (rotation).
+        gEngine->cleanupSurface();
+        LOGI("Surface released (engine kept alive)");
+    }
+    if (gWindow != nullptr) {
+        ANativeWindow_release(gWindow);
+        gWindow = nullptr;
+    }
+}
+
+JNIEXPORT void JNICALL
+Java_com_sparks_demo_VulkanSurfaceView_nativeTouch(JNIEnv*, jobject, jfloat x, jfloat y, jint action) {
+    (void)x; (void)y; (void)action;
+}
+
+JNIEXPORT void JNICALL
+Java_com_sparks_demo_VulkanSurfaceView_nativeResize(JNIEnv*, jobject, jint width, jint height) {
+    if (gEngine != nullptr) {
+        gEngine->onResize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+    }
+}
+
+// Called when the activity is truly finishing
+JNIEXPORT void JNICALL
+Java_com_sparks_demo_VulkanSurfaceView_nativeShutdown(JNIEnv*, jobject) {
     if (gEngine != nullptr) {
         delete gEngine;
         gEngine = nullptr;
@@ -83,22 +112,7 @@ Java_com_sparks_demo_VulkanSurfaceView_nativeDestroy(JNIEnv* /* env */, jobject 
         ANativeWindow_release(gWindow);
         gWindow = nullptr;
     }
-    LOGI("Vulkan engine destroyed");
-}
-
-JNIEXPORT void JNICALL
-Java_com_sparks_demo_VulkanSurfaceView_nativeTouch(JNIEnv* /* env */, jobject /* thiz */,
-                                                    jfloat x, jfloat y, jint action) {
-    // Touch input not used in fullscreen shader mode
-    (void)x; (void)y; (void)action;
-}
-
-JNIEXPORT void JNICALL
-Java_com_sparks_demo_VulkanSurfaceView_nativeResize(JNIEnv* /* env */, jobject /* thiz */,
-                                                     jint width, jint height) {
-    if (gEngine != nullptr) {
-        gEngine->onResize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-    }
+    LOGI("Vulkan engine fully destroyed");
 }
 
 } // extern "C"

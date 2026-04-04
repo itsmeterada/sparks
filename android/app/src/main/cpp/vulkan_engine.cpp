@@ -49,9 +49,54 @@ bool VulkanEngine::init(ANativeWindow* window, AAssetManager* assetManager) {
     if (!createGraphicsPipeline()) return false;
 
     mStartTime = std::chrono::high_resolution_clock::now();
+    mPaused = false;
     mInitialized = true;
     LOGI("Vulkan engine fully initialized");
     return true;
+}
+
+bool VulkanEngine::reinitSurface(ANativeWindow* window) {
+    if (!mInitialized) return false;
+
+    vkDeviceWaitIdle(mDevice);
+
+    cleanupSwapchain();
+
+    // Destroy old surface
+    if (mSurface != VK_NULL_HANDLE) {
+        vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
+        mSurface = VK_NULL_HANDLE;
+    }
+
+    mWindow = window;
+    if (!createSurface()) return false;
+    if (!createSwapchain()) return false;
+    if (!createFramebuffers()) return false;
+
+    mPaused = false;
+    LOGI("Surface reinitialized for new window");
+    return true;
+}
+
+void VulkanEngine::pause() {
+    if (!mInitialized) return;
+    mPaused = true;
+    vkDeviceWaitIdle(mDevice);
+}
+
+void VulkanEngine::cleanupSurface() {
+    if (!mInitialized) return;
+
+    vkDeviceWaitIdle(mDevice);
+    cleanupSwapchain();
+
+    if (mSurface != VK_NULL_HANDLE) {
+        vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
+        mSurface = VK_NULL_HANDLE;
+    }
+
+    mPaused = true;
+    LOGI("Surface cleaned up (engine kept alive)");
 }
 
 bool VulkanEngine::createInstance() {
@@ -522,7 +567,7 @@ void VulkanEngine::recreateSwapchain() {
 }
 
 void VulkanEngine::render() {
-    if (!mInitialized) return;
+    if (!mInitialized || mPaused) return;
 
     if (mNeedsResize) {
         mNeedsResize = false;

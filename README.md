@@ -2,6 +2,8 @@
 
 フルスクリーンGPUシェーダーデモ — レイヤードVoronoiパーティクルとプロシージャルスモークによる炎の火花アニメーション。
 
+![Sparks スクリーンショット](./screenshot.png)
+
 Jan Mróz (jaszunio15) 氏の [Shadertoy シェーダー](https://www.shadertoy.com/view/4tXXzj) をネイティブモバイルに移植。ライセンス: CC BY 3.0。
 
 [English version](README_en.md)

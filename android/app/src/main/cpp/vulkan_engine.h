@@ -10,6 +10,7 @@
 #include "vulkan_utils.h"
 
 static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+static constexpr int SHADER_COUNT = 3;
 
 struct PushConstants {
     float iResolutionX;
@@ -45,6 +46,7 @@ private:
     bool createCommandBuffers();
     bool createSyncObjects();
     bool createGraphicsPipeline();
+    bool createTexture();
     void cleanupSwapchain();
     void recreateSwapchain();
 
@@ -68,9 +70,17 @@ private:
     VkRenderPass mRenderPass = VK_NULL_HANDLE;
     std::vector<VkFramebuffer> mFramebuffers;
     VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
-    VkPipeline mGraphicsPipeline = VK_NULL_HANDLE;
-    VkPipeline mGraphicsPipeline2 = VK_NULL_HANDLE;
-    int mCurrentShader = 0; // 0 = sparks, 1 = cosmic
+    VkPipeline mPipelines[SHADER_COUNT] = {};
+    int mCurrentShader = 0;
+
+    // Texture for starship shader
+    VkImage mTextureImage = VK_NULL_HANDLE;
+    VkDeviceMemory mTextureMemory = VK_NULL_HANDLE;
+    VkImageView mTextureImageView = VK_NULL_HANDLE;
+    VkSampler mTextureSampler = VK_NULL_HANDLE;
+    VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
+    VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
+    VkDescriptorSet mDescriptorSet = VK_NULL_HANDLE;
 
     VkCommandPool mCommandPool = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> mCommandBuffers;

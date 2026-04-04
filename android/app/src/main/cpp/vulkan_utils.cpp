@@ -78,6 +78,24 @@ Mat4 mat4Perspective(float fovRadians, float aspect, float nearZ, float farZ) {
     return result;
 }
 
+std::vector<uint8_t> loadRawAsset(AAssetManager* assetManager, const char* filename) {
+    if (assetManager == nullptr) {
+        LOGE("AssetManager is null, cannot load asset: %s", filename);
+        return {};
+    }
+    AAsset* asset = AAssetManager_open(assetManager, filename, AASSET_MODE_BUFFER);
+    if (asset == nullptr) {
+        LOGE("Failed to open asset: %s", filename);
+        return {};
+    }
+    size_t size = AAsset_getLength(asset);
+    std::vector<uint8_t> data(size);
+    AAsset_read(asset, data.data(), size);
+    AAsset_close(asset);
+    LOGI("Loaded asset %s (%zu bytes)", filename, size);
+    return data;
+}
+
 std::vector<uint32_t> loadShaderFromAsset(AAssetManager* assetManager, const char* filename) {
     if (assetManager == nullptr) {
         LOGE("AssetManager is null, cannot load shader: %s", filename);

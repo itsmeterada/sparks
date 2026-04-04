@@ -12,9 +12,11 @@ class MetalRenderer {
     private let device: MTLDevice
     private let commandQueue: MTLCommandQueue
     private let pipelineStates: [MTLRenderPipelineState]
+    private let starsTexture: MTLTexture?
+    private let samplerState: MTLSamplerState
 
     private let startTime: CFAbsoluteTime
-    private var currentShader: Int = 0 // 0 = sparks, 1 = cosmic
+    private var currentShader: Int = 0
 
     var screenSize: CGSize = CGSize(width: 1, height: 1)
 
@@ -31,7 +33,7 @@ class MetalRenderer {
             fatalError("Failed to create default Metal library")
         }
 
-        let fragmentNames = ["sparks_fragment", "cosmic_fragment"]
+        let fragmentNames = ["sparks_fragment", "cosmic_fragment", "starship_fragment"]
         var states: [MTLRenderPipelineState] = []
         for name in fragmentNames {
             let descriptor = MTLRenderPipelineDescriptor()
@@ -45,6 +47,25 @@ class MetalRenderer {
             }
         }
         self.pipelineStates = states
+
+        // Load stars texture
+        let loader = MTKTextureLoader(device: device)
+        if let url = Bundle.main.url(forResource: "stars", withExtension: "jpg") {
+            self.starsTexture = try? loader.newTexture(URL: url, options: [
+                .textureUsage: NSNumber(value: MTLTextureUsage.shaderRead.rawValue),
+                .textureStorageMode: NSNumber(value: MTLStorageMode.private.rawValue)
+            ])
+        } else {
+            self.starsTexture = nil
+        }
+
+        // Create sampler
+        let samplerDescriptor = MTLSamplerDescriptor()
+        samplerDescriptor.minFilter = .linear
+        samplerDescriptor.magFilter = .linear
+        samplerDescriptor.sAddressMode = .repeat
+        samplerDescriptor.tAddressMode = .repeat
+        self.samplerState = device.makeSamplerState(descriptor: samplerDescriptor)!
     }
 
     func toggleShader() {
@@ -72,7 +93,12 @@ class MetalRenderer {
         encoder.setRenderPipelineState(pipelineStates[currentShader])
         encoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 0)
 
-        // Draw fullscreen triangle (3 vertices, no vertex buffer)
+        // Bind texture and sampler for starship shader
+        if let tex = starsTexture {
+            encoder.setFragmentTexture(tex, index: 0)
+            encoder.setFragmentSamplerState(samplerState, index: 0)
+        }
+
         encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
 
         encoder.endEncoding()

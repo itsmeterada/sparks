@@ -173,6 +173,40 @@ static float3 layeredParticles(float2 uv, float sizeMod, float alphaMod, int lay
     return particles;
 }
 
+// --- Starship shader (Shader 3) ---
+// Ported from https://www.shadertoy.com/view/l3cfW4
+// Original Author: @XorDev
+// License: CC BY-NC-SA 3.0
+
+fragment float4 starship_fragment(VertexOut in [[stage_in]],
+                                  constant Uniforms& uniforms [[buffer(0)]],
+                                  texture2d<float> iChannel0 [[texture(0)]],
+                                  sampler texSampler [[sampler(0)]]) {
+    float2 fragCoord = in.uv * uniforms.iResolution;
+
+    float2 r = uniforms.iResolution;
+    float2 p = (fragCoord + fragCoord - r) / r.y * float2x2(float2(3, 4), float2(4, -3)) / 1e2;
+
+    float4 S = float4(0.0);
+    float4 C = float4(1, 2, 3, 0);
+    float4 W;
+
+    for (float t = uniforms.iTime, T = 0.1 * t + p.y, i = 0.0; i++ < 50.0;
+
+        S += (cos(W = sin(i) * C) + 1.0)
+           * exp(sin(i + i * T))
+           / length(max(p,
+               p / float2(2.0, iChannel0.sample(texSampler, p / exp(W.x) + float2(i, t) / 8.0).x * 40.0))
+           ) / 1e4)
+
+        p += 0.02 * cos(i * (C.xz + 8.0 + i) + T + T);
+
+    C -= 1.0;
+    float4 o = tanh(p.x * C + S * S);
+    o.a = 1.0;
+    return o;
+}
+
 // --- Cosmic shader (Shader 2) ---
 // Ported from https://www.shadertoy.com/view/XXyGzh
 // Original Author: Nguyen2007

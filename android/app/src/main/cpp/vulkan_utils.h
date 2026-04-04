@@ -47,6 +47,7 @@ struct BufferAndMemory {
 };
 
 std::vector<uint32_t> loadShaderFromAsset(AAssetManager* assetManager, const char* filename);
+std::vector<uint8_t> loadRawAsset(AAssetManager* assetManager, const char* filename);
 VkShaderModule createShaderModule(VkDevice device, const std::vector<uint32_t>& code);
 uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 BufferAndMemory createBuffer(VkDevice device, VkPhysicalDevice physicalDevice,

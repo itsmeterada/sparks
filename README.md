@@ -2,12 +2,13 @@
 
 フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。画面タップでシェーダーを切り替え。
 
-| シェーダー1: Sparks | シェーダー2: Cosmic |
-|:---:|:---:|
-| ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) |
+| シェーダー1: Sparks | シェーダー2: Cosmic | シェーダー3: Starship |
+|:---:|:---:|:---:|
+| ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) | ![Starship](./screenshot3.png) |
 
 - **シェーダー1**: Jan Mróz (jaszunio15) 氏の [Sparks](https://www.shadertoy.com/view/4tXXzj) — レイヤードVoronoiパーティクルとプロシージャルスモークによる炎の火花。ライセンス: CC BY 3.0。
 - **シェーダー2**: Nguyen2007 氏の [Cosmic](https://www.shadertoy.com/view/XXyGzh) — プロシージャルな宇宙的アブストラクトエフェクト。ライセンス: CC BY-NC-SA 3.0。
+- **シェーダー3**: @XorDev 氏の [Starship](https://www.shadertoy.com/view/l3cfW4) — テクスチャベースのパーティクルトレイルによる宇宙船デブリエフェクト。ライセンス: CC BY-NC-SA 3.0。
 
 [English version](README_en.md)
 
@@ -26,7 +27,8 @@ sparks/
 │   ├── fullscreen.vert.glsl   # フルスクリーン三角形 頂点シェーダー
 │   ├── sparks.frag.glsl       # シェーダー1 フラグメントシェーダー (Vulkan)
 │   ├── cosmic.frag.glsl       # シェーダー2 フラグメントシェーダー (Vulkan)
-│   ├── sparks.metal           # Metal 頂点 + フラグメントシェーダー (両シェーダー)
+│   ├── starship.frag.glsl     # シェーダー3 フラグメントシェーダー (Vulkan)
+│   ├── sparks.metal           # Metal 頂点 + フラグメントシェーダー (全シェーダー)
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
 └── ios/                # Xcode プロジェクト (Metal)
@@ -34,7 +36,7 @@ sparks/
 
 ## 仕組み
 
-各エフェクトはフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。画面タップで2つのシェーダーを切り替えられます。
+各エフェクトはフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。画面タップで3つのシェーダーを切り替えられます。
 
 ### シェーダー1: Sparks
 - **Voronoiベースの火花パーティクル**: アニメーションするVoronoiセルのレイヤードグリッド、各セルにブルーム付きの光る火花
@@ -47,7 +49,12 @@ sparks/
 - **回転行列変形**: 各反復でUV座標を回転行列で変換し、有機的な動きを実現
 - **トーンマッピング**: 非線形のカラー圧縮で宇宙的な色彩を表現
 
-Uniform は `iResolution` (vec2) と `iTime` (float) のみ。
+### シェーダー3: Starship
+- **50パーティクルループ**: 各パーティクルが独立した軌跡とフラッシュ周波数を持つ
+- **テクスチャノイズ**: `stars.jpg` テクスチャをサンプリングして雲状の奥行き感を生成
+- **トレイルエフェクト**: 非対称スケーリングで長い尾を持つデブリパーティクルを表現
+
+Uniform は `iResolution` (vec2) と `iTime` (float)。シェーダー3はテクスチャ (`iChannel0`) も使用。
 
 ## ビルド
 
@@ -72,3 +79,4 @@ Uniform は `iResolution` (vec2) と `iTime` (float) のみ。
 
 - シェーダー1: [Jan Mróz (jaszunio15)](https://www.shadertoy.com/user/jaszunio15) — CC BY 3.0
 - シェーダー2: [Nguyen2007](https://www.shadertoy.com/view/XXyGzh) — CC BY-NC-SA 3.0
+- シェーダー3: [@XorDev](https://www.shadertoy.com/view/l3cfW4) — CC BY-NC-SA 3.0

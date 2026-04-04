@@ -67,6 +67,7 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
 
     private fun startRenderThread() {
         if (renderThread?.isRunning == true) return
+        if (paused) return
         val thread = RenderThread()
         renderThread = thread
         thread.start()

@@ -184,6 +184,10 @@ bool VulkanEngine::createSwapchain() {
                                            std::min(capabilities.maxImageExtent.height, mSwapchainExtent.height));
     }
 
+    // Track the current surface transform so we can derive the real display
+    // orientation when passing iResolution to the shader.
+    mCurrentTransform = capabilities.currentTransform;
+
     uint32_t imageCount = 2;
     if (imageCount < capabilities.minImageCount) imageCount = capabilities.minImageCount;
     if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount) {
@@ -583,9 +587,16 @@ void VulkanEngine::render() {
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     // Push constants: iResolution + iTime
+    // When preTransform is ROTATE_90 or ROTATE_270, the swapchain extent is in
+    // the device's native orientation (usually portrait). The shader needs the
+    // display-oriented resolution, so we swap width/height for rotated transforms.
     PushConstants pc{};
-    pc.iResolutionX = static_cast<float>(mSwapchainExtent.width);
-    pc.iResolutionY = static_cast<float>(mSwapchainExtent.height);
+    bool rotated = (mCurrentTransform == VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR ||
+                    mCurrentTransform == VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR);
+    pc.iResolutionX = rotated ? static_cast<float>(mSwapchainExtent.height)
+                              : static_cast<float>(mSwapchainExtent.width);
+    pc.iResolutionY = rotated ? static_cast<float>(mSwapchainExtent.width)
+                              : static_cast<float>(mSwapchainExtent.height);
     pc.iTime = iTime;
     vkCmdPushConstants(cmd, mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &pc);
 

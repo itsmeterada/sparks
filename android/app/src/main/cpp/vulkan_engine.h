@@ -54,6 +54,7 @@ private:
     VkSwapchainKHR mSwapchain = VK_NULL_HANDLE;
     VkFormat mSwapchainFormat = VK_FORMAT_R8G8B8A8_UNORM;
     VkExtent2D mSwapchainExtent{};
+    VkSurfaceTransformFlagBitsKHR mCurrentTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     std::vector<VkImage> mSwapchainImages;
     std::vector<VkImageView> mSwapchainImageViews;
 

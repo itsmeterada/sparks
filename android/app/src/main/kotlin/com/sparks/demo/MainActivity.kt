@@ -31,15 +31,15 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         vulkanSurfaceView.onDestroy()
+        super.onDestroy()
     }
 
     private fun hideSystemBars() {
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false)
-            val controller = window.insetsController
-            if (controller != null) {
+            window.insetsController?.let { controller ->
                 controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
                 controller.systemBarsBehavior =
                     WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -55,6 +55,5 @@ class MainActivity : Activity() {
                     or View.SYSTEM_UI_FLAG_FULLSCREEN
                 )
         }
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 }

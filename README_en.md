@@ -70,7 +70,14 @@ sparks/
 
 ## How It Works
 
-Each effect runs as a single fragment shader pass on a fullscreen triangle. No geometry or particle buffers needed — every pixel is computed procedurally each frame. Use the top-right button to cycle through 10 shaders. Drag to control camera/viewpoint.
+Each effect runs as a single fragment shader pass on a fullscreen triangle. No geometry or particle buffers needed — every pixel is computed procedurally each frame. Drag to control camera/viewpoint.
+
+### Controls (top-right)
+| Button | Function |
+|:---:|---|
+| ◇ | Cycle through 10 shaders |
+| ◎ | Toggle mode (Sparks: parallax / Rainforest: temporal reprojection / Mandelbulb: FXAA) |
+| 1 / ½ | Half-resolution toggle (½ orange = render at half size + linear upscale) |
 
 ### Shader 1: Sparks
 - **Voronoi-based spark particles**: Layered grid of animated Voronoi cells, each with a glowing bloom spark

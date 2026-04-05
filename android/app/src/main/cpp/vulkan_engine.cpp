@@ -491,7 +491,8 @@ bool VulkanEngine::createGraphicsPipeline() {
         "shaders/sparks.frag.spv", "shaders/cosmic.frag.spv",
         "shaders/starship.frag.spv", "shaders/clouds.frag.spv",
         "shaders/seascape.frag.spv", "shaders/rainforest.frag.spv",
-        "shaders/plasma.frag.spv", "shaders/grid.frag.spv"
+        "shaders/plasma.frag.spv", "shaders/grid.frag.spv",
+        "shaders/interstellar.frag.spv"
     };
     std::vector<uint32_t> fragCodes[SHADER_COUNT];
     VkShaderModule fragModules[SHADER_COUNT]{};
@@ -680,8 +681,8 @@ void VulkanEngine::render() {
 
     // Bind appropriate descriptor set
     // Shader 2 (starship) → set 0, Shader 3 (clouds) → set 1, Shader 5 (rainforest) → set 2, others → set 0
-    // Shader 2(starship)→set0, 3(clouds)/6(plasma)→set1, 5(rainforest)→set2, 7(grid)→set3
-    int dsIndex = (mCurrentShader == 3 || mCurrentShader == 6) ? 1
+    // Shader 2(starship)→set0, 3(clouds)/6(plasma)/8(interstellar)→set1, 5(rainforest)→set2, 7(grid)→set3
+    int dsIndex = (mCurrentShader == 3 || mCurrentShader == 6 || mCurrentShader == 8) ? 1
                 : (mCurrentShader == 5) ? 2
                 : (mCurrentShader == 7) ? 3 : 0;
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[dsIndex], 0, nullptr);

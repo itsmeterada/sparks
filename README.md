@@ -4,15 +4,13 @@
 
 フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。画面タップでシェーダーを切り替え。
 
-| シェーダー1: Sparks | シェーダー2: Cosmic |
-|:---:|:---:|
-| ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) |
-| **シェーダー3: Starship** | **シェーダー4: Clouds** |
-| ![Starship](./screenshot3.png) | ![Clouds](./screenshot4.png) |
-| **シェーダー5: Seascape** | **シェーダー6: Rainforest** |
-| ![Seascape](./screenshot5.png) | ![Rainforest](./screenshot6.png) |
-| **シェーダー7: Plasma Globe** | **シェーダー8: Grid** |
-| ![Plasma Globe](./screenshot7.png) | ![Grid](./screenshot8.png) |
+| Sparks | Cosmic | Starship |
+|:---:|:---:|:---:|
+| ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) | ![Starship](./screenshot3.png) |
+| **Clouds** | **Seascape** | **Rainforest** |
+| ![Clouds](./screenshot4.png) | ![Seascape](./screenshot5.png) | ![Rainforest](./screenshot6.png) |
+| **Plasma Globe** | **Grid** | **Interstellar** |
+| ![Plasma Globe](./screenshot7.png) | ![Grid](./screenshot8.png) | ![Interstellar](./screenshot9.png) |
 
 - **シェーダー1**: Jan Mróz (jaszunio15) 氏の [Sparks](https://www.shadertoy.com/view/4tXXzj) — レイヤードVoronoiパーティクルとプロシージャルスモークによる炎の火花。ライセンス: CC BY 3.0。
 - **シェーダー2**: Nguyen2007 氏の [Cosmic](https://www.shadertoy.com/view/XXyGzh) — プロシージャルな宇宙的アブストラクトエフェクト。ライセンス: CC BY-NC-SA 3.0。
@@ -22,6 +20,7 @@
 - **シェーダー6**: Inigo Quilez 氏の [Rainforest](https://www.shadertoy.com/view/4ttSWf) — fBM地形・木・雲によるプロシージャル熱帯雨林。ライセンス: 教育目的のみ。
 - **シェーダー7**: nimitz 氏の [Plasma Globe](https://www.shadertoy.com/view/XsjXRm) — ボリュメトリックレイマーチングによるプラズマグローブ。ライセンス: CC BY-NC-SA 3.0。
 - **シェーダー8**: Shane 氏の [Warped Extruded Skewed Grid](https://www.shadertoy.com/view/wtfBDf) — スキューグリッドのエクストルージョンによるデモシーン風トンネル。ライセンス: CC BY-NC-SA 3.0。
+- **シェーダー9**: Hazel Quantock 氏の [Interstellar](https://www.shadertoy.com/view/Xdl3D2) — ノイズテクスチャベースの星間ワープエフェクト。ライセンス: CC0 (パブリックドメイン)。
 
 ## 対応プラットフォーム
 
@@ -44,6 +43,7 @@ sparks/
 │   ├── rainforest.frag.glsl   # シェーダー6 フラグメントシェーダー (Vulkan)
 │   ├── plasma.frag.glsl       # シェーダー7 フラグメントシェーダー (Vulkan)
 │   ├── grid.frag.glsl         # シェーダー8 フラグメントシェーダー (Vulkan)
+│   ├── interstellar.frag.glsl # シェーダー9 フラグメントシェーダー (Vulkan)
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
 └── ios/                # Xcode プロジェクト (Metal)
@@ -61,7 +61,7 @@ sparks/
 
 ## 仕組み
 
-各エフェクトはフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。右上のボタンで8つのシェーダーを切り替えられます。ドラッグでカメラ/視点操作。
+各エフェクトはフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。右上のボタンで9つのシェーダーを切り替えられます。ドラッグでカメラ/視点操作。
 
 ### シェーダー1: Sparks
 - **Voronoiベースの火花パーティクル**: アニメーションするVoronoiセルのレイヤードグリッド、各セルにブルーム付きの光る火花
@@ -109,7 +109,12 @@ sparks/
 - **空間ワープ**: カメラパス+ツイストでトンネル状の空間を生成
 - **グロー演出**: ランダムに光るブロックでデモシーン風の雰囲気を演出
 
-Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8はテクスチャも使用。
+### シェーダー9: Interstellar
+- **星フィールド**: ノイズテクスチャから星の位置と深度を生成
+- **ワープ速度変動**: sin/cosベースの速度変化でハイパースペース感を演出
+- **RGB色シフト**: 奥行きに応じた赤・緑・青の分離で立体感を表現
+
+Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9はテクスチャも使用。
 
 ## ビルド
 
@@ -140,3 +145,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 - シェーダー6: [Inigo Quilez](https://www.shadertoy.com/view/4ttSWf) — 教育目的のみ（再配布不可）
 - シェーダー7: [nimitz (@stormoid)](https://www.shadertoy.com/view/XsjXRm) — CC BY-NC-SA 3.0
 - シェーダー8: [Shane](https://www.shadertoy.com/view/wtfBDf) — CC BY-NC-SA 3.0
+- シェーダー9: [Hazel Quantock](https://www.shadertoy.com/view/Xdl3D2) — CC0 (パブリックドメイン)

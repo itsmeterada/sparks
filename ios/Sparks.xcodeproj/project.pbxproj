@@ -26,6 +26,8 @@
 		A10025 /* plasma.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10025 /* plasma.metal */; };
 		A10026 /* rainforest.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10026 /* rainforest.metal */; };
 		A10027 /* grid.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10027 /* grid.metal */; };
+		A10028 /* interstellar.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10028 /* interstellar.metal */; };
+		A10029 /* mandelbulb.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10029 /* mandelbulb.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,6 +54,8 @@
 		B10025 /* plasma.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = plasma.metal; sourceTree = "<group>"; };
 		B10026 /* rainforest.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = rainforest.metal; sourceTree = "<group>"; };
 		B10027 /* grid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = grid.metal; sourceTree = "<group>"; };
+		B10028 /* interstellar.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = interstellar.metal; sourceTree = "<group>"; };
+		B10029 /* mandelbulb.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = mandelbulb.metal; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -103,6 +107,8 @@
 				B10025 /* plasma.metal */,
 				B10026 /* rainforest.metal */,
 				B10027 /* grid.metal */,
+				B10028 /* interstellar.metal */,
+				B10029 /* mandelbulb.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -215,6 +221,8 @@
 				A10025 /* plasma.metal in Sources */,
 				A10026 /* rainforest.metal in Sources */,
 				A10027 /* grid.metal in Sources */,
+				A10028 /* interstellar.metal in Sources */,
+				A10029 /* mandelbulb.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -10,7 +10,7 @@
 #include "vulkan_utils.h"
 
 static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-static constexpr int SHADER_COUNT = 6;
+static constexpr int SHADER_COUNT = 7;
 static constexpr int MAX_TEXTURES = 4;
 static constexpr int MAX_TEX_BINDINGS = 3;
 

@@ -476,7 +476,8 @@ bool VulkanEngine::createGraphicsPipeline() {
     const char* fragNames[SHADER_COUNT] = {
         "shaders/sparks.frag.spv", "shaders/cosmic.frag.spv",
         "shaders/starship.frag.spv", "shaders/clouds.frag.spv",
-        "shaders/seascape.frag.spv", "shaders/rainforest.frag.spv"
+        "shaders/seascape.frag.spv", "shaders/rainforest.frag.spv",
+        "shaders/plasma.frag.spv"
     };
     std::vector<uint32_t> fragCodes[SHADER_COUNT];
     VkShaderModule fragModules[SHADER_COUNT]{};
@@ -665,7 +666,8 @@ void VulkanEngine::render() {
 
     // Bind appropriate descriptor set
     // Shader 2 (starship) → set 0, Shader 3 (clouds) → set 1, Shader 5 (rainforest) → set 2, others → set 0
-    int dsIndex = (mCurrentShader == 3) ? 1 : (mCurrentShader == 5) ? 2 : 0;
+    // Shader 2(starship)→set0, 3(clouds)/6(plasma)→set1, 5(rainforest)→set2
+    int dsIndex = (mCurrentShader == 3 || mCurrentShader == 6) ? 1 : (mCurrentShader == 5) ? 2 : 0;
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[dsIndex], 0, nullptr);
 
     VkViewport vp{}; vp.width = (float)mSwapchainExtent.width; vp.height = (float)mSwapchainExtent.height; vp.maxDepth = 1.0f;

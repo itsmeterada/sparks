@@ -26,7 +26,9 @@ VulkanEngine::~VulkanEngine() {
     for (int i = 0; i < SHADER_COUNT; i++)
         if (mPipelines[i] != VK_NULL_HANDLE) vkDestroyPipeline(mDevice, mPipelines[i], nullptr);
     if (mPipelineLayout != VK_NULL_HANDLE) vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
+    if (mFxaaPipeline != VK_NULL_HANDLE) vkDestroyPipeline(mDevice, mFxaaPipeline, nullptr);
     cleanupHistoryBuffer();
+    if (mOffscreenRenderPass != VK_NULL_HANDLE) vkDestroyRenderPass(mDevice, mOffscreenRenderPass, nullptr);
     if (mDescriptorPool != VK_NULL_HANDLE) vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
     if (mDescriptorSetLayout != VK_NULL_HANDLE) vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
     if (mTextureSampler != VK_NULL_HANDLE) vkDestroySampler(mDevice, mTextureSampler, nullptr);
@@ -58,6 +60,7 @@ bool VulkanEngine::init(ANativeWindow* window, AAssetManager* assetManager) {
     if (!createCommandBuffers()) return false;
     if (!createSyncObjects()) return false;
     if (!createTextures()) return false;
+    if (!createOffscreenRenderPass()) return false;
     if (!createHistoryBuffer()) return false;
     if (!createGraphicsPipeline()) return false;
     mStartTime = std::chrono::high_resolution_clock::now();
@@ -492,7 +495,7 @@ bool VulkanEngine::createGraphicsPipeline() {
         "shaders/starship.frag.spv", "shaders/clouds.frag.spv",
         "shaders/seascape.frag.spv", "shaders/rainforest.frag.spv",
         "shaders/plasma.frag.spv", "shaders/grid.frag.spv",
-        "shaders/interstellar.frag.spv"
+        "shaders/interstellar.frag.spv", "shaders/mandelbulb.frag.spv"
     };
     std::vector<uint32_t> fragCodes[SHADER_COUNT];
     VkShaderModule fragModules[SHADER_COUNT]{};
@@ -551,10 +554,47 @@ bool VulkanEngine::createGraphicsPipeline() {
         }
     }
 
+    // FXAA post-process pipeline (uses main render pass for swapchain output)
+    auto fxaaCode = loadShaderFromAsset(mAssetManager, "shaders/fxaa.frag.spv");
+    if (!fxaaCode.empty()) {
+        VkShaderModule fxaaModule = createShaderModule(mDevice, fxaaCode);
+        if (fxaaModule != VK_NULL_HANDLE) {
+            VkPipelineShaderStageCreateInfo fxaaStages[2]{};
+            fxaaStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+            fxaaStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT; fxaaStages[0].module = vertModule; fxaaStages[0].pName = "main";
+            fxaaStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+            fxaaStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT; fxaaStages[1].module = fxaaModule; fxaaStages[1].pName = "main";
+            pci.pStages = fxaaStages;
+            vkCreateGraphicsPipelines(mDevice, VK_NULL_HANDLE, 1, &pci, nullptr, &mFxaaPipeline);
+            vkDestroyShaderModule(mDevice, fxaaModule, nullptr);
+            LOGI("FXAA pipeline created");
+        }
+    }
+
     vkDestroyShaderModule(mDevice, vertModule, nullptr);
     for (int i = 0; i < SHADER_COUNT; i++) vkDestroyShaderModule(mDevice, fragModules[i], nullptr);
     LOGI("All %d graphics pipelines created", SHADER_COUNT);
     return true;
+}
+
+bool VulkanEngine::createOffscreenRenderPass() {
+    VkAttachmentDescription att{}; att.format = mSwapchainFormat; att.samples = VK_SAMPLE_COUNT_1_BIT;
+    att.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; att.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    att.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; att.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    att.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    att.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    VkAttachmentReference ref{}; ref.attachment = 0; ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    VkSubpassDescription sub{}; sub.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    sub.colorAttachmentCount = 1; sub.pColorAttachments = &ref;
+    VkSubpassDependency dep{}; dep.srcSubpass = VK_SUBPASS_EXTERNAL; dep.dstSubpass = 0;
+    dep.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    dep.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dep.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    dep.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    VkRenderPassCreateInfo ci{}; ci.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    ci.attachmentCount = 1; ci.pAttachments = &att; ci.subpassCount = 1; ci.pSubpasses = &sub;
+    ci.dependencyCount = 1; ci.pDependencies = &dep;
+    return vkCreateRenderPass(mDevice, &ci, nullptr, &mOffscreenRenderPass) == VK_SUCCESS;
 }
 
 bool VulkanEngine::createHistoryBuffer() {
@@ -566,7 +606,7 @@ bool VulkanEngine::createHistoryBuffer() {
     ii.mipLevels = 1; ii.arrayLayers = 1;
     ii.format = mSwapchainFormat; ii.tiling = VK_IMAGE_TILING_OPTIMAL;
     ii.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    ii.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    ii.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     ii.samples = VK_SAMPLE_COUNT_1_BIT;
     if (vkCreateImage(mDevice, &ii, nullptr, &mHistoryImage) != VK_SUCCESS) return false;
 
@@ -622,12 +662,21 @@ bool VulkanEngine::createHistoryBuffer() {
     }
     vkUpdateDescriptorSets(mDevice, MAX_TEX_BINDINGS, writes, 0, nullptr);
 
+    // Create framebuffer for offscreen rendering
+    if (mOffscreenRenderPass != VK_NULL_HANDLE) {
+        VkFramebufferCreateInfo fbci{}; fbci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        fbci.renderPass = mOffscreenRenderPass; fbci.attachmentCount = 1; fbci.pAttachments = &mHistoryView;
+        fbci.width = w; fbci.height = h; fbci.layers = 1;
+        if (vkCreateFramebuffer(mDevice, &fbci, nullptr, &mHistoryFramebuffer) != VK_SUCCESS) return false;
+    }
+
     mFrameCount = 0;
     LOGI("History buffer created: %ux%u", w, h);
     return true;
 }
 
 void VulkanEngine::cleanupHistoryBuffer() {
+    if (mHistoryFramebuffer != VK_NULL_HANDLE) { vkDestroyFramebuffer(mDevice, mHistoryFramebuffer, nullptr); mHistoryFramebuffer = VK_NULL_HANDLE; }
     if (mHistoryView != VK_NULL_HANDLE) { vkDestroyImageView(mDevice, mHistoryView, nullptr); mHistoryView = VK_NULL_HANDLE; }
     if (mHistoryImage != VK_NULL_HANDLE) { vkDestroyImage(mDevice, mHistoryImage, nullptr); mHistoryImage = VK_NULL_HANDLE; }
     if (mHistoryMemory != VK_NULL_HANDLE) { vkFreeMemory(mDevice, mHistoryMemory, nullptr); mHistoryMemory = VK_NULL_HANDLE; }
@@ -671,27 +720,7 @@ void VulkanEngine::render() {
     bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     vkBeginCommandBuffer(cmd, &bi);
 
-    VkClearValue clear{}; clear.color = {{0,0,0,1}};
-    VkRenderPassBeginInfo rpbi{}; rpbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    rpbi.renderPass = mRenderPass; rpbi.framebuffer = mFramebuffers[imageIndex];
-    rpbi.renderArea.extent = mSwapchainExtent; rpbi.clearValueCount = 1; rpbi.pClearValues = &clear;
-    vkCmdBeginRenderPass(cmd, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
-
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelines[mCurrentShader]);
-
-    // Bind appropriate descriptor set
-    // Shader 2 (starship) → set 0, Shader 3 (clouds) → set 1, Shader 5 (rainforest) → set 2, others → set 0
-    // Shader 2(starship)→set0, 3(clouds)/6(plasma)/8(interstellar)→set1, 5(rainforest)→set2, 7(grid)→set3
-    int dsIndex = (mCurrentShader == 3 || mCurrentShader == 6 || mCurrentShader == 8) ? 1
-                : (mCurrentShader == 5) ? 2
-                : (mCurrentShader == 7) ? 3 : 0;
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[dsIndex], 0, nullptr);
-
-    VkViewport vp{}; vp.width = (float)mSwapchainExtent.width; vp.height = (float)mSwapchainExtent.height; vp.maxDepth = 1.0f;
-    vkCmdSetViewport(cmd, 0, 1, &vp);
-    VkRect2D sc{}; sc.extent = mSwapchainExtent;
-    vkCmdSetScissor(cmd, 0, 1, &sc);
-
+    // Prepare push constants early (needed by both passes)
     PushConstants pc{}; pc.iResolutionX = (float)ANativeWindow_getWidth(mWindow);
     pc.iResolutionY = (float)ANativeWindow_getHeight(mWindow); pc.iTime = iTime;
     pc.iMouseX = mMouseX; pc.iMouseY = mMouseY; pc.iMouseZ = mMouseZ; pc.iMouseW = mMouseW;
@@ -703,6 +732,60 @@ void VulkanEngine::render() {
         case VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR: pc.preRotate = 3; break;
         default: pc.preRotate = 0; break;
     }
+
+    VkClearValue clear{}; clear.color = {{0,0,0,1}};
+    VkRenderPassBeginInfo rpbi{}; rpbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    rpbi.renderPass = mRenderPass; rpbi.framebuffer = mFramebuffers[imageIndex];
+    rpbi.renderArea.extent = mSwapchainExtent; rpbi.clearValueCount = 1; rpbi.pClearValues = &clear;
+    // 2-pass rendering for Mandelbulb+FXAA (shader 9, mode 1)
+    bool doFxaa = (mCurrentShader == 9 && mMode == 1 && mFxaaPipeline != VK_NULL_HANDLE && mHistoryFramebuffer != VK_NULL_HANDLE);
+
+    if (doFxaa) {
+        // Pass 1: Render Mandelbulb to history buffer (offscreen)
+        VkRenderPassBeginInfo offRpbi{}; offRpbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        offRpbi.renderPass = mOffscreenRenderPass; offRpbi.framebuffer = mHistoryFramebuffer;
+        offRpbi.renderArea.extent = mSwapchainExtent;
+        VkClearValue offClear{}; offClear.color = {{0,0,0,1}};
+        offRpbi.clearValueCount = 1; offRpbi.pClearValues = &offClear;
+        vkCmdBeginRenderPass(cmd, &offRpbi, VK_SUBPASS_CONTENTS_INLINE);
+
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelines[mCurrentShader]);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[0], 0, nullptr);
+        VkViewport offVp{}; offVp.width = (float)mSwapchainExtent.width; offVp.height = (float)mSwapchainExtent.height; offVp.maxDepth = 1.0f;
+        vkCmdSetViewport(cmd, 0, 1, &offVp);
+        VkRect2D offSc{}; offSc.extent = mSwapchainExtent;
+        vkCmdSetScissor(cmd, 0, 1, &offSc);
+        vkCmdPushConstants(cmd, mPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pc), &pc);
+        vkCmdDraw(cmd, 3, 1, 0, 0);
+        vkCmdEndRenderPass(cmd);
+        // History buffer is now in SHADER_READ_ONLY_OPTIMAL (set by offscreen render pass)
+    }
+
+    vkCmdBeginRenderPass(cmd, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
+
+    if (doFxaa) {
+        // Pass 2: FXAA reads from history buffer, writes to swapchain
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mFxaaPipeline);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[2], 0, nullptr);
+    } else {
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelines[mCurrentShader]);
+    }
+
+    // Bind appropriate descriptor set
+    // Shader 2 (starship) → set 0, Shader 3 (clouds) → set 1, Shader 5 (rainforest) → set 2, others → set 0
+    if (!doFxaa) {
+        // Shader 2(starship)→set0, 3(clouds)/6(plasma)/8(interstellar)→set1, 5(rainforest)→set2, 7(grid)→set3
+        int dsIndex = (mCurrentShader == 3 || mCurrentShader == 6 || mCurrentShader == 8) ? 1
+                    : (mCurrentShader == 5) ? 2
+                    : (mCurrentShader == 7) ? 3 : 0;
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[dsIndex], 0, nullptr);
+    }
+
+    VkViewport vp{}; vp.width = (float)mSwapchainExtent.width; vp.height = (float)mSwapchainExtent.height; vp.maxDepth = 1.0f;
+    vkCmdSetViewport(cmd, 0, 1, &vp);
+    VkRect2D sc{}; sc.extent = mSwapchainExtent;
+    vkCmdSetScissor(cmd, 0, 1, &sc);
+
     vkCmdPushConstants(cmd, mPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pc), &pc);
     vkCmdDraw(cmd, 3, 1, 0, 0);
 

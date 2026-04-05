@@ -4,13 +4,17 @@
 
 Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan / Metal). Tap to switch shaders.
 
-| Sparks | Cosmic | Starship |
-|:---:|:---:|:---:|
-| ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) | ![Starship](./screenshot3.png) |
-| **Clouds** | **Seascape** | **Rainforest** |
-| ![Clouds](./screenshot4.png) | ![Seascape](./screenshot5.png) | ![Rainforest](./screenshot6.png) |
-| **Plasma Globe** | **Grid** | **Interstellar** |
-| ![Plasma Globe](./screenshot7.png) | ![Grid](./screenshot8.png) | ![Interstellar](./screenshot9.png) |
+| Sparks | Cosmic |
+|:---:|:---:|
+| ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) |
+| **Starship** | **Clouds** |
+| ![Starship](./screenshot3.png) | ![Clouds](./screenshot4.png) |
+| **Seascape** | **Rainforest** |
+| ![Seascape](./screenshot5.png) | ![Rainforest](./screenshot6.png) |
+| **Plasma Globe** | **Grid** |
+| ![Plasma Globe](./screenshot7.png) | ![Grid](./screenshot8.png) |
+| **Interstellar** | **Mandelbulb** |
+| ![Interstellar](./screenshot9.png) | ![Mandelbulb](./screenshot10.png) |
 
 - **Shader 1**: [Sparks](https://www.shadertoy.com/view/4tXXzj) by Jan Mróz (jaszunio15) — Layered Voronoi particles with procedural smoke fire sparks. License: CC BY 3.0.
 - **Shader 2**: [Cosmic](https://www.shadertoy.com/view/XXyGzh) by Nguyen2007 — Procedural cosmic abstract effect. License: CC BY-NC-SA 3.0.
@@ -21,6 +25,7 @@ Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan
 - **Shader 7**: [Plasma Globe](https://www.shadertoy.com/view/XsjXRm) by nimitz (@stormoid) — Volumetric raymarched plasma globe with flow noise. License: CC BY-NC-SA 3.0.
 - **Shader 8**: [Warped Extruded Skewed Grid](https://www.shadertoy.com/view/wtfBDf) by Shane — Demoscene-style tunnel with skewed grid extrusion and glow. License: CC BY-NC-SA 3.0.
 - **Shader 9**: [Interstellar](https://www.shadertoy.com/view/Xdl3D2) by Hazel Quantock — Noise-texture-based star warp effect. License: CC0 (Public Domain).
+- **Shader 10**: [Inside the Mandelbulb II](https://www.shadertoy.com/view/mtScRc) by mrange — 8th-power Mandelbulb fractal interior with refraction + FXAA. License: CC0 (Public Domain).
 
 ## Supported Platforms
 
@@ -44,6 +49,8 @@ sparks/
 │   ├── plasma.frag.glsl       # Shader 7 fragment shader (Vulkan)
 │   ├── grid.frag.glsl         # Shader 8 fragment shader (Vulkan)
 │   ├── interstellar.frag.glsl # Shader 9 fragment shader (Vulkan)
+│   ├── mandelbulb.frag.glsl   # Shader 10 fragment shader (Vulkan)
+│   ├── fxaa.frag.glsl         # FXAA post-process shader (Vulkan)
 │   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
 ├── android/            # Android Studio project (Vulkan)
 └── ios/                # Xcode project (Metal)
@@ -61,7 +68,7 @@ sparks/
 
 ## How It Works
 
-Each effect runs as a single fragment shader pass on a fullscreen triangle. No geometry or particle buffers needed — every pixel is computed procedurally each frame. Use the top-right button to cycle through 9 shaders. Drag to control camera/viewpoint.
+Each effect runs as a single fragment shader pass on a fullscreen triangle. No geometry or particle buffers needed — every pixel is computed procedurally each frame. Use the top-right button to cycle through 10 shaders. Drag to control camera/viewpoint.
 
 ### Shader 1: Sparks
 - **Voronoi-based spark particles**: Layered grid of animated Voronoi cells, each with a glowing bloom spark
@@ -114,6 +121,12 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 - **Warp speed variation**: sin/cos-based speed changes for hyperspace feel
 - **RGB color shift**: Red/green/blue separation by depth for stereoscopic effect
 
+### Shader 10: Inside the Mandelbulb II
+- **8th-power Mandelbulb SDF**: Raymarched power-8 Mandelbulb distance field
+- **Refraction + Reflection**: Up to 5 bounces for light transmission inside the fractal
+- **ACES tone mapping**: Cinematic color transform + sRGB output
+- **FXAA post-process**: Toggle 2-pass FXAA anti-aliasing via mode button
+
 Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9 also use textures.
 
 ## Build
@@ -146,3 +159,4 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 - Shader 7: [nimitz (@stormoid)](https://www.shadertoy.com/view/XsjXRm) — CC BY-NC-SA 3.0
 - Shader 8: [Shane](https://www.shadertoy.com/view/wtfBDf) — CC BY-NC-SA 3.0
 - Shader 9: [Hazel Quantock](https://www.shadertoy.com/view/Xdl3D2) — CC0 (Public Domain)
+- Shader 10: [mrange](https://www.shadertoy.com/view/mtScRc) — CC0 (Public Domain)

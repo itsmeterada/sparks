@@ -10,7 +10,7 @@
 #include "vulkan_utils.h"
 
 static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-static constexpr int SHADER_COUNT = 9;
+static constexpr int SHADER_COUNT = 10;
 static constexpr int MAX_TEXTURES = 5;
 static constexpr int MAX_TEX_BINDINGS = 3;
 
@@ -66,6 +66,7 @@ private:
     bool loadTexture(const char* assetPath, int index);
     bool loadTexture3D(const char* assetPath, int index, uint32_t w, uint32_t h, uint32_t d);
     bool createHistoryBuffer();
+    bool createOffscreenRenderPass();
     void cleanupHistoryBuffer();
     void cleanupSwapchain();
     void recreateSwapchain();
@@ -101,10 +102,13 @@ private:
     // Descriptor sets: 0=starship, 1=clouds/plasma, 2=history buffer, 3=grid(organic2)
     VkDescriptorSet mDescriptorSets[4] = {};
 
-    // History buffer for temporal reprojection
+    // History buffer for temporal reprojection / FXAA intermediate
     VkImage mHistoryImage = VK_NULL_HANDLE;
     VkDeviceMemory mHistoryMemory = VK_NULL_HANDLE;
     VkImageView mHistoryView = VK_NULL_HANDLE;
+    VkRenderPass mOffscreenRenderPass = VK_NULL_HANDLE;
+    VkFramebuffer mHistoryFramebuffer = VK_NULL_HANDLE;
+    VkPipeline mFxaaPipeline = VK_NULL_HANDLE;
     int32_t mFrameCount = 0;
 
     VkCommandPool mCommandPool = VK_NULL_HANDLE;

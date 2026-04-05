@@ -107,6 +107,13 @@ Java_com_sparks_demo_VulkanSurfaceView_nativeToggleMode(JNIEnv*, jobject) {
 }
 
 JNIEXPORT void JNICALL
+Java_com_sparks_demo_VulkanSurfaceView_nativeToggleHalfRes(JNIEnv*, jobject) {
+    if (gEngine != nullptr) {
+        gEngine->toggleHalfRes();
+    }
+}
+
+JNIEXPORT void JNICALL
 Java_com_sparks_demo_VulkanSurfaceView_nativeResize(JNIEnv*, jobject, jint width, jint height) {
     if (gEngine != nullptr) {
         gEngine->onResize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));

@@ -71,6 +71,33 @@ class MainActivity : Activity() {
         }
         root.addView(modeButton, mlp)
 
+        // Half-res toggle button (below mode button)
+        val halfResButton = TextView(this).apply {
+            text = "\u00BD" // ½
+            setTextColor(Color.argb(77, 255, 255, 255))
+            textSize = 16f
+            gravity = Gravity.CENTER
+            val bg = GradientDrawable()
+            bg.setColor(Color.argb(20, 255, 255, 255))
+            bg.cornerRadius = sizePx / 2f
+            background = bg
+            var halfResOn = false
+            setOnClickListener {
+                vulkanSurfaceView.toggleHalfRes()
+                halfResOn = !halfResOn
+                text = if (halfResOn) "\u00BD" else "1"
+                setTextColor(if (halfResOn) Color.argb(200, 255, 180, 80) else Color.argb(77, 255, 255, 255))
+                (background as GradientDrawable).setColor(if (halfResOn) Color.argb(60, 255, 180, 80) else Color.argb(20, 255, 255, 255))
+            }
+            text = "1" // initial state: full resolution
+        }
+        val hlp = FrameLayout.LayoutParams(sizePx, sizePx).apply {
+            gravity = Gravity.TOP or Gravity.END
+            topMargin = topOffset + (sizePx + marginPx / 2) * 2
+            rightMargin = marginPx
+        }
+        root.addView(halfResButton, hlp)
+
         setContentView(root)
     }
 

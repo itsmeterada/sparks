@@ -184,7 +184,7 @@ bool VulkanEngine::createSwapchain() {
     VkSwapchainCreateInfoKHR ci{}; ci.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     ci.surface = mSurface; ci.minImageCount = imageCount; ci.imageFormat = mSwapchainFormat;
     ci.imageColorSpace = colorSpace; ci.imageExtent = mSwapchainExtent; ci.imageArrayLayers = 1;
-    ci.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    ci.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     ci.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     ci.preTransform = caps.currentTransform; ci.compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
     ci.presentMode = VK_PRESENT_MODE_FIFO_KHR; ci.clipped = VK_TRUE;
@@ -606,7 +606,7 @@ bool VulkanEngine::createHistoryBuffer() {
     ii.mipLevels = 1; ii.arrayLayers = 1;
     ii.format = mSwapchainFormat; ii.tiling = VK_IMAGE_TILING_OPTIMAL;
     ii.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    ii.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    ii.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     ii.samples = VK_SAMPLE_COUNT_1_BIT;
     if (vkCreateImage(mDevice, &ii, nullptr, &mHistoryImage) != VK_SUCCESS) return false;
 
@@ -737,20 +737,34 @@ void VulkanEngine::render() {
     VkRenderPassBeginInfo rpbi{}; rpbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     rpbi.renderPass = mRenderPass; rpbi.framebuffer = mFramebuffers[imageIndex];
     rpbi.renderArea.extent = mSwapchainExtent; rpbi.clearValueCount = 1; rpbi.pClearValues = &clear;
-    // 2-pass rendering for Mandelbulb+FXAA (shader 9, mode 1)
+    // Mode flags
     bool doFxaa = (mCurrentShader == 9 && mMode == 1 && mFxaaPipeline != VK_NULL_HANDLE && mHistoryFramebuffer != VK_NULL_HANDLE);
+    bool doHalfRes = (mHalfRes && mHistoryFramebuffer != VK_NULL_HANDLE);
+    uint32_t halfW = mSwapchainExtent.width / 2;
+    uint32_t halfH = mSwapchainExtent.height / 2;
+
+    // For half-res, use half of display dimensions (preserves aspect ratio)
+    PushConstants pcHalf = pc;
+    if (doHalfRes) { pcHalf.iResolutionX = pc.iResolutionX / 2.0f; pcHalf.iResolutionY = pc.iResolutionY / 2.0f; }
+
+    // Helper: get descriptor set index for current shader
+    auto getDsIndex = [&]() -> int {
+        if (mCurrentShader == 3 || mCurrentShader == 6 || mCurrentShader == 8) return 1;
+        if (mCurrentShader == 5) return 2;
+        if (mCurrentShader == 7) return 3;
+        return 0;
+    };
 
     if (doFxaa) {
-        // Pass 1: Render Mandelbulb to history buffer (offscreen)
+        // 2-pass FXAA: render to offscreen, then FXAA to swapchain
         VkRenderPassBeginInfo offRpbi{}; offRpbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         offRpbi.renderPass = mOffscreenRenderPass; offRpbi.framebuffer = mHistoryFramebuffer;
         offRpbi.renderArea.extent = mSwapchainExtent;
         VkClearValue offClear{}; offClear.color = {{0,0,0,1}};
         offRpbi.clearValueCount = 1; offRpbi.pClearValues = &offClear;
         vkCmdBeginRenderPass(cmd, &offRpbi, VK_SUBPASS_CONTENTS_INLINE);
-
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelines[mCurrentShader]);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[0], 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[getDsIndex()], 0, nullptr);
         VkViewport offVp{}; offVp.width = (float)mSwapchainExtent.width; offVp.height = (float)mSwapchainExtent.height; offVp.maxDepth = 1.0f;
         vkCmdSetViewport(cmd, 0, 1, &offVp);
         VkRect2D offSc{}; offSc.extent = mSwapchainExtent;
@@ -758,38 +772,87 @@ void VulkanEngine::render() {
         vkCmdPushConstants(cmd, mPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pc), &pc);
         vkCmdDraw(cmd, 3, 1, 0, 0);
         vkCmdEndRenderPass(cmd);
-        // History buffer is now in SHADER_READ_ONLY_OPTIMAL (set by offscreen render pass)
-    }
 
-    vkCmdBeginRenderPass(cmd, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
-
-    if (doFxaa) {
-        // Pass 2: FXAA reads from history buffer, writes to swapchain
+        // Pass 2: FXAA
+        vkCmdBeginRenderPass(cmd, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mFxaaPipeline);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[2], 0, nullptr);
-    } else {
+        VkViewport vp{}; vp.width = (float)mSwapchainExtent.width; vp.height = (float)mSwapchainExtent.height; vp.maxDepth = 1.0f;
+        vkCmdSetViewport(cmd, 0, 1, &vp);
+        VkRect2D sc{}; sc.extent = mSwapchainExtent;
+        vkCmdSetScissor(cmd, 0, 1, &sc);
+        vkCmdPushConstants(cmd, mPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pc), &pc);
+        vkCmdDraw(cmd, 3, 1, 0, 0);
+        vkCmdEndRenderPass(cmd);
+    } else if (doHalfRes) {
+        // Half-res: render to offscreen at half viewport, then blit upscaled to swapchain
+        VkRenderPassBeginInfo offRpbi{}; offRpbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        offRpbi.renderPass = mOffscreenRenderPass; offRpbi.framebuffer = mHistoryFramebuffer;
+        offRpbi.renderArea.extent = mSwapchainExtent;
+        VkClearValue offClear{}; offClear.color = {{0,0,0,1}};
+        offRpbi.clearValueCount = 1; offRpbi.pClearValues = &offClear;
+        vkCmdBeginRenderPass(cmd, &offRpbi, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelines[mCurrentShader]);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[getDsIndex()], 0, nullptr);
+        VkViewport halfVp{}; halfVp.width = (float)halfW; halfVp.height = (float)halfH; halfVp.maxDepth = 1.0f;
+        vkCmdSetViewport(cmd, 0, 1, &halfVp);
+        VkRect2D halfSc{}; halfSc.extent = {halfW, halfH};
+        vkCmdSetScissor(cmd, 0, 1, &halfSc);
+        vkCmdPushConstants(cmd, mPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pcHalf), &pcHalf);
+        vkCmdDraw(cmd, 3, 1, 0, 0);
+        vkCmdEndRenderPass(cmd);
+        // History buffer is now SHADER_READ_ONLY_OPTIMAL
+
+        // Blit half-res region to full swapchain
+        VkImageMemoryBarrier blitBarriers[2]{};
+        // history: SHADER_READ_ONLY → TRANSFER_SRC
+        blitBarriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        blitBarriers[0].oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        blitBarriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        blitBarriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; blitBarriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        blitBarriers[0].image = mHistoryImage; blitBarriers[0].subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+        blitBarriers[0].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; blitBarriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+        // swapchain: PRESENT_SRC → TRANSFER_DST
+        blitBarriers[1].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        blitBarriers[1].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        blitBarriers[1].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        blitBarriers[1].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; blitBarriers[1].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        blitBarriers[1].image = mSwapchainImages[imageIndex]; blitBarriers[1].subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+        blitBarriers[1].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 2, blitBarriers);
+
+        VkImageBlit blitRegion{};
+        blitRegion.srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+        blitRegion.srcOffsets[0] = {0, 0, 0};
+        blitRegion.srcOffsets[1] = {(int32_t)halfW, (int32_t)halfH, 1};
+        blitRegion.dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+        blitRegion.dstOffsets[0] = {0, 0, 0};
+        blitRegion.dstOffsets[1] = {(int32_t)mSwapchainExtent.width, (int32_t)mSwapchainExtent.height, 1};
+        vkCmdBlitImage(cmd, mHistoryImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       mSwapchainImages[imageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blitRegion, VK_FILTER_LINEAR);
+
+        // Transition back
+        blitBarriers[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        blitBarriers[0].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        blitBarriers[0].srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT; blitBarriers[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        blitBarriers[1].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        blitBarriers[1].newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        blitBarriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT; blitBarriers[1].dstAccessMask = 0;
+        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                             0, 0, nullptr, 0, nullptr, 2, blitBarriers);
+    } else {
+        // Normal: render directly to swapchain
+        vkCmdBeginRenderPass(cmd, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelines[mCurrentShader]);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[getDsIndex()], 0, nullptr);
+        VkViewport vp{}; vp.width = (float)mSwapchainExtent.width; vp.height = (float)mSwapchainExtent.height; vp.maxDepth = 1.0f;
+        vkCmdSetViewport(cmd, 0, 1, &vp);
+        VkRect2D sc{}; sc.extent = mSwapchainExtent;
+        vkCmdSetScissor(cmd, 0, 1, &sc);
+        vkCmdPushConstants(cmd, mPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pc), &pc);
+        vkCmdDraw(cmd, 3, 1, 0, 0);
+        vkCmdEndRenderPass(cmd);
     }
-
-    // Bind appropriate descriptor set
-    // Shader 2 (starship) → set 0, Shader 3 (clouds) → set 1, Shader 5 (rainforest) → set 2, others → set 0
-    if (!doFxaa) {
-        // Shader 2(starship)→set0, 3(clouds)/6(plasma)/8(interstellar)→set1, 5(rainforest)→set2, 7(grid)→set3
-        int dsIndex = (mCurrentShader == 3 || mCurrentShader == 6 || mCurrentShader == 8) ? 1
-                    : (mCurrentShader == 5) ? 2
-                    : (mCurrentShader == 7) ? 3 : 0;
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[dsIndex], 0, nullptr);
-    }
-
-    VkViewport vp{}; vp.width = (float)mSwapchainExtent.width; vp.height = (float)mSwapchainExtent.height; vp.maxDepth = 1.0f;
-    vkCmdSetViewport(cmd, 0, 1, &vp);
-    VkRect2D sc{}; sc.extent = mSwapchainExtent;
-    vkCmdSetScissor(cmd, 0, 1, &sc);
-
-    vkCmdPushConstants(cmd, mPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pc), &pc);
-    vkCmdDraw(cmd, 3, 1, 0, 0);
-
-    vkCmdEndRenderPass(cmd);
 
     // Copy swapchain to history buffer for temporal reprojection (rainforest + mode==1)
     if (mCurrentShader == 5 && mMode == 1 && mHistoryImage != VK_NULL_HANDLE) {
@@ -866,8 +929,13 @@ void VulkanEngine::toggleShader() {
 
 void VulkanEngine::toggleMode() {
     mMode = (mMode + 1) % 2;
-    mFrameCount = 0; // reset temporal accumulation
+    mFrameCount = 0;
     LOGI("Switched to mode %d", mMode);
+}
+
+void VulkanEngine::toggleHalfRes() {
+    mHalfRes = !mHalfRes;
+    LOGI("Half-res: %s", mHalfRes ? "ON" : "OFF");
 }
 
 void VulkanEngine::onTouch(float x, float y, int action) {

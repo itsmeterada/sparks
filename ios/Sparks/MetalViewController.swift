@@ -60,6 +60,23 @@ class MetalViewController: UIViewController, MTKViewDelegate {
             modeButton.widthAnchor.constraint(equalToConstant: 36),
             modeButton.heightAnchor.constraint(equalToConstant: 36)
         ])
+
+        // Half-res toggle button
+        let halfResButton = UIButton(type: .system)
+        halfResButton.setTitle("\u{00BD}", for: .normal) // ½
+        halfResButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .light)
+        halfResButton.setTitleColor(UIColor.white.withAlphaComponent(0.3), for: .normal)
+        halfResButton.backgroundColor = UIColor.white.withAlphaComponent(0.08)
+        halfResButton.layer.cornerRadius = 18
+        halfResButton.translatesAutoresizingMaskIntoConstraints = false
+        halfResButton.addTarget(self, action: #selector(switchHalfRes), for: .touchUpInside)
+        view.addSubview(halfResButton)
+        NSLayoutConstraint.activate([
+            halfResButton.topAnchor.constraint(equalTo: modeButton.bottomAnchor, constant: 8),
+            halfResButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            halfResButton.widthAnchor.constraint(equalToConstant: 36),
+            halfResButton.heightAnchor.constraint(equalToConstant: 36)
+        ])
     }
 
     @objc private func switchShader() {
@@ -68,6 +85,10 @@ class MetalViewController: UIViewController, MTKViewDelegate {
 
     @objc private func switchMode() {
         renderer.toggleMode()
+    }
+
+    @objc private func switchHalfRes() {
+        renderer.toggleHalfRes()
     }
 
     // MARK: - Touch → iMouse

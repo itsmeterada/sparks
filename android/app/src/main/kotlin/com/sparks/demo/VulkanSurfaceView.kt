@@ -58,6 +58,10 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
         nativeToggleMode()
     }
 
+    fun toggleHalfRes() {
+        nativeToggleHalfRes()
+    }
+
     fun onResume() {
         paused = false
         if (surfaceReady) {
@@ -111,6 +115,7 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
     private external fun nativeTouch(x: Float, y: Float, action: Int)
     private external fun nativeToggleShader()
     private external fun nativeToggleMode()
+    private external fun nativeToggleHalfRes()
     private external fun nativeResize(width: Int, height: Int)
     private external fun nativeShutdown()
 

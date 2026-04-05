@@ -2,7 +2,7 @@
 
 [Japanese (日本語)](README.md)
 
-Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan / Metal). Tap to switch shaders.
+Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan / Metal). Tap the top-right button to switch shaders.
 
 | Sparks | Cosmic |
 |:---:|:---:|

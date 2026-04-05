@@ -10,5 +10,6 @@ glslangValidator -V "$SCRIPT_DIR/cosmic.frag.glsl" -o "$OUTPUT_DIR/cosmic.frag.s
 glslangValidator -V "$SCRIPT_DIR/starship.frag.glsl" -o "$OUTPUT_DIR/starship.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/clouds.frag.glsl" -o "$OUTPUT_DIR/clouds.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/seascape.frag.glsl" -o "$OUTPUT_DIR/seascape.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/rainforest.frag.glsl" -o "$OUTPUT_DIR/rainforest.frag.spv" || exit 1
 echo "All shaders compiled successfully."
 ls -la "$OUTPUT_DIR"/*.spv

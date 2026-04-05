@@ -9,14 +9,15 @@ Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan
 | ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) |
 | **Shader 3: Starship** | **Shader 4: Clouds** |
 | ![Starship](./screenshot3.png) | ![Clouds](./screenshot4.png) |
-| **Shader 5: Seascape** | |
-| ![Seascape](./screenshot5.png) | |
+| **Shader 5: Seascape** | **Shader 6: Rainforest** |
+| ![Seascape](./screenshot5.png) | ![Rainforest](./screenshot6.png) |
 
 - **Shader 1**: [Sparks](https://www.shadertoy.com/view/4tXXzj) by Jan Mróz (jaszunio15) — Layered Voronoi particles with procedural smoke fire sparks. License: CC BY 3.0.
 - **Shader 2**: [Cosmic](https://www.shadertoy.com/view/XXyGzh) by Nguyen2007 — Procedural cosmic abstract effect. License: CC BY-NC-SA 3.0.
 - **Shader 3**: [Starship](https://www.shadertoy.com/view/l3cfW4) by @XorDev — Texture-based particle trails for spaceship debris. License: CC BY-NC-SA 3.0.
 - **Shader 4**: [Clouds](https://www.shadertoy.com/view/XslGRr) by Inigo Quilez — Volumetric cloud raymarching with 3D noise. License: Educational use only.
 - **Shader 5**: [Seascape](https://www.shadertoy.com/view/Ms2SD1) by Alexander Alekseev (TDM) — Procedural ocean heightmap raymarching. License: CC BY-NC-SA 3.0.
+- **Shader 6**: [Rainforest](https://www.shadertoy.com/view/4ttSWf) by Inigo Quilez — Procedural rainforest with fBM terrain, trees and volumetric clouds. License: Educational use only.
 
 ## Supported Platforms
 
@@ -36,6 +37,7 @@ sparks/
 │   ├── starship.frag.glsl     # Shader 3 fragment shader (Vulkan)
 │   ├── clouds.frag.glsl       # Shader 4 fragment shader (Vulkan)
 │   ├── seascape.frag.glsl     # Shader 5 fragment shader (Vulkan)
+│   ├── rainforest.frag.glsl   # Shader 6 fragment shader (Vulkan)
 │   ├── sparks.metal           # Metal vertex + fragment shaders (all shaders)
 │   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
 ├── android/            # Android Studio project (Vulkan)
@@ -44,7 +46,7 @@ sparks/
 
 ## How It Works
 
-Each effect runs as a single fragment shader pass on a fullscreen triangle. No geometry or particle buffers needed — every pixel is computed procedurally each frame. Use the top-right button to cycle through 5 shaders. Drag to control camera/viewpoint.
+Each effect runs as a single fragment shader pass on a fullscreen triangle. No geometry or particle buffers needed — every pixel is computed procedurally each frame. Use the top-right button to cycle through 6 shaders. Drag to control camera/viewpoint.
 
 ### Shader 1: Sparks
 - **Voronoi-based spark particles**: Layered grid of animated Voronoi cells, each with a glowing bloom spark
@@ -74,6 +76,12 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 - **Fresnel reflection**: View-angle-dependent sky and water color blending
 - **Drag time control**: Touch movement controls camera time progression
 
+### Shader 6: Rainforest
+- **fBM terrain**: 9-octave 2D noise for terrain height with analytical normals
+- **Procedural trees**: Ellipsoids with noise distortion placed on a Voronoi grid
+- **Volumetric clouds**: Cloud layer at y=900 raymarched with shadows and lighting
+- **Camera animation**: Automatic movement over the terrain surface
+
 Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4 also use textures.
 
 ## Build
@@ -102,3 +110,4 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 - Shader 3: [@XorDev](https://www.shadertoy.com/view/l3cfW4) — CC BY-NC-SA 3.0
 - Shader 4: [Inigo Quilez](https://www.shadertoy.com/view/XslGRr) — Educational use only (no redistribution)
 - Shader 5: [Alexander Alekseev (TDM)](https://www.shadertoy.com/view/Ms2SD1) — CC BY-NC-SA 3.0
+- Shader 6: [Inigo Quilez](https://www.shadertoy.com/view/4ttSWf) — Educational use only (no redistribution)

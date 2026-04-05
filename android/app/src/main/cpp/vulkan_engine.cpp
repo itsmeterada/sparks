@@ -473,7 +473,7 @@ bool VulkanEngine::createGraphicsPipeline() {
     const char* fragNames[SHADER_COUNT] = {
         "shaders/sparks.frag.spv", "shaders/cosmic.frag.spv",
         "shaders/starship.frag.spv", "shaders/clouds.frag.spv",
-        "shaders/seascape.frag.spv"
+        "shaders/seascape.frag.spv", "shaders/rainforest.frag.spv"
     };
     std::vector<uint32_t> fragCodes[SHADER_COUNT];
     VkShaderModule fragModules[SHADER_COUNT]{};

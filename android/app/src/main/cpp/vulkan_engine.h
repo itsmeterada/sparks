@@ -10,8 +10,8 @@
 #include "vulkan_utils.h"
 
 static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-static constexpr int SHADER_COUNT = 7;
-static constexpr int MAX_TEXTURES = 4;
+static constexpr int SHADER_COUNT = 8;
+static constexpr int MAX_TEXTURES = 5;
 static constexpr int MAX_TEX_BINDINGS = 3;
 
 struct PushConstants {
@@ -98,8 +98,8 @@ private:
     VkSampler mTextureSampler = VK_NULL_HANDLE;
     VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
-    // Descriptor sets: 0=starship, 1=clouds, 2=history buffer (for temporal reprojection)
-    VkDescriptorSet mDescriptorSets[3] = {};
+    // Descriptor sets: 0=starship, 1=clouds/plasma, 2=history buffer, 3=grid(organic2)
+    VkDescriptorSet mDescriptorSets[4] = {};
 
     // History buffer for temporal reprojection
     VkImage mHistoryImage = VK_NULL_HANDLE;

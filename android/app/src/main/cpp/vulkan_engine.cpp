@@ -405,6 +405,7 @@ bool VulkanEngine::createTextures() {
     if (!loadTexture("textures/rgba_noise_medium.png", 1)) return false;
     if (!loadTexture("textures/rgba_noise_large.png", 2)) return false; // iChannel1: 1024x1024 for texelFetch dithering
     if (!loadTexture3D("textures/grey_noise_3d.bin", 3, 32, 32, 32)) return false;
+    if (!loadTexture("textures/organic2.png", 4)) return false;
 
     // Sampler
     VkSamplerCreateInfo si{}; si.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -427,15 +428,15 @@ bool VulkanEngine::createTextures() {
 
     // Descriptor pool (2 sets, 6 combined image samplers total)
     VkDescriptorPoolSize poolSize{}; poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSize.descriptorCount = MAX_TEX_BINDINGS * 3;
+    poolSize.descriptorCount = MAX_TEX_BINDINGS * 4;
     VkDescriptorPoolCreateInfo pi{}; pi.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pi.poolSizeCount = 1; pi.pPoolSizes = &poolSize; pi.maxSets = 3;
+    pi.poolSizeCount = 1; pi.pPoolSizes = &poolSize; pi.maxSets = 4;
     if (vkCreateDescriptorPool(mDevice, &pi, nullptr, &mDescriptorPool) != VK_SUCCESS) return false;
 
     // Allocate 2 descriptor sets
-    VkDescriptorSetLayout layouts[3] = {mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout};
+    VkDescriptorSetLayout layouts[4] = {mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout};
     VkDescriptorSetAllocateInfo dsai{}; dsai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    dsai.descriptorPool = mDescriptorPool; dsai.descriptorSetCount = 3; dsai.pSetLayouts = layouts;
+    dsai.descriptorPool = mDescriptorPool; dsai.descriptorSetCount = 4; dsai.pSetLayouts = layouts;
     if (vkAllocateDescriptorSets(mDevice, &dsai, mDescriptorSets) != VK_SUCCESS) return false;
 
     // Update descriptor set 0 (starship): all bindings → stars texture
@@ -467,6 +468,19 @@ bool VulkanEngine::createTextures() {
         vkUpdateDescriptorSets(mDevice, MAX_TEX_BINDINGS, writes, 0, nullptr);
     }
 
+    // Update descriptor set 3 (grid): all bindings → organic2 texture
+    {
+        VkDescriptorImageInfo imgInfo{}; imgInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imgInfo.imageView = mTextures[4].imageView; imgInfo.sampler = mTextureSampler;
+        VkWriteDescriptorSet writes[MAX_TEX_BINDINGS]{};
+        for (int i = 0; i < MAX_TEX_BINDINGS; i++) {
+            writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET; writes[i].dstSet = mDescriptorSets[3];
+            writes[i].dstBinding = i; writes[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            writes[i].descriptorCount = 1; writes[i].pImageInfo = &imgInfo;
+        }
+        vkUpdateDescriptorSets(mDevice, MAX_TEX_BINDINGS, writes, 0, nullptr);
+    }
+
     LOGI("All textures and descriptor sets created");
     return true;
 }
@@ -477,7 +491,7 @@ bool VulkanEngine::createGraphicsPipeline() {
         "shaders/sparks.frag.spv", "shaders/cosmic.frag.spv",
         "shaders/starship.frag.spv", "shaders/clouds.frag.spv",
         "shaders/seascape.frag.spv", "shaders/rainforest.frag.spv",
-        "shaders/plasma.frag.spv"
+        "shaders/plasma.frag.spv", "shaders/grid.frag.spv"
     };
     std::vector<uint32_t> fragCodes[SHADER_COUNT];
     VkShaderModule fragModules[SHADER_COUNT]{};
@@ -666,8 +680,10 @@ void VulkanEngine::render() {
 
     // Bind appropriate descriptor set
     // Shader 2 (starship) → set 0, Shader 3 (clouds) → set 1, Shader 5 (rainforest) → set 2, others → set 0
-    // Shader 2(starship)→set0, 3(clouds)/6(plasma)→set1, 5(rainforest)→set2
-    int dsIndex = (mCurrentShader == 3 || mCurrentShader == 6) ? 1 : (mCurrentShader == 5) ? 2 : 0;
+    // Shader 2(starship)→set0, 3(clouds)/6(plasma)→set1, 5(rainforest)→set2, 7(grid)→set3
+    int dsIndex = (mCurrentShader == 3 || mCurrentShader == 6) ? 1
+                : (mCurrentShader == 5) ? 2
+                : (mCurrentShader == 7) ? 3 : 0;
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[dsIndex], 0, nullptr);
 
     VkViewport vp{}; vp.width = (float)mSwapchainExtent.width; vp.height = (float)mSwapchainExtent.height; vp.maxDepth = 1.0f;

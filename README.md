@@ -11,8 +11,8 @@
 | ![Starship](./screenshot3.png) | ![Clouds](./screenshot4.png) |
 | **シェーダー5: Seascape** | **シェーダー6: Rainforest** |
 | ![Seascape](./screenshot5.png) | ![Rainforest](./screenshot6.png) |
-| **シェーダー7: Plasma Globe** | |
-| ![Plasma Globe](./screenshot7.png) | |
+| **シェーダー7: Plasma Globe** | **シェーダー8: Grid** |
+| ![Plasma Globe](./screenshot7.png) | ![Grid](./screenshot8.png) |
 
 - **シェーダー1**: Jan Mróz (jaszunio15) 氏の [Sparks](https://www.shadertoy.com/view/4tXXzj) — レイヤードVoronoiパーティクルとプロシージャルスモークによる炎の火花。ライセンス: CC BY 3.0。
 - **シェーダー2**: Nguyen2007 氏の [Cosmic](https://www.shadertoy.com/view/XXyGzh) — プロシージャルな宇宙的アブストラクトエフェクト。ライセンス: CC BY-NC-SA 3.0。
@@ -21,6 +21,7 @@
 - **シェーダー5**: Alexander Alekseev (TDM) 氏の [Seascape](https://www.shadertoy.com/view/Ms2SD1) — プロシージャル海面のハイトマップレイマーチング。ライセンス: CC BY-NC-SA 3.0。
 - **シェーダー6**: Inigo Quilez 氏の [Rainforest](https://www.shadertoy.com/view/4ttSWf) — fBM地形・木・雲によるプロシージャル熱帯雨林。ライセンス: 教育目的のみ。
 - **シェーダー7**: nimitz 氏の [Plasma Globe](https://www.shadertoy.com/view/XsjXRm) — ボリュメトリックレイマーチングによるプラズマグローブ。ライセンス: CC BY-NC-SA 3.0。
+- **シェーダー8**: Shane 氏の [Warped Extruded Skewed Grid](https://www.shadertoy.com/view/wtfBDf) — スキューグリッドのエクストルージョンによるデモシーン風トンネル。ライセンス: CC BY-NC-SA 3.0。
 
 ## 対応プラットフォーム
 
@@ -42,6 +43,7 @@ sparks/
 │   ├── seascape.frag.glsl     # シェーダー5 フラグメントシェーダー (Vulkan)
 │   ├── rainforest.frag.glsl   # シェーダー6 フラグメントシェーダー (Vulkan)
 │   ├── plasma.frag.glsl       # シェーダー7 フラグメントシェーダー (Vulkan)
+│   ├── grid.frag.glsl         # シェーダー8 フラグメントシェーダー (Vulkan)
 │   ├── sparks.metal           # Metal 頂点 + フラグメントシェーダー (全シェーダー)
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -50,7 +52,7 @@ sparks/
 
 ## 仕組み
 
-各エフェクトはフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。右上のボタンで7つのシェーダーを切り替えられます。ドラッグでカメラ/視点操作。
+各エフェクトはフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。右上のボタンで8つのシェーダーを切り替えられます。ドラッグでカメラ/視点操作。
 
 ### シェーダー1: Sparks
 - **Voronoiベースの火花パーティクル**: アニメーションするVoronoiセルのレイヤードグリッド、各セルにブルーム付きの光る火花
@@ -85,6 +87,12 @@ sparks/
 - **フローノイズ**: fBMベースの動的ノイズで球体内部の光を表現
 - **フレネル反射**: 球体表面でのリフレクションとリフラクション
 - **ドラッグでカメラ回転**: タッチ移動で視点を回転
+
+### シェーダー8: Warped Extruded Skewed Grid
+- **スキューグリッド**: 大小2種のタイルをピンウィール配置でスキュー座標系に構築
+- **テクスチャエクストルージョン**: テクスチャの輝度を高さマップとして各ブロックを押出
+- **空間ワープ**: カメラパス+ツイストでトンネル状の空間を生成
+- **グロー演出**: ランダムに光るブロックでデモシーン風の雰囲気を演出
 
 ### シェーダー6: Rainforest
 - **fBM地形**: 9オクターブの2Dノイズで地形高さと法線を解析的に計算
@@ -122,3 +130,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 - シェーダー5: [Alexander Alekseev (TDM)](https://www.shadertoy.com/view/Ms2SD1) — CC BY-NC-SA 3.0
 - シェーダー6: [Inigo Quilez](https://www.shadertoy.com/view/4ttSWf) — 教育目的のみ（再配布不可）
 - シェーダー7: [nimitz (@stormoid)](https://www.shadertoy.com/view/XsjXRm) — CC BY-NC-SA 3.0
+- シェーダー8: [Shane](https://www.shadertoy.com/view/wtfBDf) — CC BY-NC-SA 3.0

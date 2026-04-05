@@ -66,7 +66,8 @@ class MetalRenderer {
         let loader = MTKTextureLoader(device: device)
         let texOpts: [MTKTextureLoader.Option: Any] = [
             .textureUsage: NSNumber(value: MTLTextureUsage.shaderRead.rawValue),
-            .textureStorageMode: NSNumber(value: MTLStorageMode.private.rawValue)
+            .textureStorageMode: NSNumber(value: MTLStorageMode.private.rawValue),
+            .SRGB: NSNumber(value: false)
         ]
         self.starsTexture = Self.loadTexture(loader: loader, name: "stars", ext: "jpg", options: texOpts)
         self.noiseMedTexture = Self.loadTexture(loader: loader, name: "rgba_noise_medium", ext: "png", options: texOpts)
@@ -78,6 +79,7 @@ class MetalRenderer {
         samplerDescriptor.magFilter = .linear
         samplerDescriptor.sAddressMode = .repeat
         samplerDescriptor.tAddressMode = .repeat
+        samplerDescriptor.rAddressMode = .repeat
         self.samplerState = device.makeSamplerState(descriptor: samplerDescriptor)!
     }
 

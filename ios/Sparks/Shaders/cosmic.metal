@@ -13,7 +13,7 @@ fragment float4 cosmic_fragment(VertexOut in [[stage_in]],
     float2 fragCoord = in.uv * uniforms.iResolution;
 
     float2 v = uniforms.iResolution;
-    float2 u = 0.035 * (fragCoord + fragCoord - v) / v.y;
+    float2 u = 0.2 * (fragCoord + fragCoord - v) / v.y;
 
     float4 z = float4(1.0, 2.0, 3.0, 0.0);
     float4 o = z;
@@ -34,15 +34,9 @@ fragment float4 cosmic_fragment(VertexOut in [[stage_in]],
            + 0.2 * a * u
            + cos(4.0 / exp(dot(o, o) / 1e2) + t) / 3e2;
 
-        float duu = dot(u, u);
-        float divisor = 0.5 - duu;
-        divisor = divisor >= 0.0 ? max(divisor, 1e-4) : min(divisor, -1e-4);
-
-        float len = length((1.0 + i * dot(v, v))
-                  * sin(1.5 * u / divisor - 9.0 * u.yx + t));
-        if (len > 0.0 && !isnan(len)) {
-            o += (1.0 + cos(z + t)) / len;
-        }
+        o += (1.0 + cos(z + t))
+           / length((1.0 + i * dot(v, v))
+                  * sin(1.5 * u / (0.5 - dot(u, u)) - 9.0 * u.yx + t));
     }
 
     o = 25.6 / (min(o, 13.0) + 164.0 / o)

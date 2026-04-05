@@ -63,7 +63,9 @@ sparks/
         ├── seascape.metal         # Seascape fragment shader
         ├── rainforest.metal       # Rainforest fragment shader
         ├── plasma.metal           # Plasma Globe fragment shader
-        └── grid.metal             # Grid fragment shader
+        ├── grid.metal             # Grid fragment shader
+        ├── interstellar.metal     # Interstellar fragment shader
+        └── mandelbulb.metal       # Mandelbulb fragment shader
 ```
 
 ## How It Works

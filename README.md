@@ -63,7 +63,9 @@ sparks/
         ├── seascape.metal         # Seascape フラグメントシェーダー
         ├── rainforest.metal       # Rainforest フラグメントシェーダー
         ├── plasma.metal           # Plasma Globe フラグメントシェーダー
-        └── grid.metal             # Grid フラグメントシェーダー
+        ├── grid.metal             # Grid フラグメントシェーダー
+        ├── interstellar.metal     # Interstellar フラグメントシェーダー
+        └── mandelbulb.metal       # Mandelbulb フラグメントシェーダー
 ```
 
 ## 仕組み

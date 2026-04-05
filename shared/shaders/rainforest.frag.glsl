@@ -14,10 +14,13 @@ layout(push_constant) uniform PushConstants {
     int preRotate;
     vec4 iMouse;
     int mode;
+    int iFrame;
 };
 
+layout(set = 0, binding = 0) uniform sampler2D iPrevFrame;
+
 #define LOWQUALITY
-const int ZERO = 0;
+#define ZERO (min(iFrame,0))
 
 //==========================================================================================
 // general utilities
@@ -546,7 +549,10 @@ vec3 renderSky( in vec3 ro, in vec3 rd )
 void main()
 {
     vec2 fragCoord = vec2(vUV.x, 1.0 - vUV.y) * iResolution;
-    vec2 p = (2.0*fragCoord-iResolution.xy)/ iResolution.y;
+
+    // per-frame jitter for temporal accumulation (only when mode==1)
+    vec2 o = (mode == 1) ? hash2( vec2(float(iFrame), 1.0) ) - 0.5 : vec2(0.0);
+    vec2 p = (2.0*(fragCoord+o)-iResolution.xy)/ iResolution.y;
 
     // camera
     float time = iTime;
@@ -695,6 +701,15 @@ void main()
     col = pow( col, vec3(1.0,0.92,1.0) );
     col *= vec3(1.02,0.99,0.9);
     col.z = col.z+0.1;
+
+    // temporal accumulation: blend with previous frame (mode==1 to enable)
+    if( mode == 1 )
+    {
+        vec2 uv = vec2(vUV.x, vUV.y); // sample history in swapchain UV space (no Y flip)
+        vec3 ocol = textureLod( iPrevFrame, uv, 0.0 ).xyz;
+        if( iFrame == 0 ) ocol = col;
+        col = mix( ocol, col, 0.1 );
+    }
 
     // vignette
     vec2 q = fragCoord/iResolution.xy;

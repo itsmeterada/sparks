@@ -26,6 +26,7 @@ VulkanEngine::~VulkanEngine() {
     for (int i = 0; i < SHADER_COUNT; i++)
         if (mPipelines[i] != VK_NULL_HANDLE) vkDestroyPipeline(mDevice, mPipelines[i], nullptr);
     if (mPipelineLayout != VK_NULL_HANDLE) vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
+    cleanupHistoryBuffer();
     if (mDescriptorPool != VK_NULL_HANDLE) vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
     if (mDescriptorSetLayout != VK_NULL_HANDLE) vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
     if (mTextureSampler != VK_NULL_HANDLE) vkDestroySampler(mDevice, mTextureSampler, nullptr);
@@ -57,6 +58,7 @@ bool VulkanEngine::init(ANativeWindow* window, AAssetManager* assetManager) {
     if (!createCommandBuffers()) return false;
     if (!createSyncObjects()) return false;
     if (!createTextures()) return false;
+    if (!createHistoryBuffer()) return false;
     if (!createGraphicsPipeline()) return false;
     mStartTime = std::chrono::high_resolution_clock::now();
     mPaused = false;
@@ -179,7 +181,8 @@ bool VulkanEngine::createSwapchain() {
     VkSwapchainCreateInfoKHR ci{}; ci.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     ci.surface = mSurface; ci.minImageCount = imageCount; ci.imageFormat = mSwapchainFormat;
     ci.imageColorSpace = colorSpace; ci.imageExtent = mSwapchainExtent; ci.imageArrayLayers = 1;
-    ci.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; ci.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    ci.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    ci.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     ci.preTransform = caps.currentTransform; ci.compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
     ci.presentMode = VK_PRESENT_MODE_FIFO_KHR; ci.clipped = VK_TRUE;
     if (vkCreateSwapchainKHR(mDevice, &ci, nullptr, &mSwapchain) != VK_SUCCESS) { LOGE("Failed to create swapchain"); return false; }
@@ -424,15 +427,15 @@ bool VulkanEngine::createTextures() {
 
     // Descriptor pool (2 sets, 6 combined image samplers total)
     VkDescriptorPoolSize poolSize{}; poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSize.descriptorCount = MAX_TEX_BINDINGS * 2;
+    poolSize.descriptorCount = MAX_TEX_BINDINGS * 3;
     VkDescriptorPoolCreateInfo pi{}; pi.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pi.poolSizeCount = 1; pi.pPoolSizes = &poolSize; pi.maxSets = 2;
+    pi.poolSizeCount = 1; pi.pPoolSizes = &poolSize; pi.maxSets = 3;
     if (vkCreateDescriptorPool(mDevice, &pi, nullptr, &mDescriptorPool) != VK_SUCCESS) return false;
 
     // Allocate 2 descriptor sets
-    VkDescriptorSetLayout layouts[2] = {mDescriptorSetLayout, mDescriptorSetLayout};
+    VkDescriptorSetLayout layouts[3] = {mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout};
     VkDescriptorSetAllocateInfo dsai{}; dsai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    dsai.descriptorPool = mDescriptorPool; dsai.descriptorSetCount = 2; dsai.pSetLayouts = layouts;
+    dsai.descriptorPool = mDescriptorPool; dsai.descriptorSetCount = 3; dsai.pSetLayouts = layouts;
     if (vkAllocateDescriptorSets(mDevice, &dsai, mDescriptorSets) != VK_SUCCESS) return false;
 
     // Update descriptor set 0 (starship): all bindings → stars texture
@@ -538,6 +541,82 @@ bool VulkanEngine::createGraphicsPipeline() {
     return true;
 }
 
+bool VulkanEngine::createHistoryBuffer() {
+    uint32_t w = mSwapchainExtent.width;
+    uint32_t h = mSwapchainExtent.height;
+
+    VkImageCreateInfo ii{}; ii.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    ii.imageType = VK_IMAGE_TYPE_2D; ii.extent = {w, h, 1};
+    ii.mipLevels = 1; ii.arrayLayers = 1;
+    ii.format = mSwapchainFormat; ii.tiling = VK_IMAGE_TILING_OPTIMAL;
+    ii.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    ii.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    ii.samples = VK_SAMPLE_COUNT_1_BIT;
+    if (vkCreateImage(mDevice, &ii, nullptr, &mHistoryImage) != VK_SUCCESS) return false;
+
+    VkMemoryRequirements memReqs;
+    vkGetImageMemoryRequirements(mDevice, mHistoryImage, &memReqs);
+    VkMemoryAllocateInfo ai{}; ai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    ai.allocationSize = memReqs.size;
+    ai.memoryTypeIndex = findMemoryType(mPhysicalDevice, memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    if (vkAllocateMemory(mDevice, &ai, nullptr, &mHistoryMemory) != VK_SUCCESS) return false;
+    vkBindImageMemory(mDevice, mHistoryImage, mHistoryMemory, 0);
+
+    VkImageViewCreateInfo vi{}; vi.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    vi.image = mHistoryImage; vi.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    vi.format = mSwapchainFormat;
+    vi.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+    if (vkCreateImageView(mDevice, &vi, nullptr, &mHistoryView) != VK_SUCCESS) return false;
+
+    // Transition to SHADER_READ_ONLY so it's ready to be sampled
+    VkCommandBufferAllocateInfo cmdAI{}; cmdAI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cmdAI.commandPool = mCommandPool; cmdAI.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; cmdAI.commandBufferCount = 1;
+    VkCommandBuffer cmd; vkAllocateCommandBuffers(mDevice, &cmdAI, &cmd);
+    VkCommandBufferBeginInfo bi{}; bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    vkBeginCommandBuffer(cmd, &bi);
+    VkImageMemoryBarrier barrier{}; barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = mHistoryImage;
+    barrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                         0, 0, nullptr, 0, nullptr, 1, &barrier);
+    vkEndCommandBuffer(cmd);
+    VkSubmitInfo si{}; si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO; si.commandBufferCount = 1; si.pCommandBuffers = &cmd;
+    vkQueueSubmit(mQueue, 1, &si, VK_NULL_HANDLE); vkQueueWaitIdle(mQueue);
+    vkFreeCommandBuffers(mDevice, mCommandPool, 1, &cmd);
+
+    // Update descriptor set 2 with history buffer
+    VkDescriptorImageInfo imgInfo{};
+    imgInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imgInfo.imageView = mHistoryView;
+    imgInfo.sampler = mTextureSampler;
+    VkWriteDescriptorSet writes[MAX_TEX_BINDINGS]{};
+    for (int i = 0; i < MAX_TEX_BINDINGS; i++) {
+        writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[i].dstSet = mDescriptorSets[2];
+        writes[i].dstBinding = i;
+        writes[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        writes[i].descriptorCount = 1;
+        writes[i].pImageInfo = &imgInfo; // all bindings point to history
+    }
+    vkUpdateDescriptorSets(mDevice, MAX_TEX_BINDINGS, writes, 0, nullptr);
+
+    mFrameCount = 0;
+    LOGI("History buffer created: %ux%u", w, h);
+    return true;
+}
+
+void VulkanEngine::cleanupHistoryBuffer() {
+    if (mHistoryView != VK_NULL_HANDLE) { vkDestroyImageView(mDevice, mHistoryView, nullptr); mHistoryView = VK_NULL_HANDLE; }
+    if (mHistoryImage != VK_NULL_HANDLE) { vkDestroyImage(mDevice, mHistoryImage, nullptr); mHistoryImage = VK_NULL_HANDLE; }
+    if (mHistoryMemory != VK_NULL_HANDLE) { vkFreeMemory(mDevice, mHistoryMemory, nullptr); mHistoryMemory = VK_NULL_HANDLE; }
+}
+
 void VulkanEngine::cleanupSwapchain() {
     for (auto fb : mFramebuffers) vkDestroyFramebuffer(mDevice, fb, nullptr);
     mFramebuffers.clear();
@@ -547,7 +626,12 @@ void VulkanEngine::cleanupSwapchain() {
 }
 
 void VulkanEngine::recreateSwapchain() {
-    vkDeviceWaitIdle(mDevice); cleanupSwapchain(); createSwapchain(); createFramebuffers();
+    vkDeviceWaitIdle(mDevice);
+    cleanupHistoryBuffer();
+    cleanupSwapchain();
+    createSwapchain();
+    createFramebuffers();
+    createHistoryBuffer();
 }
 
 void VulkanEngine::render() {
@@ -580,8 +664,8 @@ void VulkanEngine::render() {
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelines[mCurrentShader]);
 
     // Bind appropriate descriptor set
-    // Shader 2 (starship) → set 0, Shader 3 (clouds) → set 1, others → set 0 (unused but harmless)
-    int dsIndex = (mCurrentShader == 3) ? 1 : 0;
+    // Shader 2 (starship) → set 0, Shader 3 (clouds) → set 1, Shader 5 (rainforest) → set 2, others → set 0
+    int dsIndex = (mCurrentShader == 3) ? 1 : (mCurrentShader == 5) ? 2 : 0;
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[dsIndex], 0, nullptr);
 
     VkViewport vp{}; vp.width = (float)mSwapchainExtent.width; vp.height = (float)mSwapchainExtent.height; vp.maxDepth = 1.0f;
@@ -593,6 +677,7 @@ void VulkanEngine::render() {
     pc.iResolutionY = (float)ANativeWindow_getHeight(mWindow); pc.iTime = iTime;
     pc.iMouseX = mMouseX; pc.iMouseY = mMouseY; pc.iMouseZ = mMouseZ; pc.iMouseW = mMouseW;
     pc.mode = mMode;
+    pc.iFrame = mFrameCount;
     switch (mCurrentTransform) {
         case VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR: pc.preRotate = 1; break;
         case VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR: pc.preRotate = 2; break;
@@ -603,6 +688,55 @@ void VulkanEngine::render() {
     vkCmdDraw(cmd, 3, 1, 0, 0);
 
     vkCmdEndRenderPass(cmd);
+
+    // Copy swapchain to history buffer for temporal reprojection (rainforest + mode==1)
+    if (mCurrentShader == 5 && mMode == 1 && mHistoryImage != VK_NULL_HANDLE) {
+        // Transition swapchain: PRESENT_SRC → TRANSFER_SRC
+        VkImageMemoryBarrier barriers[2]{};
+        barriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barriers[0].oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        barriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        barriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barriers[0].image = mSwapchainImages[imageIndex];
+        barriers[0].subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+        barriers[0].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        barriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+        // Transition history: SHADER_READ_ONLY → TRANSFER_DST
+        barriers[1].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barriers[1].oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barriers[1].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        barriers[1].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barriers[1].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barriers[1].image = mHistoryImage;
+        barriers[1].subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+        barriers[1].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        barriers[1].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                             VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 2, barriers);
+
+        // Copy
+        VkImageCopy region{};
+        region.srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+        region.dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+        region.extent = {mSwapchainExtent.width, mSwapchainExtent.height, 1};
+        vkCmdCopyImage(cmd, mSwapchainImages[imageIndex], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       mHistoryImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+        // Transition back: swapchain → PRESENT_SRC, history → SHADER_READ_ONLY
+        barriers[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        barriers[0].newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        barriers[0].srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+        barriers[0].dstAccessMask = 0;
+        barriers[1].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        barriers[1].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barriers[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                             0, 0, nullptr, 0, nullptr, 2, barriers);
+    }
+
     vkEndCommandBuffer(cmd);
 
     VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -617,17 +751,20 @@ void VulkanEngine::render() {
     pi.swapchainCount = 1; pi.pSwapchains = &mSwapchain; pi.pImageIndices = &imageIndex;
     if (vkQueuePresentKHR(mQueue, &pi) == VK_ERROR_OUT_OF_DATE_KHR) mNeedsResize = true;
     mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    mFrameCount++;
 }
 
 void VulkanEngine::onResize(uint32_t w, uint32_t h) { if (w && h) mNeedsResize = true; }
 
 void VulkanEngine::toggleShader() {
     mCurrentShader = (mCurrentShader + 1) % SHADER_COUNT;
+    mFrameCount = 0; // reset temporal accumulation
     LOGI("Switched to shader %d", mCurrentShader);
 }
 
 void VulkanEngine::toggleMode() {
     mMode = (mMode + 1) % 2;
+    mFrameCount = 0; // reset temporal accumulation
     LOGI("Switched to mode %d", mMode);
 }
 

@@ -13,6 +13,7 @@ layout(push_constant) uniform PushConstants {
     int preRotate;
     vec4 iMouse;
     int mode;
+    int iFrame;
 };
 
 #define PI 3.1415927

@@ -14,6 +14,7 @@ layout(push_constant) uniform PushConstants {
     int preRotate;
     vec4 iMouse;
     int mode;
+    int iFrame;
 };
 
 const int NUM_STEPS = 32;

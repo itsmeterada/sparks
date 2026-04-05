@@ -24,6 +24,7 @@ struct PushConstants {
     float iMouseZ;
     float iMouseW;
     int32_t mode; // 0=normal, 1=parallax
+    int32_t iFrame;
 };
 
 struct TextureResource {
@@ -64,6 +65,8 @@ private:
     bool createTextures();
     bool loadTexture(const char* assetPath, int index);
     bool loadTexture3D(const char* assetPath, int index, uint32_t w, uint32_t h, uint32_t d);
+    bool createHistoryBuffer();
+    void cleanupHistoryBuffer();
     void cleanupSwapchain();
     void recreateSwapchain();
 
@@ -95,8 +98,14 @@ private:
     VkSampler mTextureSampler = VK_NULL_HANDLE;
     VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
-    // Descriptor sets: 0=starship (stars,stars,stars), 1=clouds (noise_med,noise_small,noise_gray)
-    VkDescriptorSet mDescriptorSets[2] = {};
+    // Descriptor sets: 0=starship, 1=clouds, 2=history buffer (for temporal reprojection)
+    VkDescriptorSet mDescriptorSets[3] = {};
+
+    // History buffer for temporal reprojection
+    VkImage mHistoryImage = VK_NULL_HANDLE;
+    VkDeviceMemory mHistoryMemory = VK_NULL_HANDLE;
+    VkImageView mHistoryView = VK_NULL_HANDLE;
+    int32_t mFrameCount = 0;
 
     VkCommandPool mCommandPool = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> mCommandBuffers;

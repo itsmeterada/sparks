@@ -44,10 +44,19 @@ sparks/
 │   ├── rainforest.frag.glsl   # シェーダー6 フラグメントシェーダー (Vulkan)
 │   ├── plasma.frag.glsl       # シェーダー7 フラグメントシェーダー (Vulkan)
 │   ├── grid.frag.glsl         # シェーダー8 フラグメントシェーダー (Vulkan)
-│   ├── sparks.metal           # Metal 頂点 + フラグメントシェーダー (全シェーダー)
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
 └── ios/                # Xcode プロジェクト (Metal)
+    └── Sparks/Shaders/
+        ├── ShaderTypes.h          # 共通構造体 (VertexOut, Uniforms)
+        ├── sparks.metal           # 共通頂点シェーダー + Sparks フラグメント
+        ├── cosmic.metal           # Cosmic フラグメントシェーダー
+        ├── starship.metal         # Starship フラグメントシェーダー
+        ├── clouds.metal           # Clouds フラグメントシェーダー
+        ├── seascape.metal         # Seascape フラグメントシェーダー
+        ├── rainforest.metal       # Rainforest フラグメントシェーダー
+        ├── plasma.metal           # Plasma Globe フラグメントシェーダー
+        └── grid.metal             # Grid フラグメントシェーダー
 ```
 
 ## 仕組み
@@ -100,7 +109,7 @@ sparks/
 - **ボリュメトリック雲**: y=900の雲層をレイマーチングで描画、影・ライティング付き
 - **カメラアニメーション**: 時間で自動的に地形上を移動
 
-Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4はテクスチャも使用。
+Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8はテクスチャも使用。
 
 ## ビルド
 

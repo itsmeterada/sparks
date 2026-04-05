@@ -25,6 +25,7 @@
 		A10024 /* seascape.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10024 /* seascape.metal */; };
 		A10025 /* plasma.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10025 /* plasma.metal */; };
 		A10026 /* rainforest.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10026 /* rainforest.metal */; };
+		A10027 /* grid.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10027 /* grid.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +51,7 @@
 		B10024 /* seascape.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = seascape.metal; sourceTree = "<group>"; };
 		B10025 /* plasma.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = plasma.metal; sourceTree = "<group>"; };
 		B10026 /* rainforest.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = rainforest.metal; sourceTree = "<group>"; };
+		B10027 /* grid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = grid.metal; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -100,6 +102,7 @@
 				B10024 /* seascape.metal */,
 				B10025 /* plasma.metal */,
 				B10026 /* rainforest.metal */,
+				B10027 /* grid.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -211,6 +214,7 @@
 				A10024 /* seascape.metal in Sources */,
 				A10025 /* plasma.metal in Sources */,
 				A10026 /* rainforest.metal in Sources */,
+				A10027 /* grid.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

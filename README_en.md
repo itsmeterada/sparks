@@ -44,10 +44,19 @@ sparks/
 │   ├── rainforest.frag.glsl   # Shader 6 fragment shader (Vulkan)
 │   ├── plasma.frag.glsl       # Shader 7 fragment shader (Vulkan)
 │   ├── grid.frag.glsl         # Shader 8 fragment shader (Vulkan)
-│   ├── sparks.metal           # Metal vertex + fragment shaders (all shaders)
 │   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
 ├── android/            # Android Studio project (Vulkan)
 └── ios/                # Xcode project (Metal)
+    └── Sparks/Shaders/
+        ├── ShaderTypes.h          # Shared structs (VertexOut, Uniforms)
+        ├── sparks.metal           # Shared vertex shader + Sparks fragment
+        ├── cosmic.metal           # Cosmic fragment shader
+        ├── starship.metal         # Starship fragment shader
+        ├── clouds.metal           # Clouds fragment shader
+        ├── seascape.metal         # Seascape fragment shader
+        ├── rainforest.metal       # Rainforest fragment shader
+        ├── plasma.metal           # Plasma Globe fragment shader
+        └── grid.metal             # Grid fragment shader
 ```
 
 ## How It Works
@@ -100,7 +109,7 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 - **Volumetric clouds**: Cloud layer at y=900 raymarched with shadows and lighting
 - **Camera animation**: Automatic movement over the terrain surface
 
-Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4 also use textures.
+Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8 also use textures.
 
 ## Build
 

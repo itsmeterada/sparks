@@ -2,9 +2,11 @@
 
 フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。画面タップでシェーダーを切り替え。
 
-| シェーダー1: Sparks | シェーダー2: Cosmic | シェーダー3: Starship | シェーダー4: Clouds |
-|:---:|:---:|:---:|:---:|
-| ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) | ![Starship](./screenshot3.png) | ![Clouds](./screenshot4.png) |
+| シェーダー1: Sparks | シェーダー2: Cosmic |
+|:---:|:---:|
+| ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) |
+| **シェーダー3: Starship** | **シェーダー4: Clouds** |
+| ![Starship](./screenshot3.png) | ![Clouds](./screenshot4.png) |
 
 - **シェーダー1**: Jan Mróz (jaszunio15) 氏の [Sparks](https://www.shadertoy.com/view/4tXXzj) — レイヤードVoronoiパーティクルとプロシージャルスモークによる炎の火花。ライセンス: CC BY 3.0。
 - **シェーダー2**: Nguyen2007 氏の [Cosmic](https://www.shadertoy.com/view/XXyGzh) — プロシージャルな宇宙的アブストラクトエフェクト。ライセンス: CC BY-NC-SA 3.0。

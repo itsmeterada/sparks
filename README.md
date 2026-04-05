@@ -7,11 +7,14 @@
 | ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) |
 | **シェーダー3: Starship** | **シェーダー4: Clouds** |
 | ![Starship](./screenshot3.png) | ![Clouds](./screenshot4.png) |
+| **シェーダー5: Seascape** | |
+| ![Seascape](./screenshot5.png) | |
 
 - **シェーダー1**: Jan Mróz (jaszunio15) 氏の [Sparks](https://www.shadertoy.com/view/4tXXzj) — レイヤードVoronoiパーティクルとプロシージャルスモークによる炎の火花。ライセンス: CC BY 3.0。
 - **シェーダー2**: Nguyen2007 氏の [Cosmic](https://www.shadertoy.com/view/XXyGzh) — プロシージャルな宇宙的アブストラクトエフェクト。ライセンス: CC BY-NC-SA 3.0。
 - **シェーダー3**: @XorDev 氏の [Starship](https://www.shadertoy.com/view/l3cfW4) — テクスチャベースのパーティクルトレイルによる宇宙船デブリエフェクト。ライセンス: CC BY-NC-SA 3.0。
 - **シェーダー4**: Inigo Quilez 氏の [Clouds](https://www.shadertoy.com/view/XslGRr) — 3Dノイズによるボリュメトリック雲のレイマーチング。ライセンス: 教育目的のみ。
+- **シェーダー5**: Alexander Alekseev (TDM) 氏の [Seascape](https://www.shadertoy.com/view/Ms2SD1) — プロシージャル海面のハイトマップレイマーチング。ライセンス: CC BY-NC-SA 3.0。
 
 [English version](README_en.md)
 
@@ -32,6 +35,7 @@ sparks/
 │   ├── cosmic.frag.glsl       # シェーダー2 フラグメントシェーダー (Vulkan)
 │   ├── starship.frag.glsl     # シェーダー3 フラグメントシェーダー (Vulkan)
 │   ├── clouds.frag.glsl       # シェーダー4 フラグメントシェーダー (Vulkan)
+│   ├── seascape.frag.glsl     # シェーダー5 フラグメントシェーダー (Vulkan)
 │   ├── sparks.metal           # Metal 頂点 + フラグメントシェーダー (全シェーダー)
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -40,7 +44,7 @@ sparks/
 
 ## 仕組み
 
-各エフェクトはフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。右上のボタンで4つのシェーダーを切り替えられます。ドラッグでカメラ操作（シェーダー4）。
+各エフェクトはフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。右上のボタンで5つのシェーダーを切り替えられます。ドラッグでカメラ/視点操作。
 
 ### シェーダー1: Sparks
 - **Voronoiベースの火花パーティクル**: アニメーションするVoronoiセルのレイヤードグリッド、各セルにブルーム付きの光る火花
@@ -64,7 +68,13 @@ sparks/
 - **LODレイマーチ**: 距離に応じてノイズのオクターブ数を減らし、パフォーマンスを最適化
 - **タッチカメラ操作**: ドラッグで視点を回転（離すと位置を保持）
 
-Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)。シェーダー3/4はテクスチャも使用。
+### シェーダー5: Seascape
+- **ハイトマップレイマーチング**: 海面の高さ関数とレイの交差を二分法で求解
+- **fBMオクターブ海波**: `sea_octave` を複数スケールで重ね合わせたリアルな波形
+- **フレネル反射**: 視線角度に応じた空と水面色のブレンド
+- **ドラッグで時間操作**: タッチ移動でカメラの進行時間を制御
+
+Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4はテクスチャも使用。
 
 ## ビルド
 
@@ -91,3 +101,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)。シェー
 - シェーダー2: [Nguyen2007](https://www.shadertoy.com/view/XXyGzh) — CC BY-NC-SA 3.0
 - シェーダー3: [@XorDev](https://www.shadertoy.com/view/l3cfW4) — CC BY-NC-SA 3.0
 - シェーダー4: [Inigo Quilez](https://www.shadertoy.com/view/XslGRr) — 教育目的のみ（再配布不可）
+- シェーダー5: [Alexander Alekseev (TDM)](https://www.shadertoy.com/view/Ms2SD1) — CC BY-NC-SA 3.0

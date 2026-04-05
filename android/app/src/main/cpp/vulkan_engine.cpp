@@ -472,7 +472,8 @@ bool VulkanEngine::createGraphicsPipeline() {
     auto vertCode = loadShaderFromAsset(mAssetManager, "shaders/fullscreen.vert.spv");
     const char* fragNames[SHADER_COUNT] = {
         "shaders/sparks.frag.spv", "shaders/cosmic.frag.spv",
-        "shaders/starship.frag.spv", "shaders/clouds.frag.spv"
+        "shaders/starship.frag.spv", "shaders/clouds.frag.spv",
+        "shaders/seascape.frag.spv"
     };
     std::vector<uint32_t> fragCodes[SHADER_COUNT];
     VkShaderModule fragModules[SHADER_COUNT]{};

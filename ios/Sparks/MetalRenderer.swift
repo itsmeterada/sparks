@@ -49,8 +49,7 @@ class MetalRenderer {
             fatalError("Failed to create default Metal library")
         }
 
-        // Note: rainforest_fragment and plasma_fragment not yet ported to Metal
-        let fragmentNames = ["sparks_fragment", "cosmic_fragment", "starship_fragment", "clouds_fragment", "seascape_fragment"]
+        let fragmentNames = ["sparks_fragment", "cosmic_fragment", "starship_fragment", "clouds_fragment", "seascape_fragment", "rainforest_fragment", "plasma_fragment"]
         var states: [MTLRenderPipelineState] = []
         for name in fragmentNames {
             let descriptor = MTLRenderPipelineDescriptor()
@@ -177,6 +176,8 @@ class MetalRenderer {
             if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
             if let tex = noiseSmallTexture { encoder.setFragmentTexture(tex, index: 1) }
             if let tex = noise3DTexture { encoder.setFragmentTexture(tex, index: 2) }
+        case 6: // plasma
+            if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
         default:
             break
         }

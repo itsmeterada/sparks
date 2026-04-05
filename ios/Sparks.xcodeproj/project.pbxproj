@@ -19,6 +19,12 @@
 		A10012 /* rgba_noise_medium.png in Resources */ = {isa = PBXBuildFile; fileRef = B10013 /* rgba_noise_medium.png */; };
 		A10013 /* rgba_noise_large.png in Resources */ = {isa = PBXBuildFile; fileRef = B10014 /* rgba_noise_large.png */; };
 		A10014 /* grey_noise_3d.bin in Resources */ = {isa = PBXBuildFile; fileRef = B10015 /* grey_noise_3d.bin */; };
+		A10021 /* cosmic.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10021 /* cosmic.metal */; };
+		A10022 /* starship.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10022 /* starship.metal */; };
+		A10023 /* clouds.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* clouds.metal */; };
+		A10024 /* seascape.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10024 /* seascape.metal */; };
+		A10025 /* plasma.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10025 /* plasma.metal */; };
+		A10026 /* rainforest.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10026 /* rainforest.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +43,13 @@
 		B10013 /* rgba_noise_medium.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = rgba_noise_medium.png; sourceTree = "<group>"; };
 		B10014 /* rgba_noise_large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = rgba_noise_large.png; sourceTree = "<group>"; };
 		B10015 /* grey_noise_3d.bin */ = {isa = PBXFileReference; lastKnownFileType = file; path = grey_noise_3d.bin; sourceTree = "<group>"; };
+		B10020 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
+		B10021 /* cosmic.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = cosmic.metal; sourceTree = "<group>"; };
+		B10022 /* starship.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = starship.metal; sourceTree = "<group>"; };
+		B10023 /* clouds.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = clouds.metal; sourceTree = "<group>"; };
+		B10024 /* seascape.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = seascape.metal; sourceTree = "<group>"; };
+		B10025 /* plasma.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = plasma.metal; sourceTree = "<group>"; };
+		B10026 /* rainforest.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = rainforest.metal; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -80,6 +93,13 @@
 				B10006 /* sparks.metal */,
 				B10007 /* particle_sim.metal */,
 				B10008 /* particle_render.metal */,
+				B10020 /* ShaderTypes.h */,
+				B10021 /* cosmic.metal */,
+				B10022 /* starship.metal */,
+				B10023 /* clouds.metal */,
+				B10024 /* seascape.metal */,
+				B10025 /* plasma.metal */,
+				B10026 /* rainforest.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -185,6 +205,12 @@
 				A10006 /* sparks.metal in Sources */,
 				A10007 /* particle_sim.metal in Sources */,
 				A10008 /* particle_render.metal in Sources */,
+				A10021 /* cosmic.metal in Sources */,
+				A10022 /* starship.metal in Sources */,
+				A10023 /* clouds.metal in Sources */,
+				A10024 /* seascape.metal in Sources */,
+				A10025 /* plasma.metal in Sources */,
+				A10026 /* rainforest.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

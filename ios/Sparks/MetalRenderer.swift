@@ -7,6 +7,7 @@ struct Uniforms {
     var iTime: Float
     var _pad: Float = 0
     var iMouse: SIMD4<Float> = .zero
+    var mode: Int32 = 0
 }
 
 class MetalRenderer {
@@ -22,6 +23,7 @@ class MetalRenderer {
 
     private let startTime: CFAbsoluteTime
     private var currentShader: Int = 0
+    private var currentMode: Int32 = 0
     private var mouseState: SIMD4<Float> = .zero
     private var mousePressed: Bool = false
     private var mouseInitialized: Bool = false
@@ -111,6 +113,10 @@ class MetalRenderer {
         currentShader = (currentShader + 1) % pipelineStates.count
     }
 
+    func toggleMode() {
+        currentMode = (currentMode + 1) % 2
+    }
+
     func onTouchDown(x: Float, y: Float) {
         if !mouseInitialized {
             virtualMouseX = Float(screenSize.width) * 0.5
@@ -150,7 +156,8 @@ class MetalRenderer {
         var uniforms = Uniforms(
             iResolution: SIMD2<Float>(Float(screenSize.width), Float(screenSize.height)),
             iTime: iTime,
-            iMouse: mouseState
+            iMouse: mouseState,
+            mode: currentMode
         )
 
         guard let commandBuffer = commandQueue.makeCommandBuffer(),

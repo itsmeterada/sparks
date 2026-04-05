@@ -43,10 +43,31 @@ class MetalViewController: UIViewController, MTKViewDelegate {
             button.widthAnchor.constraint(equalToConstant: 36),
             button.heightAnchor.constraint(equalToConstant: 36)
         ])
+
+        // Mode toggle button
+        let modeButton = UIButton(type: .system)
+        modeButton.setTitle("\u{25CE}", for: .normal) // bullseye symbol
+        modeButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .light)
+        modeButton.setTitleColor(UIColor.white.withAlphaComponent(0.3), for: .normal)
+        modeButton.backgroundColor = UIColor.white.withAlphaComponent(0.08)
+        modeButton.layer.cornerRadius = 18
+        modeButton.translatesAutoresizingMaskIntoConstraints = false
+        modeButton.addTarget(self, action: #selector(switchMode), for: .touchUpInside)
+        view.addSubview(modeButton)
+        NSLayoutConstraint.activate([
+            modeButton.topAnchor.constraint(equalTo: button.bottomAnchor, constant: 8),
+            modeButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            modeButton.widthAnchor.constraint(equalToConstant: 36),
+            modeButton.heightAnchor.constraint(equalToConstant: 36)
+        ])
     }
 
     @objc private func switchShader() {
         renderer.toggleShader()
+    }
+
+    @objc private func switchMode() {
+        renderer.toggleMode()
     }
 
     // MARK: - Touch → iMouse

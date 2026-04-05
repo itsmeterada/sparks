@@ -7,6 +7,7 @@ layout(push_constant) uniform PushConstants {
     float iTime;
     int preRotate; // 0=identity, 1=rotate90, 2=rotate180, 3=rotate270
     vec4 iMouse;
+    int mode;
 };
 
 void main() {

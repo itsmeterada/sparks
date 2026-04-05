@@ -23,6 +23,7 @@ struct PushConstants {
     float iMouseY;
     float iMouseZ;
     float iMouseW;
+    int32_t mode; // 0=normal, 1=parallax
 };
 
 struct TextureResource {
@@ -43,6 +44,7 @@ public:
     void render();
     void onResize(uint32_t width, uint32_t height);
     void toggleShader();
+    void toggleMode();
     void onTouch(float x, float y, int action);
 
     bool isInitialized() const { return mInitialized; }
@@ -110,6 +112,7 @@ private:
     float mMouseX = 0.0f, mMouseY = 0.0f; // virtual mouse pos (pixel coords)
     float mMouseZ = 0.0f, mMouseW = 0.0f; // click pos (positive z=pressed, negative z=released)
     bool mMousePressed = false;
+    int mMode = 0; // 0=normal, 1=parallax
     bool mMouseInitialized = false;
     float mTouchStartX = 0.0f, mTouchStartY = 0.0f; // touch-down position
     float mVirtualStartX = 0.0f, mVirtualStartY = 0.0f; // virtual pos at touch-down

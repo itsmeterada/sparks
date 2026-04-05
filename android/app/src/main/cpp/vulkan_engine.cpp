@@ -591,6 +591,7 @@ void VulkanEngine::render() {
     PushConstants pc{}; pc.iResolutionX = (float)ANativeWindow_getWidth(mWindow);
     pc.iResolutionY = (float)ANativeWindow_getHeight(mWindow); pc.iTime = iTime;
     pc.iMouseX = mMouseX; pc.iMouseY = mMouseY; pc.iMouseZ = mMouseZ; pc.iMouseW = mMouseW;
+    pc.mode = mMode;
     switch (mCurrentTransform) {
         case VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR: pc.preRotate = 1; break;
         case VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR: pc.preRotate = 2; break;
@@ -622,6 +623,11 @@ void VulkanEngine::onResize(uint32_t w, uint32_t h) { if (w && h) mNeedsResize =
 void VulkanEngine::toggleShader() {
     mCurrentShader = (mCurrentShader + 1) % SHADER_COUNT;
     LOGI("Switched to shader %d", mCurrentShader);
+}
+
+void VulkanEngine::toggleMode() {
+    mMode = (mMode + 1) % 2;
+    LOGI("Switched to mode %d", mMode);
 }
 
 void VulkanEngine::onTouch(float x, float y, int action) {

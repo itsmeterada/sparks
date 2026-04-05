@@ -44,12 +44,32 @@ class MainActivity : Activity() {
             background = bg
             setOnClickListener { vulkanSurfaceView.toggleShader() }
         }
+        val topOffset = marginPx + getStatusBarHeight()
         val lp = FrameLayout.LayoutParams(sizePx, sizePx).apply {
             gravity = Gravity.TOP or Gravity.END
-            topMargin = marginPx + getStatusBarHeight()
+            topMargin = topOffset
             rightMargin = marginPx
         }
         root.addView(button, lp)
+
+        // Mode toggle button (below shader button)
+        val modeButton = TextView(this).apply {
+            text = "\u25CE" // bullseye
+            setTextColor(Color.argb(77, 255, 255, 255))
+            textSize = 16f
+            gravity = Gravity.CENTER
+            val bg = GradientDrawable()
+            bg.setColor(Color.argb(20, 255, 255, 255))
+            bg.cornerRadius = sizePx / 2f
+            background = bg
+            setOnClickListener { vulkanSurfaceView.toggleMode() }
+        }
+        val mlp = FrameLayout.LayoutParams(sizePx, sizePx).apply {
+            gravity = Gravity.TOP or Gravity.END
+            topMargin = topOffset + sizePx + (marginPx / 2)
+            rightMargin = marginPx
+        }
+        root.addView(modeButton, mlp)
 
         setContentView(root)
     }

@@ -12,6 +12,7 @@ layout(push_constant) uniform PushConstants {
     float iTime;
     int preRotate;
     vec4 iMouse;
+    int mode;
 };
 
 #define PI 3.1415927
@@ -160,9 +161,26 @@ vec3 layeredParticles(in vec2 uv, in float sizeMod, in float alphaMod, in int la
     vec2 noiseOffset;
     vec2 bokehUV;
 
+    // Parallax: compute shift direction
+    vec2 parallaxDir = vec2(0.0);
+    if (mode == 1) {
+        if (iMouse.z > 0.0) {
+            parallaxDir = (iMouse.xy / iResolution - 0.5) * 2.0;
+        } else {
+            parallaxDir = vec2(sin(iTime * 0.3) * 0.3, cos(iTime * 0.2) * 0.15);
+        }
+    }
+
     for (int i = 0; i < layers; i++) {
         noiseOffset = (noise2_2(uv * size * 2.0 + 0.5) - 0.5) * 0.15;
         bokehUV = (uv * size + iTime * MOVEMENT_DIRECTION * MOVEMENT_SPEED) + offset + noiseOffset;
+
+        // Parallax: near layers shift more than far layers
+        if (mode == 1) {
+            float depth = float(i) / float(layers);
+            bokehUV += parallaxDir * depth * 0.5;
+        }
+
         particles += fireParticles(bokehUV, uv) * alpha * (1.0 - smoothstep(0.0, 1.0, smoke) * (float(i) / float(layers)));
         offset += hash2_2(vec2(alpha, alpha)) * 10.0;
         alpha *= alphaMod;

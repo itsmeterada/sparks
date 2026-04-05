@@ -15,6 +15,7 @@ struct Uniforms {
     float iTime;
     float _pad;
     float4 iMouse;
+    int mode;
 };
 
 vertex VertexOut sparks_vertex(uint vid [[vertex_id]]) {
@@ -157,15 +158,31 @@ static float3 fireParticles(float2 uv, float2 originalUV, float iTime) {
     return particles * disappear * appear;
 }
 
-static float3 layeredParticles(float2 uv, float sizeMod, float alphaMod, int layers, float smoke, float iTime) {
+static float3 layeredParticles(float2 uv, float sizeMod, float alphaMod, int layers, float smoke, float iTime,
+                                int mode, float4 iMouse, float2 iResolution) {
     float3 particles = float3(0);
     float size = 1.0;
     float alpha = 1.0;
     float2 offset = float2(0.0);
 
+    float2 parallaxDir = float2(0.0);
+    if (mode == 1) {
+        if (iMouse.z > 0.0) {
+            parallaxDir = (iMouse.xy / iResolution - 0.5) * 2.0;
+        } else {
+            parallaxDir = float2(sin(iTime * 0.3) * 0.3, cos(iTime * 0.2) * 0.15);
+        }
+    }
+
     for (int i = 0; i < layers; i++) {
         float2 noiseOffset = (noise2_2(uv * size * 2.0 + 0.5) - 0.5) * 0.15;
         float2 bokehUV = (uv * size + iTime * MOVEMENT_DIRECTION * MOVEMENT_SPEED) + offset + noiseOffset;
+
+        if (mode == 1) {
+            float depth = float(i) / float(layers);
+            bokehUV += parallaxDir * depth * 0.5;
+        }
+
         particles += fireParticles(bokehUV, uv, iTime) * alpha * (1.0 - smoothstep(0.0, 1.0, smoke) * (float(i) / float(layers)));
         offset += hash2_2(float2(alpha, alpha)) * 10.0;
         alpha *= alphaMod;
@@ -377,7 +394,8 @@ fragment float4 sparks_fragment(VertexOut in [[stage_in]],
 
     smoke *= pow(layeredNoise1_2(uv * 4.0 + iTime * 0.5 * MOVEMENT_DIRECTION * MOVEMENT_SPEED, 1.8, 0.5, 3, 0.2, iTime), 2.0) * 1.5;
 
-    float3 particles = layeredParticles(uv, SIZE_MOD, ALPHA_MOD, LAYERS_COUNT, smokeIntensity, iTime);
+    float3 particles = layeredParticles(uv, SIZE_MOD, ALPHA_MOD, LAYERS_COUNT, smokeIntensity, iTime,
+                                        uniforms.mode, uniforms.iMouse, uniforms.iResolution);
 
     float3 col = particles + smoke + SMOKE_COLOR * 0.02;
     col *= vignette;

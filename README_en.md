@@ -91,6 +91,12 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 - **Fresnel reflection**: View-angle-dependent sky and water color blending
 - **Drag time control**: Touch movement controls camera time progression
 
+### Shader 6: Rainforest
+- **fBM terrain**: 9-octave 2D noise for terrain height with analytical normals
+- **Procedural trees**: Ellipsoids with noise distortion placed on a Voronoi grid
+- **Volumetric clouds**: Cloud layer at y=900 raymarched with shadows and lighting
+- **Camera animation**: Automatic movement over the terrain surface
+
 ### Shader 7: Plasma Globe
 - **Volumetric raymarching**: 13 rays march through discharge patterns
 - **Flow noise**: fBM-based dynamic noise for inner sphere illumination
@@ -102,12 +108,6 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 - **Texture extrusion**: Texture luminance used as height map for block extrusion
 - **Space warping**: Camera path + twist generates tunnel-like warped space
 - **Glow effects**: Randomly lit blocks for demoscene-style atmosphere
-
-### Shader 6: Rainforest
-- **fBM terrain**: 9-octave 2D noise for terrain height with analytical normals
-- **Procedural trees**: Ellipsoids with noise distortion placed on a Voronoi grid
-- **Volumetric clouds**: Cloud layer at y=900 raymarched with shadows and lighting
-- **Camera animation**: Automatic movement over the terrain surface
 
 Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8 also use textures.
 

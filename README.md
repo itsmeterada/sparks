@@ -2,13 +2,14 @@
 
 フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。画面タップでシェーダーを切り替え。
 
-| シェーダー1: Sparks | シェーダー2: Cosmic | シェーダー3: Starship |
-|:---:|:---:|:---:|
-| ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) | ![Starship](./screenshot3.png) |
+| シェーダー1: Sparks | シェーダー2: Cosmic | シェーダー3: Starship | シェーダー4: Clouds |
+|:---:|:---:|:---:|:---:|
+| ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) | ![Starship](./screenshot3.png) | ![Clouds](./screenshot4.png) |
 
 - **シェーダー1**: Jan Mróz (jaszunio15) 氏の [Sparks](https://www.shadertoy.com/view/4tXXzj) — レイヤードVoronoiパーティクルとプロシージャルスモークによる炎の火花。ライセンス: CC BY 3.0。
 - **シェーダー2**: Nguyen2007 氏の [Cosmic](https://www.shadertoy.com/view/XXyGzh) — プロシージャルな宇宙的アブストラクトエフェクト。ライセンス: CC BY-NC-SA 3.0。
 - **シェーダー3**: @XorDev 氏の [Starship](https://www.shadertoy.com/view/l3cfW4) — テクスチャベースのパーティクルトレイルによる宇宙船デブリエフェクト。ライセンス: CC BY-NC-SA 3.0。
+- **シェーダー4**: Inigo Quilez 氏の [Clouds](https://www.shadertoy.com/view/XslGRr) — 3Dノイズによるボリュメトリック雲のレイマーチング。ライセンス: 教育目的のみ。
 
 [English version](README_en.md)
 
@@ -28,6 +29,7 @@ sparks/
 │   ├── sparks.frag.glsl       # シェーダー1 フラグメントシェーダー (Vulkan)
 │   ├── cosmic.frag.glsl       # シェーダー2 フラグメントシェーダー (Vulkan)
 │   ├── starship.frag.glsl     # シェーダー3 フラグメントシェーダー (Vulkan)
+│   ├── clouds.frag.glsl       # シェーダー4 フラグメントシェーダー (Vulkan)
 │   ├── sparks.metal           # Metal 頂点 + フラグメントシェーダー (全シェーダー)
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -36,7 +38,7 @@ sparks/
 
 ## 仕組み
 
-各エフェクトはフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。画面タップで3つのシェーダーを切り替えられます。
+各エフェクトはフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。右上のボタンで4つのシェーダーを切り替えられます。ドラッグでカメラ操作（シェーダー4）。
 
 ### シェーダー1: Sparks
 - **Voronoiベースの火花パーティクル**: アニメーションするVoronoiセルのレイヤードグリッド、各セルにブルーム付きの光る火花
@@ -54,7 +56,13 @@ sparks/
 - **テクスチャノイズ**: `stars.jpg` テクスチャをサンプリングして雲状の奥行き感を生成
 - **トレイルエフェクト**: 非対称スケーリングで長い尾を持つデブリパーティクルを表現
 
-Uniform は `iResolution` (vec2) と `iTime` (float)。シェーダー3はテクスチャ (`iChannel0`) も使用。
+### シェーダー4: Clouds
+- **ボリュメトリックレイマーチング**: fBMノイズで密度場を定義し、レイマーチングでボリュームレンダリング
+- **3Dノイズテクスチャ**: 32x32x32の3Dテクスチャでハードウェア補間による滑らかなノイズ
+- **LODレイマーチ**: 距離に応じてノイズのオクターブ数を減らし、パフォーマンスを最適化
+- **タッチカメラ操作**: ドラッグで視点を回転（離すと位置を保持）
+
+Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)。シェーダー3/4はテクスチャも使用。
 
 ## ビルド
 
@@ -80,3 +88,4 @@ Uniform は `iResolution` (vec2) と `iTime` (float)。シェーダー3はテク
 - シェーダー1: [Jan Mróz (jaszunio15)](https://www.shadertoy.com/user/jaszunio15) — CC BY 3.0
 - シェーダー2: [Nguyen2007](https://www.shadertoy.com/view/XXyGzh) — CC BY-NC-SA 3.0
 - シェーダー3: [@XorDev](https://www.shadertoy.com/view/l3cfW4) — CC BY-NC-SA 3.0
+- シェーダー4: [Inigo Quilez](https://www.shadertoy.com/view/XslGRr) — 教育目的のみ（再配布不可）

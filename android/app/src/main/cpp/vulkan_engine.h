@@ -10,13 +10,25 @@
 #include "vulkan_utils.h"
 
 static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-static constexpr int SHADER_COUNT = 3;
+static constexpr int SHADER_COUNT = 4;
+static constexpr int MAX_TEXTURES = 4;
+static constexpr int MAX_TEX_BINDINGS = 3;
 
 struct PushConstants {
     float iResolutionX;
     float iResolutionY;
     float iTime;
     int32_t preRotate; // 0=identity, 1=rotate90, 2=rotate180, 3=rotate270
+    float iMouseX;
+    float iMouseY;
+    float iMouseZ;
+    float iMouseW;
+};
+
+struct TextureResource {
+    VkImage image = VK_NULL_HANDLE;
+    VkDeviceMemory memory = VK_NULL_HANDLE;
+    VkImageView imageView = VK_NULL_HANDLE;
 };
 
 class VulkanEngine {
@@ -31,6 +43,7 @@ public:
     void render();
     void onResize(uint32_t width, uint32_t height);
     void toggleShader();
+    void onTouch(float x, float y, int action);
 
     bool isInitialized() const { return mInitialized; }
 
@@ -46,7 +59,9 @@ private:
     bool createCommandBuffers();
     bool createSyncObjects();
     bool createGraphicsPipeline();
-    bool createTexture();
+    bool createTextures();
+    bool loadTexture(const char* assetPath, int index);
+    bool loadTexture3D(const char* assetPath, int index, uint32_t w, uint32_t h, uint32_t d);
     void cleanupSwapchain();
     void recreateSwapchain();
 
@@ -73,14 +88,13 @@ private:
     VkPipeline mPipelines[SHADER_COUNT] = {};
     int mCurrentShader = 0;
 
-    // Texture for starship shader
-    VkImage mTextureImage = VK_NULL_HANDLE;
-    VkDeviceMemory mTextureMemory = VK_NULL_HANDLE;
-    VkImageView mTextureImageView = VK_NULL_HANDLE;
+    // Textures: 0=stars, 1=rgba_noise_medium, 2=rgba_noise_small, 3=gray_noise_small
+    TextureResource mTextures[MAX_TEXTURES] = {};
     VkSampler mTextureSampler = VK_NULL_HANDLE;
     VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
-    VkDescriptorSet mDescriptorSet = VK_NULL_HANDLE;
+    // Descriptor sets: 0=starship (stars,stars,stars), 1=clouds (noise_med,noise_small,noise_gray)
+    VkDescriptorSet mDescriptorSets[2] = {};
 
     VkCommandPool mCommandPool = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> mCommandBuffers;
@@ -90,8 +104,15 @@ private:
     std::vector<VkFence> mInFlightFences;
     uint32_t mCurrentFrame = 0;
 
-    // Timing
     std::chrono::high_resolution_clock::time_point mStartTime;
+
+    // Mouse state (Shadertoy convention, relative/trackpad style)
+    float mMouseX = 0.0f, mMouseY = 0.0f; // virtual mouse pos (pixel coords)
+    float mMouseZ = 0.0f, mMouseW = 0.0f; // click pos (positive z=pressed, negative z=released)
+    bool mMousePressed = false;
+    bool mMouseInitialized = false;
+    float mTouchStartX = 0.0f, mTouchStartY = 0.0f; // touch-down position
+    float mVirtualStartX = 0.0f, mVirtualStartY = 0.0f; // virtual pos at touch-down
 
     bool mNeedsResize = false;
     bool mInitialized = false;

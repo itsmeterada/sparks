@@ -12,6 +12,7 @@ layout(push_constant) uniform PushConstants {
     vec2 iResolution;
     float iTime;
     int preRotate;
+    vec4 iMouse;
 };
 
 layout(set = 0, binding = 0) uniform sampler2D iChannel0;

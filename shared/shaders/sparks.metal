@@ -13,6 +13,8 @@ struct VertexOut {
 struct Uniforms {
     float2 iResolution;
     float iTime;
+    float _pad;
+    float4 iMouse;
 };
 
 vertex VertexOut sparks_vertex(uint vid [[vertex_id]]) {
@@ -171,6 +173,117 @@ static float3 layeredParticles(float2 uv, float sizeMod, float alphaMod, int lay
     }
 
     return particles;
+}
+
+// --- Clouds shader (Shader 4) ---
+// Ported from https://www.shadertoy.com/view/XslGRr
+// Original Author: Inigo Quilez
+// License: Educational use only
+
+static float3x3 setCamera( float3 ro, float3 ta, float cr )
+{
+    float3 cw = normalize(ta-ro);
+    float3 cp = float3(sin(cr), cos(cr), 0.0);
+    float3 cu = normalize( cross(cw,cp) );
+    float3 cv = normalize( cross(cu,cw) );
+    return float3x3( cu, cv, cw );
+}
+
+static float clouds_noise( float3 x, texture3d<float> ch2, sampler s )
+{
+    float3 p = floor(x);
+    float3 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    float3 uvw = p + f;
+    return ch2.sample(s, (uvw+0.5)/32.0, level(0)).x * 2.0 - 1.0;
+}
+
+static float clouds_map5( float3 p, float iTime, texture3d<float> ch2, sampler s )
+{
+    float3 q = p - float3(0.0,0.1,1.0)*iTime;
+    float f; float a = 0.5;
+    f  = a*clouds_noise(q,ch2,s); q = q*2.02; a = a*0.5;
+    f += a*clouds_noise(q,ch2,s); q = q*2.03; a = a*0.5;
+    f += a*clouds_noise(q,ch2,s); q = q*2.01; a = a*0.5;
+    f += a*clouds_noise(q,ch2,s); q = q*2.02; a = a*0.5;
+    f += a*clouds_noise(q,ch2,s);
+    return clamp( 1.5 - p.y - 2.0 + 1.75*f, 0.0, 1.0 );
+}
+static float clouds_map4( float3 p, float iTime, texture3d<float> ch2, sampler s )
+{
+    float3 q = p - float3(0.0,0.1,1.0)*iTime;
+    float f; float a = 0.5;
+    f  = a*clouds_noise(q,ch2,s); q = q*2.02; a = a*0.5;
+    f += a*clouds_noise(q,ch2,s); q = q*2.03; a = a*0.5;
+    f += a*clouds_noise(q,ch2,s); q = q*2.01; a = a*0.5;
+    f += a*clouds_noise(q,ch2,s);
+    return clamp( 1.5 - p.y - 2.0 + 1.75*f, 0.0, 1.0 );
+}
+static float clouds_map3( float3 p, float iTime, texture3d<float> ch2, sampler s )
+{
+    float3 q = p - float3(0.0,0.1,1.0)*iTime;
+    float f; float a = 0.5;
+    f  = a*clouds_noise(q,ch2,s); q = q*2.02; a = a*0.5;
+    f += a*clouds_noise(q,ch2,s); q = q*2.03; a = a*0.5;
+    f += a*clouds_noise(q,ch2,s);
+    return clamp( 1.5 - p.y - 2.0 + 1.75*f, 0.0, 1.0 );
+}
+static float clouds_map2( float3 p, float iTime, texture3d<float> ch2, sampler s )
+{
+    float3 q = p - float3(0.0,0.1,1.0)*iTime;
+    float f; float a = 0.5;
+    f  = a*clouds_noise(q,ch2,s); q = q*2.02; a = a*0.5;
+    f += a*clouds_noise(q,ch2,s);
+    return clamp( 1.5 - p.y - 2.0 + 1.75*f, 0.0, 1.0 );
+}
+
+static float4 clouds_raymarch( float3 ro, float3 rd, float3 bgcol, int2 px,
+                                float iTime, texture3d<float> ch2, texture2d<float> ch1, sampler s )
+{
+    constant float3 sundir = float3(-0.7071, 0.0, -0.7071);
+    float4 sum = float4(0.0);
+    float t = 0.05 * ch1.read(uint2(px & 255), 0).x;
+
+    for(int i=0; i<40; i++) { float3 pos = ro + t*rd; if( pos.y<-3.0 || pos.y>2.0 || sum.a>0.99 ) break; float den = clouds_map5(pos,iTime,ch2,s); if( den>0.01 ) { float dif = clamp((den - clouds_map5(pos+0.3*sundir,iTime,ch2,s))/0.6, 0.0, 1.0); float3 lin = float3(1.0,0.6,0.3)*dif+float3(0.91,0.98,1.05); float4 col = float4( mix(float3(1.0,0.95,0.8), float3(0.25,0.3,0.35), den), den); col.xyz *= lin; col.xyz = mix(col.xyz, bgcol, 1.0-exp(-0.003*t*t)); col.w *= 0.4; col.rgb *= col.a; sum += col*(1.0-sum.a); } t += max(0.06f,0.05f*t); }
+    for(int i=0; i<40; i++) { float3 pos = ro + t*rd; if( pos.y<-3.0 || pos.y>2.0 || sum.a>0.99 ) break; float den = clouds_map4(pos,iTime,ch2,s); if( den>0.01 ) { float dif = clamp((den - clouds_map4(pos+0.3*sundir,iTime,ch2,s))/0.6, 0.0, 1.0); float3 lin = float3(1.0,0.6,0.3)*dif+float3(0.91,0.98,1.05); float4 col = float4( mix(float3(1.0,0.95,0.8), float3(0.25,0.3,0.35), den), den); col.xyz *= lin; col.xyz = mix(col.xyz, bgcol, 1.0-exp(-0.003*t*t)); col.w *= 0.4; col.rgb *= col.a; sum += col*(1.0-sum.a); } t += max(0.06f,0.05f*t); }
+    for(int i=0; i<30; i++) { float3 pos = ro + t*rd; if( pos.y<-3.0 || pos.y>2.0 || sum.a>0.99 ) break; float den = clouds_map3(pos,iTime,ch2,s); if( den>0.01 ) { float dif = clamp((den - clouds_map3(pos+0.3*sundir,iTime,ch2,s))/0.6, 0.0, 1.0); float3 lin = float3(1.0,0.6,0.3)*dif+float3(0.91,0.98,1.05); float4 col = float4( mix(float3(1.0,0.95,0.8), float3(0.25,0.3,0.35), den), den); col.xyz *= lin; col.xyz = mix(col.xyz, bgcol, 1.0-exp(-0.003*t*t)); col.w *= 0.4; col.rgb *= col.a; sum += col*(1.0-sum.a); } t += max(0.06f,0.05f*t); }
+    for(int i=0; i<30; i++) { float3 pos = ro + t*rd; if( pos.y<-3.0 || pos.y>2.0 || sum.a>0.99 ) break; float den = clouds_map2(pos,iTime,ch2,s); if( den>0.01 ) { float dif = clamp((den - clouds_map2(pos+0.3*sundir,iTime,ch2,s))/0.6, 0.0, 1.0); float3 lin = float3(1.0,0.6,0.3)*dif+float3(0.91,0.98,1.05); float4 col = float4( mix(float3(1.0,0.95,0.8), float3(0.25,0.3,0.35), den), den); col.xyz *= lin; col.xyz = mix(col.xyz, bgcol, 1.0-exp(-0.003*t*t)); col.w *= 0.4; col.rgb *= col.a; sum += col*(1.0-sum.a); } t += max(0.06f,0.05f*t); }
+
+    return clamp( sum, 0.0, 1.0 );
+}
+
+fragment float4 clouds_fragment(VertexOut in [[stage_in]],
+                                constant Uniforms& uniforms [[buffer(0)]],
+                                texture2d<float> iChannel0 [[texture(0)]],
+                                texture2d<float> iChannel1 [[texture(1)]],
+                                texture3d<float> iChannel2 [[texture(2)]],
+                                sampler texSampler [[sampler(0)]]) {
+    float2 fragCoord = in.uv * uniforms.iResolution;
+    float2 p = (2.0*fragCoord - uniforms.iResolution) / uniforms.iResolution.y;
+    float iTime = uniforms.iTime;
+
+    float2 m;
+    if (uniforms.iMouse.z > 0.0) {
+        m = uniforms.iMouse.xy / uniforms.iResolution;
+    } else {
+        m = float2(0.5 + 0.15*sin(iTime*0.1), 0.4);
+    }
+    float3 ro = 4.0*normalize(float3(sin(3.0*m.x), 0.8*m.y, cos(3.0*m.x))) - float3(0.0,0.1,0.0);
+    float3 ta = float3(0.0, -1.0, 0.0);
+    float3x3 ca = setCamera(ro, ta, 0.07*cos(0.25*iTime));
+    float3 rd = ca * normalize(float3(p.xy, 1.5));
+
+    constant float3 sundir = float3(-0.7071, 0.0, -0.7071);
+    float sun = clamp( dot(sundir,rd), 0.0, 1.0 );
+    float3 col = float3(0.6,0.71,0.75) - rd.y*0.2*float3(1.0,0.5,1.0) + 0.15*0.5;
+    col += 0.2*float3(1.0,.6,0.1)*pow( sun, 8.0 );
+
+    int2 px = int2(fragCoord - 0.5);
+    float4 res = clouds_raymarch(ro, rd, col, px, iTime, iChannel2, iChannel1, texSampler);
+    col = col*(1.0-res.w) + res.xyz;
+    col += float3(0.2,0.08,0.04)*pow( sun, 3.0 );
+
+    return float4(col, 1.0);
 }
 
 // --- Starship shader (Shader 3) ---

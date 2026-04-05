@@ -35,8 +35,9 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (!surfaceReady) return false
 
-        val normalizedX = event.x / width.toFloat()
-        val normalizedY = event.y / height.toFloat()
+        // Pass pixel coordinates (Y flipped for Shadertoy convention)
+        val pixelX = event.x
+        val pixelY = height.toFloat() - event.y
 
         val action = when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> 0
@@ -45,8 +46,12 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
             else -> return false
         }
 
-        nativeTouch(normalizedX, normalizedY, action)
+        nativeTouch(pixelX, pixelY, action)
         return true
+    }
+
+    fun toggleShader() {
+        nativeToggleShader()
     }
 
     fun onResume() {
@@ -100,6 +105,7 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
     private external fun nativeRender()
     private external fun nativeDestroy()
     private external fun nativeTouch(x: Float, y: Float, action: Int)
+    private external fun nativeToggleShader()
     private external fun nativeResize(width: Int, height: Int)
     private external fun nativeShutdown()
 

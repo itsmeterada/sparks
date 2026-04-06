@@ -19,7 +19,7 @@
 		A10012 /* rgba_noise_medium.png in Resources */ = {isa = PBXBuildFile; fileRef = B10013 /* rgba_noise_medium.png */; };
 		A10013 /* rgba_noise_large.png in Resources */ = {isa = PBXBuildFile; fileRef = B10014 /* rgba_noise_large.png */; };
 		A10014 /* grey_noise_3d.bin in Resources */ = {isa = PBXBuildFile; fileRef = B10015 /* grey_noise_3d.bin */; };
-		A10021 /* cosmic.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10021 /* cosmic.metal */; };
+		A10021 /* cosmic.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10021 /* cosmic.metal */; settings = {COMPILER_FLAGS = "-fno-fast-math"; }; };
 		A10022 /* starship.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10022 /* starship.metal */; };
 		A10023 /* clouds.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* clouds.metal */; };
 		A10024 /* seascape.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10024 /* seascape.metal */; };
@@ -284,7 +284,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = NO;
+				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -341,7 +341,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = NO;
+				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;

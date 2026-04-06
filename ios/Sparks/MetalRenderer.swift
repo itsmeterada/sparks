@@ -117,10 +117,7 @@ class MetalRenderer {
         currentMode = (currentMode + 1) % 2
     }
 
-    func toggleHalfRes() {
-        halfRes = !halfRes
-    }
-    private var halfRes: Bool = false
+    var halfRes: Bool = false
 
     func onTouchDown(x: Float, y: Float) {
         if !mouseInitialized {

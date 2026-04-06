@@ -5,6 +5,7 @@ class MetalViewController: UIViewController, MTKViewDelegate {
 
     private var renderer: MetalRenderer!
     private var metalView: MTKView!
+    private var halfResButton: UIButton!
 
     override func loadView() {
         metalView = MTKView()
@@ -62,7 +63,7 @@ class MetalViewController: UIViewController, MTKViewDelegate {
         ])
 
         // Half-res toggle button
-        let halfResButton = UIButton(type: .system)
+        halfResButton = UIButton(type: .system)
         halfResButton.setTitle("\u{00BD}", for: .normal) // ½
         halfResButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .light)
         halfResButton.setTitleColor(UIColor.white.withAlphaComponent(0.3), for: .normal)
@@ -88,7 +89,11 @@ class MetalViewController: UIViewController, MTKViewDelegate {
     }
 
     @objc private func switchHalfRes() {
-        renderer.toggleHalfRes()
+        renderer.halfRes = !renderer.halfRes
+        let scale = UIScreen.main.scale
+        metalView.contentScaleFactor = renderer.halfRes ? scale / 2.0 : scale
+        halfResButton.setTitleColor(UIColor.white.withAlphaComponent(renderer.halfRes ? 0.9 : 0.3), for: .normal)
+        halfResButton.backgroundColor = UIColor.white.withAlphaComponent(renderer.halfRes ? 0.25 : 0.08)
     }
 
     // MARK: - Touch → iMouse

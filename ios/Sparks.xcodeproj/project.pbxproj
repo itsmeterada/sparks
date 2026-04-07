@@ -36,6 +36,8 @@
 		A10035 /* palette.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10035 /* palette.metal */; };
 		A10036 /* primitives.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10036 /* primitives.metal */; };
 		A10037 /* voxellines.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10037 /* voxellines.metal */; };
+		A10038 /* protean.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10038 /* protean.metal */; };
+		A10039 /* rocaille.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10039 /* rocaille.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -72,6 +74,8 @@
 		B10035 /* palette.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = palette.metal; sourceTree = "<group>"; };
 		B10036 /* primitives.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = primitives.metal; sourceTree = "<group>"; };
 		B10037 /* voxellines.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = voxellines.metal; sourceTree = "<group>"; };
+		B10038 /* protean.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = protean.metal; sourceTree = "<group>"; };
+		B10039 /* rocaille.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = rocaille.metal; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -133,6 +137,8 @@
 				B10035 /* palette.metal */,
 				B10036 /* primitives.metal */,
 				B10037 /* voxellines.metal */,
+				B10038 /* protean.metal */,
+				B10039 /* rocaille.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -255,6 +261,8 @@
 				A10035 /* palette.metal in Sources */,
 				A10036 /* primitives.metal in Sources */,
 				A10037 /* voxellines.metal in Sources */,
+				A10038 /* protean.metal in Sources */,
+				A10039 /* rocaille.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

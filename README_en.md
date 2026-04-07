@@ -23,6 +23,8 @@ Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan
 | ![Palette](./screenshots/screenshot15.png) | ![Octgrams](./screenshots/screenshot16.png) |
 | **Voxel Lines** | **Mandelbulb 2** |
 | ![Voxel Lines](./screenshots/screenshot17.png) | ![Mandelbulb 2](./screenshots/screenshot18.png) |
+| **Protean Clouds** | **Rocaille** |
+| ![Protean Clouds](./screenshots/screenshot19.png) | ![Rocaille](./screenshots/screenshot20.png) |
 
 ## Supported Platforms
 
@@ -74,7 +76,7 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 ### Controls (top-right)
 | Button | Function |
 |:---:|---|
-| ◇ | Cycle through 18 shaders |
+| ◇ | Cycle through 20 shaders |
 | ◎ | Toggle mode (Sparks: parallax / Rainforest: temporal reprojection / Mandelbulb: FXAA) |
 | 1 / ½ | Half-resolution toggle (½ orange = render at half size + linear upscale) |
 
@@ -189,3 +191,5 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 | 16 | [Octgrams](https://www.shadertoy.com/view/tlVGDt) | — | Rotating box SDF octagram pattern | CC BY-NC-SA 3.0 |
 | 17 | [Voxel Lines](https://www.shadertoy.com/view/4dfGzs) | Inigo Quilez | DDA voxel raycast with wireframe glow | Educational only |
 | 18 | [Mandelbulb](https://www.shadertoy.com/view/MdXSWn) | evilryu | Power-8 Mandelbulb with overstepping optimization | CC BY-NC-SA 3.0 |
+| 19 | [Protean Clouds](https://www.shadertoy.com/view/3l23Rh) | nimitz (@stormoid) | Deformed periodic grid procedural clouds | CC BY-NC-SA 3.0 |
+| 20 | [Rocaille](https://www.shadertoy.com/view/WXyczK) | @XorDev | Multi-layer turbulence ornamental pattern | CC BY-NC-SA 3.0 |

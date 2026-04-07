@@ -23,6 +23,8 @@
 | ![Palette](./screenshots/screenshot15.png) | ![Octgrams](./screenshots/screenshot16.png) |
 | **Voxel Lines** | **Mandelbulb 2** |
 | ![Voxel Lines](./screenshots/screenshot17.png) | ![Mandelbulb 2](./screenshots/screenshot18.png) |
+| **Protean Clouds** | **Rocaille** |
+| ![Protean Clouds](./screenshots/screenshot19.png) | ![Rocaille](./screenshots/screenshot20.png) |
 
 ## 対応プラットフォーム
 
@@ -74,7 +76,7 @@ sparks/
 ### 操作ボタン（右上）
 | ボタン | 機能 |
 |:---:|---|
-| ◇ | シェーダー切替（18種類を順に切り替え） |
+| ◇ | シェーダー切替（20種類を順に切り替え） |
 | ◎ | モード切替（Sparks: 視差 / Rainforest: 時間的再投影 / Mandelbulb: FXAA） |
 | 1 / ½ | 半解像度トグル（½でオレンジ表示 = 縦横半分でレンダリング+アップスケール） |
 
@@ -189,3 +191,5 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 16 | [Octgrams](https://www.shadertoy.com/view/tlVGDt) | — | 回転ボックスSDFの八芒星パターン | CC BY-NC-SA 3.0 |
 | 17 | [Voxel Lines](https://www.shadertoy.com/view/4dfGzs) | Inigo Quilez | DDAボクセルレイキャスト+ワイヤーフレームグロー | 教育目的のみ |
 | 18 | [Mandelbulb](https://www.shadertoy.com/view/MdXSWn) | evilryu | 8次Mandelbulb+オーバーステッピング最適化 | CC BY-NC-SA 3.0 |
+| 19 | [Protean Clouds](https://www.shadertoy.com/view/3l23Rh) | nimitz (@stormoid) | 変形周期グリッドのプロシージャル雲 | CC BY-NC-SA 3.0 |
+| 20 | [Rocaille](https://www.shadertoy.com/view/WXyczK) | @XorDev | タービュレンス多層レイヤーの装飾模様 | CC BY-NC-SA 3.0 |

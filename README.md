@@ -6,17 +6,17 @@
 
 | Sparks | Cosmic |
 |:---:|:---:|
-| ![Sparks](./screenshot.png) | ![Cosmic](./screenshot2.png) |
+| ![Sparks](./screenshots/screenshot.png) | ![Cosmic](./screenshots/screenshot2.png) |
 | **Starship** | **Clouds** |
-| ![Starship](./screenshot3.png) | ![Clouds](./screenshot4.png) |
+| ![Starship](./screenshots/screenshot3.png) | ![Clouds](./screenshots/screenshot4.png) |
 | **Seascape** | **Rainforest** |
-| ![Seascape](./screenshot5.png) | ![Rainforest](./screenshot6.png) |
+| ![Seascape](./screenshots/screenshot5.png) | ![Rainforest](./screenshots/screenshot6.png) |
 | **Plasma Globe** | **Grid** |
-| ![Plasma Globe](./screenshot7.png) | ![Grid](./screenshot8.png) |
+| ![Plasma Globe](./screenshots/screenshot7.png) | ![Grid](./screenshots/screenshot8.png) |
 | **Interstellar** | **Mandelbulb** |
-| ![Interstellar](./screenshot9.png) | ![Mandelbulb](./screenshot10.png) |
+| ![Interstellar](./screenshots/screenshot9.png) | ![Mandelbulb](./screenshots/screenshot10.png) |
 | **Cyberspace** | **Tunnel** |
-| ![Cyberspace](./screenshot11.png) | ![Tunnel](./screenshot12.png) |
+| ![Cyberspace](./screenshots/screenshot11.png) | ![Tunnel](./screenshots/screenshot12.png) |
 
 - **シェーダー1**: Jan Mróz (jaszunio15) 氏の [Sparks](https://www.shadertoy.com/view/4tXXzj) — レイヤードVoronoiパーティクルとプロシージャルスモークによる炎の火花。ライセンス: CC BY 3.0。
 - **シェーダー2**: Nguyen2007 氏の [Cosmic](https://www.shadertoy.com/view/XXyGzh) — プロシージャルな宇宙的アブストラクトエフェクト。ライセンス: CC BY-NC-SA 3.0。

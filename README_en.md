@@ -15,6 +15,8 @@ Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan
 | ![Plasma Globe](./screenshot7.png) | ![Grid](./screenshot8.png) |
 | **Interstellar** | **Mandelbulb** |
 | ![Interstellar](./screenshot9.png) | ![Mandelbulb](./screenshot10.png) |
+| **Cyberspace** | **Tunnel** |
+| ![Cyberspace](./screenshot11.png) | ![Tunnel](./screenshot12.png) |
 
 - **Shader 1**: [Sparks](https://www.shadertoy.com/view/4tXXzj) by Jan Mróz (jaszunio15) — Layered Voronoi particles with procedural smoke fire sparks. License: CC BY 3.0.
 - **Shader 2**: [Cosmic](https://www.shadertoy.com/view/XXyGzh) by Nguyen2007 — Procedural cosmic abstract effect. License: CC BY-NC-SA 3.0.
@@ -26,6 +28,8 @@ Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan
 - **Shader 8**: [Warped Extruded Skewed Grid](https://www.shadertoy.com/view/wtfBDf) by Shane — Demoscene-style tunnel with skewed grid extrusion and glow. License: CC BY-NC-SA 3.0.
 - **Shader 9**: [Interstellar](https://www.shadertoy.com/view/Xdl3D2) by Hazel Quantock — Noise-texture-based star warp effect. License: CC0 (Public Domain).
 - **Shader 10**: [Inside the Mandelbulb II](https://www.shadertoy.com/view/mtScRc) by mrange — 8th-power Mandelbulb fractal interior with refraction + FXAA. License: CC0 (Public Domain).
+- **Shader 11**: [Cyberspace data warehouse](https://www.shadertoy.com/view/NlK3Wt) by bitless — Isometric hex-grid cyberspace with animated data spheres. License: CC BY-NC-SA 3.0.
+- **Shader 12**: [Neon Tunnel](https://www.shadertoy.com/view/scS3Wm) — Raymarched tunnel with neon light trails and reflections. License: CC BY-NC-SA 3.0.
 
 ## Supported Platforms
 
@@ -50,6 +54,8 @@ sparks/
 │   ├── grid.frag.glsl         # Shader 8 fragment shader (Vulkan)
 │   ├── interstellar.frag.glsl # Shader 9 fragment shader (Vulkan)
 │   ├── mandelbulb.frag.glsl   # Shader 10 fragment shader (Vulkan)
+│   ├── cyberspace.frag.glsl   # Shader 11 fragment shader (Vulkan)
+│   ├── tunnel.frag.glsl       # Shader 12 fragment shader (Vulkan)
 │   ├── fxaa.frag.glsl         # FXAA post-process shader (Vulkan)
 │   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
 ├── android/            # Android Studio project (Vulkan)
@@ -75,7 +81,7 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 ### Controls (top-right)
 | Button | Function |
 |:---:|---|
-| ◇ | Cycle through 10 shaders |
+| ◇ | Cycle through 12 shaders |
 | ◎ | Toggle mode (Sparks: parallax / Rainforest: temporal reprojection / Mandelbulb: FXAA) |
 | 1 / ½ | Half-resolution toggle (½ orange = render at half size + linear upscale) |
 
@@ -136,6 +142,17 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 - **ACES tone mapping**: Cinematic color transform + sRGB output
 - **FXAA post-process**: Toggle 2-pass FXAA anti-aliasing via mode button
 
+### Shader 11: Cyberspace Data Warehouse
+- **Hexagonal grid**: Hex cells converted to isometric 3-face tiles
+- **Data spheres**: Animated glowing memory spheres on each tile
+- **Blinking pixels**: Noise-based dynamic data display patterns
+
+### Shader 12: Neon Tunnel
+- **Winding tunnel**: Raymarched tunnel following a path function
+- **Neon lights**: Red and blue spiral neon lines with volumetric glow
+- **Fractal texture**: Repeating box patterns for wall decoration
+- **Reflection marching**: Specular effects from surface reflections
+
 Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9 also use textures.
 
 ## Build
@@ -169,3 +186,5 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 - Shader 8: [Shane](https://www.shadertoy.com/view/wtfBDf) — CC BY-NC-SA 3.0
 - Shader 9: [Hazel Quantock](https://www.shadertoy.com/view/Xdl3D2) — CC0 (Public Domain)
 - Shader 10: [mrange](https://www.shadertoy.com/view/mtScRc) — CC0 (Public Domain)
+- Shader 11: [bitless](https://www.shadertoy.com/view/NlK3Wt) — CC BY-NC-SA 3.0
+- Shader 12: [Neon Tunnel](https://www.shadertoy.com/view/scS3Wm) — CC BY-NC-SA 3.0

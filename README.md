@@ -15,6 +15,8 @@
 | ![Plasma Globe](./screenshot7.png) | ![Grid](./screenshot8.png) |
 | **Interstellar** | **Mandelbulb** |
 | ![Interstellar](./screenshot9.png) | ![Mandelbulb](./screenshot10.png) |
+| **Cyberspace** | **Tunnel** |
+| ![Cyberspace](./screenshot11.png) | ![Tunnel](./screenshot12.png) |
 
 - **シェーダー1**: Jan Mróz (jaszunio15) 氏の [Sparks](https://www.shadertoy.com/view/4tXXzj) — レイヤードVoronoiパーティクルとプロシージャルスモークによる炎の火花。ライセンス: CC BY 3.0。
 - **シェーダー2**: Nguyen2007 氏の [Cosmic](https://www.shadertoy.com/view/XXyGzh) — プロシージャルな宇宙的アブストラクトエフェクト。ライセンス: CC BY-NC-SA 3.0。
@@ -26,6 +28,8 @@
 - **シェーダー8**: Shane 氏の [Warped Extruded Skewed Grid](https://www.shadertoy.com/view/wtfBDf) — スキューグリッドのエクストルージョンによるデモシーン風トンネル。ライセンス: CC BY-NC-SA 3.0。
 - **シェーダー9**: Hazel Quantock 氏の [Interstellar](https://www.shadertoy.com/view/Xdl3D2) — ノイズテクスチャベースの星間ワープエフェクト。ライセンス: CC0 (パブリックドメイン)。
 - **シェーダー10**: mrange 氏の [Inside the Mandelbulb II](https://www.shadertoy.com/view/mtScRc) — 8次Mandelbulbフラクタルの内部探索+FXAA。ライセンス: CC0 (パブリックドメイン)。
+- **シェーダー11**: bitless 氏の [Cyberspace data warehouse](https://www.shadertoy.com/view/NlK3Wt) — 六角グリッド上のサイバースペースデータウェアハウス。ライセンス: CC BY-NC-SA 3.0。
+- **シェーダー12**: [Neon Tunnel](https://www.shadertoy.com/view/scS3Wm) — ネオンライト付きトンネルのレイマーチング+反射。ライセンス: CC BY-NC-SA 3.0。
 
 ## 対応プラットフォーム
 
@@ -50,6 +54,8 @@ sparks/
 │   ├── grid.frag.glsl         # シェーダー8 フラグメントシェーダー (Vulkan)
 │   ├── interstellar.frag.glsl # シェーダー9 フラグメントシェーダー (Vulkan)
 │   ├── mandelbulb.frag.glsl   # シェーダー10 フラグメントシェーダー (Vulkan)
+│   ├── cyberspace.frag.glsl   # シェーダー11 フラグメントシェーダー (Vulkan)
+│   ├── tunnel.frag.glsl       # シェーダー12 フラグメントシェーダー (Vulkan)
 │   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー (Vulkan)
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -75,7 +81,7 @@ sparks/
 ### 操作ボタン（右上）
 | ボタン | 機能 |
 |:---:|---|
-| ◇ | シェーダー切替（10種類を順に切り替え） |
+| ◇ | シェーダー切替（12種類を順に切り替え） |
 | ◎ | モード切替（Sparks: 視差 / Rainforest: 時間的再投影 / Mandelbulb: FXAA） |
 | 1 / ½ | 半解像度トグル（½でオレンジ表示 = 縦横半分でレンダリング+アップスケール） |
 
@@ -136,6 +142,17 @@ sparks/
 - **ACESトーンマッピング**: 映画的な色調変換+sRGB出力
 - **FXAAポストプロセス**: モード切替で2パスFXAAアンチエイリアシングを適用
 
+### シェーダー11: Cyberspace Data Warehouse
+- **六角グリッド**: 六角セルをアイソメトリックな3面タイルに変換
+- **データ球体**: 各タイルにアニメーションする光るメモリ球体を配置
+- **点滅ピクセル**: ノイズベースの動的データ表示パターン
+
+### シェーダー12: Neon Tunnel
+- **蛇行トンネル**: パス関数に沿って蛇行するトンネルのレイマーチング
+- **ネオンライト**: 赤と青の螺旋状ネオンラインのボリュメトリックグロー
+- **フラクタルテクスチャ**: ボックス状の繰り返しパターンで壁面を装飾
+- **反射マーチング**: 表面反射によるスペキュラ効果
+
 Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9はテクスチャも使用。
 
 ## ビルド
@@ -169,3 +186,5 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 - シェーダー8: [Shane](https://www.shadertoy.com/view/wtfBDf) — CC BY-NC-SA 3.0
 - シェーダー9: [Hazel Quantock](https://www.shadertoy.com/view/Xdl3D2) — CC0 (パブリックドメイン)
 - シェーダー10: [mrange](https://www.shadertoy.com/view/mtScRc) — CC0 (パブリックドメイン)
+- シェーダー11: [bitless](https://www.shadertoy.com/view/NlK3Wt) — CC BY-NC-SA 3.0
+- シェーダー12: [Neon Tunnel](https://www.shadertoy.com/view/scS3Wm) — CC BY-NC-SA 3.0

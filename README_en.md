@@ -21,6 +21,8 @@ Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan
 | ![Primitives](./screenshots/screenshot13.png) | ![Fractal Pyramid](./screenshots/screenshot14.png) |
 | **Palette** | **Octgrams** |
 | ![Palette](./screenshots/screenshot15.png) | ![Octgrams](./screenshots/screenshot16.png) |
+| **Voxel Lines** | **Mandelbulb 2** |
+| ![Voxel Lines](./screenshots/screenshot17.png) | ![Mandelbulb 2](./screenshots/screenshot18.png) |
 
 ## Supported Platforms
 
@@ -72,7 +74,7 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 ### Controls (top-right)
 | Button | Function |
 |:---:|---|
-| ◇ | Cycle through 16 shaders |
+| ◇ | Cycle through 18 shaders |
 | ◎ | Toggle mode (Sparks: parallax / Rainforest: temporal reprojection / Mandelbulb: FXAA) |
 | 1 / ½ | Half-resolution toggle (½ orange = render at half size + linear upscale) |
 
@@ -185,3 +187,5 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 | 14 | [Fractal Pyramid](https://www.shadertoy.com/view/tsXBzS) | — | Iterative rotation + abs folding fractal | CC BY-NC-SA 3.0 |
 | 15 | [Palette](https://www.shadertoy.com/view/mtyGWy) | — | IQ cosine palette fractal rings | CC BY-NC-SA 3.0 |
 | 16 | [Octgrams](https://www.shadertoy.com/view/tlVGDt) | — | Rotating box SDF octagram pattern | CC BY-NC-SA 3.0 |
+| 17 | [Voxel Lines](https://www.shadertoy.com/view/4dfGzs) | Inigo Quilez | DDA voxel raycast with wireframe glow | Educational only |
+| 18 | [Mandelbulb](https://www.shadertoy.com/view/MdXSWn) | evilryu | Power-8 Mandelbulb with overstepping optimization | CC BY-NC-SA 3.0 |

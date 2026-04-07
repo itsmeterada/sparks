@@ -498,7 +498,8 @@ bool VulkanEngine::createGraphicsPipeline() {
         "shaders/interstellar.frag.spv", "shaders/mandelbulb.frag.spv",
         "shaders/cyberspace.frag.spv", "shaders/tunnel.frag.spv",
         "shaders/primitives.frag.spv", "shaders/fractal.frag.spv",
-        "shaders/palette.frag.spv", "shaders/octgrams.frag.spv"
+        "shaders/palette.frag.spv", "shaders/octgrams.frag.spv",
+        "shaders/voxellines.frag.spv", "shaders/mandelbulb2.frag.spv"
     };
     std::vector<uint32_t> fragCodes[SHADER_COUNT];
     VkShaderModule fragModules[SHADER_COUNT]{};
@@ -752,7 +753,7 @@ void VulkanEngine::render() {
 
     // Helper: get descriptor set index for current shader
     auto getDsIndex = [&]() -> int {
-        if (mCurrentShader == 3 || mCurrentShader == 6 || mCurrentShader == 8) return 1;
+        if (mCurrentShader == 3 || mCurrentShader == 6 || mCurrentShader == 8 || mCurrentShader == 16) return 1;
         if (mCurrentShader == 5) return 2;
         if (mCurrentShader == 7) return 3;
         return 0;

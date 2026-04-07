@@ -21,6 +21,8 @@ glslangValidator -V "$SCRIPT_DIR/primitives.frag.glsl" -o "$OUTPUT_DIR/primitive
 glslangValidator -V "$SCRIPT_DIR/fractal.frag.glsl" -o "$OUTPUT_DIR/fractal.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/palette.frag.glsl" -o "$OUTPUT_DIR/palette.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/octgrams.frag.glsl" -o "$OUTPUT_DIR/octgrams.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/voxellines.frag.glsl" -o "$OUTPUT_DIR/voxellines.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/mandelbulb2.frag.glsl" -o "$OUTPUT_DIR/mandelbulb2.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/tunnel.frag.glsl" -o "$OUTPUT_DIR/tunnel.frag.spv" || exit 1
 echo "All shaders compiled successfully."
 ls -la "$OUTPUT_DIR"/*.spv

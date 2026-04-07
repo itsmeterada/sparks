@@ -496,7 +496,9 @@ bool VulkanEngine::createGraphicsPipeline() {
         "shaders/seascape.frag.spv", "shaders/rainforest.frag.spv",
         "shaders/plasma.frag.spv", "shaders/grid.frag.spv",
         "shaders/interstellar.frag.spv", "shaders/mandelbulb.frag.spv",
-        "shaders/cyberspace.frag.spv", "shaders/tunnel.frag.spv"
+        "shaders/cyberspace.frag.spv", "shaders/tunnel.frag.spv",
+        "shaders/primitives.frag.spv", "shaders/fractal.frag.spv",
+        "shaders/palette.frag.spv", "shaders/octgrams.frag.spv"
     };
     std::vector<uint32_t> fragCodes[SHADER_COUNT];
     VkShaderModule fragModules[SHADER_COUNT]{};

@@ -17,6 +17,10 @@ Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan
 | ![Interstellar](./screenshots/screenshot9.png) | ![Mandelbulb](./screenshots/screenshot10.png) |
 | **Cyberspace** | **Tunnel** |
 | ![Cyberspace](./screenshots/screenshot11.png) | ![Tunnel](./screenshots/screenshot12.png) |
+| **Primitives** | **Fractal Pyramid** |
+| ![Primitives](./screenshots/screenshot13.png) | ![Fractal Pyramid](./screenshots/screenshot14.png) |
+| **Palette** | **Octgrams** |
+| ![Palette](./screenshots/screenshot15.png) | ![Octgrams](./screenshots/screenshot16.png) |
 
 ## Supported Platforms
 
@@ -68,7 +72,7 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 ### Controls (top-right)
 | Button | Function |
 |:---:|---|
-| ◇ | Cycle through 12 shaders |
+| ◇ | Cycle through 16 shaders |
 | ◎ | Toggle mode (Sparks: parallax / Rainforest: temporal reprojection / Mandelbulb: FXAA) |
 | 1 / ½ | Half-resolution toggle (½ orange = render at half size + linear upscale) |
 
@@ -177,3 +181,7 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 | 10 | [Mandelbulb](https://www.shadertoy.com/view/mtScRc) | mrange | 8th-power Mandelbulb fractal interior + FXAA | CC0 |
 | 11 | [Cyberspace](https://www.shadertoy.com/view/NlK3Wt) | bitless | Isometric hex-grid cyberspace data warehouse | CC BY-NC-SA 3.0 |
 | 12 | [Neon Tunnel](https://www.shadertoy.com/view/scS3Wm) | — | Raymarched neon tunnel with reflections | CC BY-NC-SA 3.0 |
+| 13 | [Primitives](https://www.shadertoy.com/view/Xds3zN) | Inigo Quilez | 25+ SDF distance function showcase | MIT |
+| 14 | [Fractal Pyramid](https://www.shadertoy.com/view/tsXBzS) | — | Iterative rotation + abs folding fractal | CC BY-NC-SA 3.0 |
+| 15 | [Palette](https://www.shadertoy.com/view/mtyGWy) | — | IQ cosine palette fractal rings | CC BY-NC-SA 3.0 |
+| 16 | [Octgrams](https://www.shadertoy.com/view/tlVGDt) | — | Rotating box SDF octagram pattern | CC BY-NC-SA 3.0 |

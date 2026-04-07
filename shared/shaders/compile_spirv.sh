@@ -17,6 +17,10 @@ glslangValidator -V "$SCRIPT_DIR/interstellar.frag.glsl" -o "$OUTPUT_DIR/interst
 glslangValidator -V "$SCRIPT_DIR/mandelbulb.frag.glsl" -o "$OUTPUT_DIR/mandelbulb.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/fxaa.frag.glsl" -o "$OUTPUT_DIR/fxaa.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/cyberspace.frag.glsl" -o "$OUTPUT_DIR/cyberspace.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/primitives.frag.glsl" -o "$OUTPUT_DIR/primitives.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/fractal.frag.glsl" -o "$OUTPUT_DIR/fractal.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/palette.frag.glsl" -o "$OUTPUT_DIR/palette.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/octgrams.frag.glsl" -o "$OUTPUT_DIR/octgrams.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/tunnel.frag.glsl" -o "$OUTPUT_DIR/tunnel.frag.spv" || exit 1
 echo "All shaders compiled successfully."
 ls -la "$OUTPUT_DIR"/*.spv

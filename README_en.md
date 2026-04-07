@@ -148,7 +148,44 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 - **Fractal texture**: Repeating box patterns for wall decoration
 - **Reflection marching**: Specular effects from surface reflections
 
-Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9 also use textures.
+### Shader 13: SDF Primitives
+- **25+ SDF distance functions**: Sphere, box, torus, capsule, cone, octahedron, pyramid, etc.
+- **Bounding box optimization**: Efficient raymarching acceleration
+- **Soft shadows + AO**: Full lighting with checker floor
+
+### Shader 14: Fractal Pyramid
+- **Iterative rotation + abs folding**: 8 iterations generating fractal geometry
+- **Volumetric color**: Distance-based palette accumulation for glow effect
+
+### Shader 15: Palette
+- **IQ cosine palette**: 4 fract iterations creating nested ring patterns
+- **Distance-based glow**: pow(0.01/d, 1.2) for vivid emission
+
+### Shader 16: Octgrams
+- **Rotating box SDF**: Multiple box combinations forming octagram shapes
+- **Mod-space repetition**: Infinite pattern with volumetric glow
+- **Time-varying blue tones**: Dynamic atmosphere
+
+### Shader 17: Voxel Lines
+- **DDA voxel raycast**: Noise terrain voxelized and raycast
+- **Wireframe + edge glow**: Voxel AO with glowing edge rendering
+- **Color/mono toggle**: Periodic color mode switching
+
+### Shader 18: Mandelbulb (evilryu)
+- **Power-8 Mandelbulb SDF**: Overstepping-optimized raymarching
+- **Soft shadows**: Auto-rotating camera + distance-based color mapping
+- **Post-processing**: Gamma, contrast, saturation, vignette
+
+### Shader 19: Protean Clouds
+- **Deformed periodic grid**: Texture-free procedural volume noise
+- **Dynamic step size**: Density-adaptive marching for performance
+- **Saturation-preserving interpolation**: iLerp color blending
+
+### Shader 20: Rocaille
+- **Double-loop turbulence**: 9 layers × 9 sin deformations for complex patterns
+- **Cosine coloring + tanh tone mapping**: Compact and beautiful effect
+
+Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9/17 also use textures.
 
 ## Build
 

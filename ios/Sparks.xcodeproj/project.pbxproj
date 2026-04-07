@@ -28,6 +28,14 @@
 		A10027 /* grid.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10027 /* grid.metal */; };
 		A10028 /* interstellar.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10028 /* interstellar.metal */; };
 		A10029 /* mandelbulb.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10029 /* mandelbulb.metal */; };
+		A10030 /* cyberspace.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10030 /* cyberspace.metal */; };
+		A10031 /* tunnel.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10031 /* tunnel.metal */; settings = {COMPILER_FLAGS = "-fno-fast-math"; }; };
+		A10032 /* fractal.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10032 /* fractal.metal */; };
+		A10033 /* mandelbulb2.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10033 /* mandelbulb2.metal */; };
+		A10034 /* octgrams.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10034 /* octgrams.metal */; };
+		A10035 /* palette.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10035 /* palette.metal */; };
+		A10036 /* primitives.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10036 /* primitives.metal */; };
+		A10037 /* voxellines.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10037 /* voxellines.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +64,14 @@
 		B10027 /* grid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = grid.metal; sourceTree = "<group>"; };
 		B10028 /* interstellar.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = interstellar.metal; sourceTree = "<group>"; };
 		B10029 /* mandelbulb.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = mandelbulb.metal; sourceTree = "<group>"; };
+		B10030 /* cyberspace.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = cyberspace.metal; sourceTree = "<group>"; };
+		B10031 /* tunnel.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = tunnel.metal; sourceTree = "<group>"; };
+		B10032 /* fractal.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fractal.metal; sourceTree = "<group>"; };
+		B10033 /* mandelbulb2.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = mandelbulb2.metal; sourceTree = "<group>"; };
+		B10034 /* octgrams.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = octgrams.metal; sourceTree = "<group>"; };
+		B10035 /* palette.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = palette.metal; sourceTree = "<group>"; };
+		B10036 /* primitives.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = primitives.metal; sourceTree = "<group>"; };
+		B10037 /* voxellines.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = voxellines.metal; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -109,6 +125,14 @@
 				B10027 /* grid.metal */,
 				B10028 /* interstellar.metal */,
 				B10029 /* mandelbulb.metal */,
+				B10030 /* cyberspace.metal */,
+				B10031 /* tunnel.metal */,
+				B10032 /* fractal.metal */,
+				B10033 /* mandelbulb2.metal */,
+				B10034 /* octgrams.metal */,
+				B10035 /* palette.metal */,
+				B10036 /* primitives.metal */,
+				B10037 /* voxellines.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -223,6 +247,14 @@
 				A10027 /* grid.metal in Sources */,
 				A10028 /* interstellar.metal in Sources */,
 				A10029 /* mandelbulb.metal in Sources */,
+				A10030 /* cyberspace.metal in Sources */,
+				A10031 /* tunnel.metal in Sources */,
+				A10032 /* fractal.metal in Sources */,
+				A10033 /* mandelbulb2.metal in Sources */,
+				A10034 /* octgrams.metal in Sources */,
+				A10035 /* palette.metal in Sources */,
+				A10036 /* primitives.metal in Sources */,
+				A10037 /* voxellines.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

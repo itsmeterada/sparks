@@ -18,19 +18,6 @@
 | **Cyberspace** | **Tunnel** |
 | ![Cyberspace](./screenshots/screenshot11.png) | ![Tunnel](./screenshots/screenshot12.png) |
 
-- **シェーダー1**: Jan Mróz (jaszunio15) 氏の [Sparks](https://www.shadertoy.com/view/4tXXzj) — レイヤードVoronoiパーティクルとプロシージャルスモークによる炎の火花。ライセンス: CC BY 3.0。
-- **シェーダー2**: Nguyen2007 氏の [Cosmic](https://www.shadertoy.com/view/XXyGzh) — プロシージャルな宇宙的アブストラクトエフェクト。ライセンス: CC BY-NC-SA 3.0。
-- **シェーダー3**: @XorDev 氏の [Starship](https://www.shadertoy.com/view/l3cfW4) — テクスチャベースのパーティクルトレイルによる宇宙船デブリエフェクト。ライセンス: CC BY-NC-SA 3.0。
-- **シェーダー4**: Inigo Quilez 氏の [Clouds](https://www.shadertoy.com/view/XslGRr) — 3Dノイズによるボリュメトリック雲のレイマーチング。ライセンス: 教育目的のみ。
-- **シェーダー5**: Alexander Alekseev (TDM) 氏の [Seascape](https://www.shadertoy.com/view/Ms2SD1) — プロシージャル海面のハイトマップレイマーチング。ライセンス: CC BY-NC-SA 3.0。
-- **シェーダー6**: Inigo Quilez 氏の [Rainforest](https://www.shadertoy.com/view/4ttSWf) — fBM地形・木・雲によるプロシージャル熱帯雨林。ライセンス: 教育目的のみ。
-- **シェーダー7**: nimitz 氏の [Plasma Globe](https://www.shadertoy.com/view/XsjXRm) — ボリュメトリックレイマーチングによるプラズマグローブ。ライセンス: CC BY-NC-SA 3.0。
-- **シェーダー8**: Shane 氏の [Warped Extruded Skewed Grid](https://www.shadertoy.com/view/wtfBDf) — スキューグリッドのエクストルージョンによるデモシーン風トンネル。ライセンス: CC BY-NC-SA 3.0。
-- **シェーダー9**: Hazel Quantock 氏の [Interstellar](https://www.shadertoy.com/view/Xdl3D2) — ノイズテクスチャベースの星間ワープエフェクト。ライセンス: CC0 (パブリックドメイン)。
-- **シェーダー10**: mrange 氏の [Inside the Mandelbulb II](https://www.shadertoy.com/view/mtScRc) — 8次Mandelbulbフラクタルの内部探索+FXAA。ライセンス: CC0 (パブリックドメイン)。
-- **シェーダー11**: bitless 氏の [Cyberspace data warehouse](https://www.shadertoy.com/view/NlK3Wt) — 六角グリッド上のサイバースペースデータウェアハウス。ライセンス: CC BY-NC-SA 3.0。
-- **シェーダー12**: [Neon Tunnel](https://www.shadertoy.com/view/scS3Wm) — ネオンライト付きトンネルのレイマーチング+反射。ライセンス: CC BY-NC-SA 3.0。
-
 ## 対応プラットフォーム
 
 | プラットフォーム | GPU API | 言語 | 最小バージョン |
@@ -176,15 +163,17 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 
 ## クレジット
 
-- シェーダー1: [Jan Mróz (jaszunio15)](https://www.shadertoy.com/user/jaszunio15) — CC BY 3.0
-- シェーダー2: [Nguyen2007](https://www.shadertoy.com/view/XXyGzh) — CC BY-NC-SA 3.0
-- シェーダー3: [@XorDev](https://www.shadertoy.com/view/l3cfW4) — CC BY-NC-SA 3.0
-- シェーダー4: [Inigo Quilez](https://www.shadertoy.com/view/XslGRr) — 教育目的のみ（再配布不可）
-- シェーダー5: [Alexander Alekseev (TDM)](https://www.shadertoy.com/view/Ms2SD1) — CC BY-NC-SA 3.0
-- シェーダー6: [Inigo Quilez](https://www.shadertoy.com/view/4ttSWf) — 教育目的のみ（再配布不可）
-- シェーダー7: [nimitz (@stormoid)](https://www.shadertoy.com/view/XsjXRm) — CC BY-NC-SA 3.0
-- シェーダー8: [Shane](https://www.shadertoy.com/view/wtfBDf) — CC BY-NC-SA 3.0
-- シェーダー9: [Hazel Quantock](https://www.shadertoy.com/view/Xdl3D2) — CC0 (パブリックドメイン)
-- シェーダー10: [mrange](https://www.shadertoy.com/view/mtScRc) — CC0 (パブリックドメイン)
-- シェーダー11: [bitless](https://www.shadertoy.com/view/NlK3Wt) — CC BY-NC-SA 3.0
-- シェーダー12: [Neon Tunnel](https://www.shadertoy.com/view/scS3Wm) — CC BY-NC-SA 3.0
+| # | シェーダー | 作者 | 説明 | ライセンス |
+|---|-----------|------|------|-----------|
+| 1 | [Sparks](https://www.shadertoy.com/view/4tXXzj) | Jan Mróz (jaszunio15) | Voronoiパーティクル+プロシージャルスモークの炎の火花 | CC BY 3.0 |
+| 2 | [Cosmic](https://www.shadertoy.com/view/XXyGzh) | Nguyen2007 | 反復変換による宇宙的アブストラクトエフェクト | CC BY-NC-SA 3.0 |
+| 3 | [Starship](https://www.shadertoy.com/view/l3cfW4) | @XorDev | テクスチャベースの宇宙船デブリパーティクルトレイル | CC BY-NC-SA 3.0 |
+| 4 | [Clouds](https://www.shadertoy.com/view/XslGRr) | Inigo Quilez | 3Dノイズによるボリュメトリック雲のレイマーチング | 教育目的のみ |
+| 5 | [Seascape](https://www.shadertoy.com/view/Ms2SD1) | Alexander Alekseev (TDM) | fBM海波のハイトマップレイマーチング | CC BY-NC-SA 3.0 |
+| 6 | [Rainforest](https://www.shadertoy.com/view/4ttSWf) | Inigo Quilez | fBM地形・木・雲によるプロシージャル熱帯雨林 | 教育目的のみ |
+| 7 | [Plasma Globe](https://www.shadertoy.com/view/XsjXRm) | nimitz (@stormoid) | ボリュメトリックレイマーチングのプラズマグローブ | CC BY-NC-SA 3.0 |
+| 8 | [Grid](https://www.shadertoy.com/view/wtfBDf) | Shane | スキューグリッドエクストルージョンのデモシーン風トンネル | CC BY-NC-SA 3.0 |
+| 9 | [Interstellar](https://www.shadertoy.com/view/Xdl3D2) | Hazel Quantock | ノイズテクスチャベースの星間ワープエフェクト | CC0 |
+| 10 | [Mandelbulb](https://www.shadertoy.com/view/mtScRc) | mrange | 8次Mandelbulbフラクタル内部探索+FXAA | CC0 |
+| 11 | [Cyberspace](https://www.shadertoy.com/view/NlK3Wt) | bitless | 六角グリッド上のサイバースペースデータウェアハウス | CC BY-NC-SA 3.0 |
+| 12 | [Neon Tunnel](https://www.shadertoy.com/view/scS3Wm) | — | ネオンライト付きトンネルのレイマーチング+反射 | CC BY-NC-SA 3.0 |

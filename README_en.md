@@ -37,36 +37,54 @@ Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan
 
 ```
 sparks/
-├── shared/shaders/     # Shader sources (GLSL + MSL)
+├── shared/shaders/     # Shader sources (GLSL)
 │   ├── fullscreen.vert.glsl   # Fullscreen triangle vertex shader
-│   ├── sparks.frag.glsl       # Shader 1 fragment shader (Vulkan)
-│   ├── cosmic.frag.glsl       # Shader 2 fragment shader (Vulkan)
-│   ├── starship.frag.glsl     # Shader 3 fragment shader (Vulkan)
-│   ├── clouds.frag.glsl       # Shader 4 fragment shader (Vulkan)
-│   ├── seascape.frag.glsl     # Shader 5 fragment shader (Vulkan)
-│   ├── rainforest.frag.glsl   # Shader 6 fragment shader (Vulkan)
-│   ├── plasma.frag.glsl       # Shader 7 fragment shader (Vulkan)
-│   ├── grid.frag.glsl         # Shader 8 fragment shader (Vulkan)
-│   ├── interstellar.frag.glsl # Shader 9 fragment shader (Vulkan)
-│   ├── mandelbulb.frag.glsl   # Shader 10 fragment shader (Vulkan)
-│   ├── cyberspace.frag.glsl   # Shader 11 fragment shader (Vulkan)
-│   ├── tunnel.frag.glsl       # Shader 12 fragment shader (Vulkan)
-│   ├── fxaa.frag.glsl         # FXAA post-process shader (Vulkan)
+│   ├── sparks.frag.glsl       # Shader 1 fragment shader
+│   ├── cosmic.frag.glsl       # Shader 2
+│   ├── starship.frag.glsl     # Shader 3
+│   ├── clouds.frag.glsl       # Shader 4
+│   ├── seascape.frag.glsl     # Shader 5
+│   ├── rainforest.frag.glsl   # Shader 6
+│   ├── plasma.frag.glsl       # Shader 7
+│   ├── grid.frag.glsl         # Shader 8
+│   ├── interstellar.frag.glsl # Shader 9
+│   ├── mandelbulb.frag.glsl   # Shader 10
+│   ├── cyberspace.frag.glsl   # Shader 11
+│   ├── tunnel.frag.glsl       # Shader 12
+│   ├── primitives.frag.glsl   # Shader 13
+│   ├── fractal.frag.glsl      # Shader 14
+│   ├── palette.frag.glsl      # Shader 15
+│   ├── octgrams.frag.glsl     # Shader 16
+│   ├── voxellines.frag.glsl   # Shader 17
+│   ├── mandelbulb2.frag.glsl  # Shader 18
+│   ├── protean.frag.glsl      # Shader 19
+│   ├── rocaille.frag.glsl     # Shader 20
+│   ├── fxaa.frag.glsl         # FXAA post-process shader
 │   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
 ├── android/            # Android Studio project (Vulkan)
 └── ios/                # Xcode project (Metal)
     └── Sparks/Shaders/
         ├── ShaderTypes.h          # Shared structs (VertexOut, Uniforms)
         ├── sparks.metal           # Shared vertex shader + Sparks fragment
-        ├── cosmic.metal           # Cosmic fragment shader
-        ├── starship.metal         # Starship fragment shader
-        ├── clouds.metal           # Clouds fragment shader
-        ├── seascape.metal         # Seascape fragment shader
-        ├── rainforest.metal       # Rainforest fragment shader
-        ├── plasma.metal           # Plasma Globe fragment shader
-        ├── grid.metal             # Grid fragment shader
-        ├── interstellar.metal     # Interstellar fragment shader
-        └── mandelbulb.metal       # Mandelbulb fragment shader
+        ├── cosmic.metal           # Cosmic (per-file -fno-fast-math)
+        ├── starship.metal         # Starship
+        ├── clouds.metal           # Clouds
+        ├── seascape.metal         # Seascape
+        ├── rainforest.metal       # Rainforest
+        ├── plasma.metal           # Plasma Globe
+        ├── grid.metal             # Grid
+        ├── interstellar.metal     # Interstellar
+        ├── mandelbulb.metal       # Mandelbulb
+        ├── cyberspace.metal       # Cyberspace
+        ├── tunnel.metal           # Tunnel (per-file -fno-fast-math)
+        ├── fractal.metal          # Fractal Pyramid
+        ├── mandelbulb2.metal      # Mandelbulb (evilryu)
+        ├── octgrams.metal         # Octgrams
+        ├── palette.metal          # Palette
+        ├── primitives.metal       # Primitives
+        ├── voxellines.metal       # Voxel Lines
+        ├── protean.metal          # Protean Clouds
+        └── rocaille.metal         # Rocaille
 ```
 
 ## How It Works

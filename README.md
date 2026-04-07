@@ -37,36 +37,54 @@
 
 ```
 sparks/
-├── shared/shaders/     # シェーダーソース (GLSL + MSL)
+├── shared/shaders/     # シェーダーソース (GLSL)
 │   ├── fullscreen.vert.glsl   # フルスクリーン三角形 頂点シェーダー
-│   ├── sparks.frag.glsl       # シェーダー1 フラグメントシェーダー (Vulkan)
-│   ├── cosmic.frag.glsl       # シェーダー2 フラグメントシェーダー (Vulkan)
-│   ├── starship.frag.glsl     # シェーダー3 フラグメントシェーダー (Vulkan)
-│   ├── clouds.frag.glsl       # シェーダー4 フラグメントシェーダー (Vulkan)
-│   ├── seascape.frag.glsl     # シェーダー5 フラグメントシェーダー (Vulkan)
-│   ├── rainforest.frag.glsl   # シェーダー6 フラグメントシェーダー (Vulkan)
-│   ├── plasma.frag.glsl       # シェーダー7 フラグメントシェーダー (Vulkan)
-│   ├── grid.frag.glsl         # シェーダー8 フラグメントシェーダー (Vulkan)
-│   ├── interstellar.frag.glsl # シェーダー9 フラグメントシェーダー (Vulkan)
-│   ├── mandelbulb.frag.glsl   # シェーダー10 フラグメントシェーダー (Vulkan)
-│   ├── cyberspace.frag.glsl   # シェーダー11 フラグメントシェーダー (Vulkan)
-│   ├── tunnel.frag.glsl       # シェーダー12 フラグメントシェーダー (Vulkan)
-│   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー (Vulkan)
+│   ├── sparks.frag.glsl       # シェーダー1 フラグメントシェーダー
+│   ├── cosmic.frag.glsl       # シェーダー2
+│   ├── starship.frag.glsl     # シェーダー3
+│   ├── clouds.frag.glsl       # シェーダー4
+│   ├── seascape.frag.glsl     # シェーダー5
+│   ├── rainforest.frag.glsl   # シェーダー6
+│   ├── plasma.frag.glsl       # シェーダー7
+│   ├── grid.frag.glsl         # シェーダー8
+│   ├── interstellar.frag.glsl # シェーダー9
+│   ├── mandelbulb.frag.glsl   # シェーダー10
+│   ├── cyberspace.frag.glsl   # シェーダー11
+│   ├── tunnel.frag.glsl       # シェーダー12
+│   ├── primitives.frag.glsl   # シェーダー13
+│   ├── fractal.frag.glsl      # シェーダー14
+│   ├── palette.frag.glsl      # シェーダー15
+│   ├── octgrams.frag.glsl     # シェーダー16
+│   ├── voxellines.frag.glsl   # シェーダー17
+│   ├── mandelbulb2.frag.glsl  # シェーダー18
+│   ├── protean.frag.glsl      # シェーダー19
+│   ├── rocaille.frag.glsl     # シェーダー20
+│   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
 └── ios/                # Xcode プロジェクト (Metal)
     └── Sparks/Shaders/
         ├── ShaderTypes.h          # 共通構造体 (VertexOut, Uniforms)
         ├── sparks.metal           # 共通頂点シェーダー + Sparks フラグメント
-        ├── cosmic.metal           # Cosmic フラグメントシェーダー
-        ├── starship.metal         # Starship フラグメントシェーダー
-        ├── clouds.metal           # Clouds フラグメントシェーダー
-        ├── seascape.metal         # Seascape フラグメントシェーダー
-        ├── rainforest.metal       # Rainforest フラグメントシェーダー
-        ├── plasma.metal           # Plasma Globe フラグメントシェーダー
-        ├── grid.metal             # Grid フラグメントシェーダー
-        ├── interstellar.metal     # Interstellar フラグメントシェーダー
-        └── mandelbulb.metal       # Mandelbulb フラグメントシェーダー
+        ├── cosmic.metal           # Cosmic (per-file -fno-fast-math)
+        ├── starship.metal         # Starship
+        ├── clouds.metal           # Clouds
+        ├── seascape.metal         # Seascape
+        ├── rainforest.metal       # Rainforest
+        ├── plasma.metal           # Plasma Globe
+        ├── grid.metal             # Grid
+        ├── interstellar.metal     # Interstellar
+        ├── mandelbulb.metal       # Mandelbulb
+        ├── cyberspace.metal       # Cyberspace
+        ├── tunnel.metal           # Tunnel (per-file -fno-fast-math)
+        ├── fractal.metal          # Fractal Pyramid
+        ├── mandelbulb2.metal      # Mandelbulb (evilryu)
+        ├── octgrams.metal         # Octgrams
+        ├── palette.metal          # Palette
+        ├── primitives.metal       # Primitives
+        ├── voxellines.metal       # Voxel Lines
+        ├── protean.metal          # Protean Clouds
+        └── rocaille.metal         # Rocaille
 ```
 
 ## 仕組み

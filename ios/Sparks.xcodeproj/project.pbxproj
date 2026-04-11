@@ -38,6 +38,7 @@
 		A10037 /* voxellines.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10037 /* voxellines.metal */; };
 		A10038 /* protean.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10038 /* protean.metal */; };
 		A10039 /* rocaille.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10039 /* rocaille.metal */; };
+		A10040 /* hudrings.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10040 /* hudrings.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -76,6 +77,7 @@
 		B10037 /* voxellines.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = voxellines.metal; sourceTree = "<group>"; };
 		B10038 /* protean.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = protean.metal; sourceTree = "<group>"; };
 		B10039 /* rocaille.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = rocaille.metal; sourceTree = "<group>"; };
+		B10040 /* hudrings.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = hudrings.metal; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -139,6 +141,7 @@
 				B10037 /* voxellines.metal */,
 				B10038 /* protean.metal */,
 				B10039 /* rocaille.metal */,
+				B10040 /* hudrings.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -263,6 +266,7 @@
 				A10037 /* voxellines.metal in Sources */,
 				A10038 /* protean.metal in Sources */,
 				A10039 /* rocaille.metal in Sources */,
+				A10040 /* hudrings.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

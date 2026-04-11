@@ -2,7 +2,7 @@
 
 [English](README_en.md)
 
-フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。
+フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全21シェーダー。
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -25,6 +25,8 @@
 | ![Voxel Lines](./screenshots/screenshot17.png) | ![Mandelbulb 2](./screenshots/screenshot18.png) |
 | **Protean Clouds** | **Rocaille** |
 | ![Protean Clouds](./screenshots/screenshot19.png) | ![Rocaille](./screenshots/screenshot20.png) |
+| **HUD Rings** | |
+| ![HUD Rings](./screenshots/screenshot21.png) | |
 
 ## 対応プラットフォーム
 
@@ -59,6 +61,7 @@ sparks/
 │   ├── mandelbulb2.frag.glsl  # シェーダー18
 │   ├── protean.frag.glsl      # シェーダー19
 │   ├── rocaille.frag.glsl     # シェーダー20
+│   ├── hudrings.frag.glsl     # シェーダー21
 │   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -84,7 +87,8 @@ sparks/
         ├── primitives.metal       # Primitives
         ├── voxellines.metal       # Voxel Lines
         ├── protean.metal          # Protean Clouds
-        └── rocaille.metal         # Rocaille
+        ├── rocaille.metal         # Rocaille
+        └── hudrings.metal         # HUD Rings
 ```
 
 ## 仕組み
@@ -94,7 +98,7 @@ sparks/
 ### 操作ボタン（右上）
 | ボタン | 機能 |
 |:---:|---|
-| ◇ | シェーダー切替（20種類を順に切り替え） |
+| ◇ | シェーダー切替（21種類を順に切り替え） |
 | ◎ | モード切替（Sparks: 視差 / Rainforest: 時間的再投影 / Mandelbulb: FXAA） |
 | 1 / ½ | 半解像度トグル（½でオレンジ表示 = 縦横半分でレンダリング+アップスケール） |
 
@@ -203,6 +207,12 @@ sparks/
 - **二重ループタービュレンス**: 9レイヤー×9回のsin変形で複雑な模様を生成
 - **コサインカラーリング+tanhトーンマッピング**: コンパクトで美しいエフェクト
 
+### シェーダー21: HUD Rings
+- **7リングのレイヤードSDF**: 異なる回転速度の同心リングをz方向に並べてレイマーチング
+- **7セグ風プロシージャルフォント**: mod空間のグリッド+SDF合成で桁を動的に描画
+- **UIオーバーレイ群**: 矩形・三角・グラフ・矢印・サイドラインなど複数のHUDパーツを重ね合わせ
+- **30秒循環アニメーション**: `cubicInOut` イージングでカメラ角度とリング厚みが周期的に変化
+
 Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17はテクスチャも使用。
 
 ## ビルド
@@ -248,3 +258,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 18 | [Mandelbulb](https://www.shadertoy.com/view/MdXSWn) | evilryu | 8次Mandelbulb+オーバーステッピング最適化 | CC BY-NC-SA 3.0 |
 | 19 | [Protean Clouds](https://www.shadertoy.com/view/3l23Rh) | nimitz (@stormoid) | 変形周期グリッドのプロシージャル雲 | CC BY-NC-SA 3.0 |
 | 20 | [Rocaille](https://www.shadertoy.com/view/WXyczK) | @XorDev | タービュレンス多層レイヤーの装飾模様 | CC BY-NC-SA 3.0 |
+| 21 | [HUD Rings](https://www.shadertoy.com/view/Dsf3WH) | kishimisu | 回転リング群+7セグ風数字+HUD装飾のメカUIレイマーチング | CC BY-NC-SA 3.0 |

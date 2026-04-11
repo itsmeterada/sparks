@@ -39,6 +39,11 @@
 		A10038 /* protean.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10038 /* protean.metal */; };
 		A10039 /* rocaille.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10039 /* rocaille.metal */; };
 		A10040 /* hudrings.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10040 /* hudrings.metal */; };
+		A10041 /* fluid_bufferA.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10041 /* fluid_bufferA.metal */; };
+		A10042 /* fluid_bufferB.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10042 /* fluid_bufferB.metal */; };
+		A10043 /* fluid_bufferC.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10043 /* fluid_bufferC.metal */; };
+		A10044 /* fluid_bufferD.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10044 /* fluid_bufferD.metal */; };
+		A10045 /* fluid_image.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10045 /* fluid_image.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -78,6 +83,12 @@
 		B10038 /* protean.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = protean.metal; sourceTree = "<group>"; };
 		B10039 /* rocaille.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = rocaille.metal; sourceTree = "<group>"; };
 		B10040 /* hudrings.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = hudrings.metal; sourceTree = "<group>"; };
+		B10041 /* fluid_bufferA.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_bufferA.metal; sourceTree = "<group>"; };
+		B10042 /* fluid_bufferB.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_bufferB.metal; sourceTree = "<group>"; };
+		B10043 /* fluid_bufferC.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_bufferC.metal; sourceTree = "<group>"; };
+		B10044 /* fluid_bufferD.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_bufferD.metal; sourceTree = "<group>"; };
+		B10045 /* fluid_image.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_image.metal; sourceTree = "<group>"; };
+		B10046 /* FluidCommon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FluidCommon.h; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -142,6 +153,12 @@
 				B10038 /* protean.metal */,
 				B10039 /* rocaille.metal */,
 				B10040 /* hudrings.metal */,
+				B10046 /* FluidCommon.h */,
+				B10041 /* fluid_bufferA.metal */,
+				B10042 /* fluid_bufferB.metal */,
+				B10043 /* fluid_bufferC.metal */,
+				B10044 /* fluid_bufferD.metal */,
+				B10045 /* fluid_image.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -267,6 +284,11 @@
 				A10038 /* protean.metal in Sources */,
 				A10039 /* rocaille.metal in Sources */,
 				A10040 /* hudrings.metal in Sources */,
+				A10041 /* fluid_bufferA.metal in Sources */,
+				A10042 /* fluid_bufferB.metal in Sources */,
+				A10043 /* fluid_bufferC.metal in Sources */,
+				A10044 /* fluid_bufferD.metal in Sources */,
+				A10045 /* fluid_image.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

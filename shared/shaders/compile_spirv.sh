@@ -28,6 +28,7 @@ glslangValidator -V "$SCRIPT_DIR/rocaille.frag.glsl" -o "$OUTPUT_DIR/rocaille.fr
 glslangValidator -V "$SCRIPT_DIR/hudrings.frag.glsl" -o "$OUTPUT_DIR/hudrings.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/flighthud.frag.glsl" -o "$OUTPUT_DIR/flighthud.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/metalball.frag.glsl" -o "$OUTPUT_DIR/metalball.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/shutohwy.frag.glsl" -o "$OUTPUT_DIR/shutohwy.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/tunnel.frag.glsl" -o "$OUTPUT_DIR/tunnel.frag.spv" || exit 1
 echo "All shaders compiled successfully."
 ls -la "$OUTPUT_DIR"/*.spv

@@ -10,7 +10,7 @@
 #include "vulkan_utils.h"
 
 static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-static constexpr int SHADER_COUNT = 23;
+static constexpr int SHADER_COUNT = 24;
 static constexpr int MAX_TEXTURES = 5;
 static constexpr int MAX_TEX_BINDINGS = 3;
 
@@ -93,7 +93,7 @@ private:
     std::vector<VkFramebuffer> mFramebuffers;
     VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
     VkPipeline mPipelines[SHADER_COUNT] = {};
-    int mCurrentShader = 22;
+    int mCurrentShader = 23;
 
     // Textures: 0=stars, 1=rgba_noise_medium, 2=rgba_noise_small, 3=gray_noise_small
     TextureResource mTextures[MAX_TEXTURES] = {};

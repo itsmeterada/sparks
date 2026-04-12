@@ -2,7 +2,7 @@
 
 [Japanese (日本語)](README.md)
 
-Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan / Metal). Tap the top-right button to switch shaders. 23 shaders total.
+Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan / Metal). Tap the top-right button to switch shaders. 24 shaders total.
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -27,8 +27,8 @@ Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan
 | ![Protean Clouds](./screenshots/screenshot19.png) | ![Rocaille](./screenshots/screenshot20.png) |
 | **HUD Rings** | **Flight HUD** |
 | ![HUD Rings](./screenshots/screenshot21.png) | ![Flight HUD](./screenshots/screenshot22.png) |
-| **Chrome Metaball** | |
-| ![Chrome Metaball](./screenshots/screenshot23.png) | |
+| **Chrome Metaball** | **Shuto Highway** |
+| ![Chrome Metaball](./screenshots/screenshot23.png) | ![Shuto Highway](./screenshots/screenshot24.png) |
 
 ## Supported Platforms
 
@@ -66,6 +66,7 @@ sparks/
 │   ├── hudrings.frag.glsl     # Shader 21
 │   ├── flighthud.frag.glsl    # Shader 22
 │   ├── metalball.frag.glsl    # Shader 23
+│   ├── shutohwy.frag.glsl    # Shader 24
 │   ├── fxaa.frag.glsl         # FXAA post-process shader
 │   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
 ├── android/            # Android Studio project (Vulkan)
@@ -104,7 +105,7 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 ### Controls (top-right)
 | Button | Function |
 |:---:|---|
-| ◇ | Cycle through 23 shaders |
+| ◇ | Cycle through 24 shaders |
 | ◎ | Toggle mode (Sparks: parallax / Rainforest: temporal reprojection / Mandelbulb: FXAA) |
 | 1 / ½ | Half-resolution toggle (½ orange = render at half size + linear upscale) |
 
@@ -231,6 +232,12 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 - **5-bounce reflections**: Extinction-based multi-reflection for chrome appearance
 - **11-second loop animation**: Bounce, deformation, and camera orbit via smoothstep keyframes
 
+### Shader 24: Shuto Highway 83
+- **DDA grid city**: 3D DDA grid traversal with 4-split parametric buildings/traditional houses per cell
+- **Highways**: Distance-function curved roads + road markings + LCD billboards + street lamps
+- **PBR + shadows + AO**: Hosek sky probe + GGX specular + shadow ray + marched AO
+- **7 auto-switching cameras**: Drive, spiral flight, rooftop walk, under-bridge, isometric, etc. (~130 sec)
+
 Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9/17 also use textures.
 
 ## Build
@@ -279,3 +286,4 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 | 21 | [HUD Rings](https://www.shadertoy.com/view/Dsf3WH) | kishimisu | Spinning rings + 7-seg digits + HUD overlays mecha UI raymarching | CC BY-NC-SA 3.0 |
 | 22 | [Flight HUD](https://www.shadertoy.com/view/Dl2XRz) | kishimisu | Radar + paper plane + graph panels flight-style 2D HUD | CC BY-NC-SA 3.0 |
 | 23 | [Chrome Metaball](https://www.shadertoy.com/view/7dtSDf) | — | PBR + multi-reflection chrome metaball | CC BY-NC-SA 3.0 |
+| 24 | [Shuto Highway 83](https://www.shadertoy.com/view/XdyyDV) | Jerome Liard | DDA city + highways + PBR + 7-camera full city renderer | CC BY-NC-SA 3.0 |

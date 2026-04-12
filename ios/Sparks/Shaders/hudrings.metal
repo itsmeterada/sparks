@@ -13,6 +13,9 @@ using namespace metal;
 static float hr_mod(float x, float y) { return x - y * floor(x / y); }
 static float2 hr_mod(float2 x, float2 y) { return x - y * floor(x / y); }
 
+// MSL does not provide GLSL's radians(); supply a scalar version for the port.
+static float radians(float deg) { return deg * 0.01745329251994329577f; }
+
 static float2x2 Rot(float a) {
     float c = cos(a), s = sin(a);
     return float2x2(float2(c, -s), float2(s, c));

@@ -111,6 +111,11 @@ class MetalRenderer {
 
     func toggleShader() {
         currentShader = (currentShader + 1) % pipelineStates.count
+        // Reset mouse state so shaders that check iMouse.z (e.g. Voxel Lines
+        // uses it to offset the camera path) start from a clean state matching
+        // the Shadertoy default of "no interaction".
+        mouseState = .zero
+        mouseInitialized = false
     }
 
     func toggleMode() {

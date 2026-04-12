@@ -240,7 +240,7 @@ static MBCamera mb_createOrbitCam(float2 uv, float2 mouse, float2 res, float fov
     float zoom = cos(halfFov) / sin(halfFov);
     float3 pos = target + float3(0, height, 0) + float3(sin(mouse.x), 0, cos(mouse.x)) * dist;
     float3 dir = normalize(float3(uv, -zoom));
-    dir.yz = dir.yz * rot2D(-mouse.y);
+    dir.yz = rot2D(-mouse.y) * dir.yz;
     dir = lookAtMatrix(target - pos) * dir;
     return MBCamera{pos, dir};
 }

@@ -93,7 +93,7 @@ private:
     std::vector<VkFramebuffer> mFramebuffers;
     VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
     VkPipeline mPipelines[SHADER_COUNT] = {};
-    int mCurrentShader = 0;
+    int mCurrentShader = 22;
 
     // Textures: 0=stars, 1=rgba_noise_medium, 2=rgba_noise_small, 3=gray_noise_small
     TextureResource mTextures[MAX_TEXTURES] = {};

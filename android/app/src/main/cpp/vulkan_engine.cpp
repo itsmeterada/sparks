@@ -502,7 +502,7 @@ bool VulkanEngine::createGraphicsPipeline() {
         "shaders/voxellines.frag.spv", "shaders/mandelbulb2.frag.spv",
         "shaders/protean.frag.spv", "shaders/rocaille.frag.spv",
         "shaders/hudrings.frag.spv", "shaders/flighthud.frag.spv",
-        "shaders/metalball.frag.spv", "shaders/shutohwy.frag.spv"
+        "shaders/metalball.frag.spv"
     };
     std::vector<uint32_t> fragCodes[SHADER_COUNT];
     VkShaderModule fragModules[SHADER_COUNT]{};
@@ -557,7 +557,8 @@ bool VulkanEngine::createGraphicsPipeline() {
         stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT; stages[1].module = fragModules[i]; stages[1].pName = "main";
         pci.pStages = stages;
         if (vkCreateGraphicsPipelines(mDevice, VK_NULL_HANDLE, 1, &pci, nullptr, &mPipelines[i]) != VK_SUCCESS) {
-            LOGE("Failed to create pipeline %d", i); return false;
+            LOGE("Failed to create pipeline %d (%s), skipping", i, fragNames[i]);
+            mPipelines[i] = VK_NULL_HANDLE;
         }
     }
 
@@ -740,6 +741,15 @@ void VulkanEngine::render() {
         default: pc.preRotate = 0; break;
     }
 
+    // Auto-skip null pipelines (e.g. GPU failed to compile a heavy shader)
+    if (mPipelines[mCurrentShader] == VK_NULL_HANDLE) {
+        for (int i = 0; i < SHADER_COUNT; i++) {
+            mCurrentShader = (mCurrentShader + 1) % SHADER_COUNT;
+            if (mPipelines[mCurrentShader] != VK_NULL_HANDLE) break;
+        }
+    }
+    bool pipelineValid = (mPipelines[mCurrentShader] != VK_NULL_HANDLE);
+
     VkClearValue clear{}; clear.color = {{0,0,0,1}};
     VkRenderPassBeginInfo rpbi{}; rpbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     rpbi.renderPass = mRenderPass; rpbi.framebuffer = mFramebuffers[imageIndex];
@@ -762,7 +772,11 @@ void VulkanEngine::render() {
         return 0;
     };
 
-    if (doFxaa) {
+    if (!pipelineValid) {
+        // Pipeline failed to compile — just clear to black so fences/present still work
+        vkCmdBeginRenderPass(cmd, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdEndRenderPass(cmd);
+    } else if (doFxaa) {
         // 2-pass FXAA: render to offscreen, then FXAA to swapchain
         VkRenderPassBeginInfo offRpbi{}; offRpbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         offRpbi.renderPass = mOffscreenRenderPass; offRpbi.framebuffer = mHistoryFramebuffer;
@@ -929,7 +943,10 @@ void VulkanEngine::render() {
 void VulkanEngine::onResize(uint32_t w, uint32_t h) { if (w && h) mNeedsResize = true; }
 
 void VulkanEngine::toggleShader() {
-    mCurrentShader = (mCurrentShader + 1) % SHADER_COUNT;
+    for (int i = 0; i < SHADER_COUNT; i++) {
+        mCurrentShader = (mCurrentShader + 1) % SHADER_COUNT;
+        if (mPipelines[mCurrentShader] != VK_NULL_HANDLE) break;
+    }
     mFrameCount = 0; // reset temporal accumulation
     LOGI("Switched to shader %d", mCurrentShader);
 }

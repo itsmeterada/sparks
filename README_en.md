@@ -2,7 +2,7 @@
 
 [Japanese (日本語)](README.md)
 
-Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan / Metal). Tap the top-right button to switch shaders. 22 shaders total.
+Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan / Metal). Tap the top-right button to switch shaders. 23 shaders total.
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -27,6 +27,8 @@ Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan
 | ![Protean Clouds](./screenshots/screenshot19.png) | ![Rocaille](./screenshots/screenshot20.png) |
 | **HUD Rings** | **Flight HUD** |
 | ![HUD Rings](./screenshots/screenshot21.png) | ![Flight HUD](./screenshots/screenshot22.png) |
+| **Chrome Metaball** | |
+| ![Chrome Metaball](./screenshots/screenshot23.png) | |
 
 ## Supported Platforms
 
@@ -63,6 +65,7 @@ sparks/
 │   ├── rocaille.frag.glsl     # Shader 20
 │   ├── hudrings.frag.glsl     # Shader 21
 │   ├── flighthud.frag.glsl    # Shader 22
+│   ├── metalball.frag.glsl    # Shader 23
 │   ├── fxaa.frag.glsl         # FXAA post-process shader
 │   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
 ├── android/            # Android Studio project (Vulkan)
@@ -90,7 +93,8 @@ sparks/
         ├── protean.metal          # Protean Clouds
         ├── rocaille.metal         # Rocaille
         ├── hudrings.metal         # HUD Rings
-        └── flighthud.metal        # Flight HUD
+        ├── flighthud.metal        # Flight HUD
+        └── metalball.metal        # Chrome Metaball
 ```
 
 ## How It Works
@@ -100,7 +104,7 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 ### Controls (top-right)
 | Button | Function |
 |:---:|---|
-| ◇ | Cycle through 22 shaders |
+| ◇ | Cycle through 23 shaders |
 | ◎ | Toggle mode (Sparks: parallax / Rainforest: temporal reprojection / Mandelbulb: FXAA) |
 | 1 / ½ | Half-resolution toggle (½ orange = render at half size + linear upscale) |
 
@@ -221,6 +225,12 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 - **Four graph panels**: Bar graph, histogram, waveform, and dot plot
 - **Multiple small UIs**: Rotating ring gauges, crosshair, skewed 7-segment digits
 
+### Shader 23: Chrome Metaball
+- **Metaball SDF**: Spherical harmonic deformation + smooth union with ground plane
+- **PBR lighting**: GGX NDF + Smith-GGX Visibility + Schlick Fresnel physically-based BRDF
+- **5-bounce reflections**: Extinction-based multi-reflection for chrome appearance
+- **11-second loop animation**: Bounce, deformation, and camera orbit via smoothstep keyframes
+
 Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9/17 also use textures.
 
 ## Build
@@ -268,3 +278,4 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 | 20 | [Rocaille](https://www.shadertoy.com/view/WXyczK) | @XorDev | Multi-layer turbulence ornamental pattern | CC BY-NC-SA 3.0 |
 | 21 | [HUD Rings](https://www.shadertoy.com/view/Dsf3WH) | kishimisu | Spinning rings + 7-seg digits + HUD overlays mecha UI raymarching | CC BY-NC-SA 3.0 |
 | 22 | [Flight HUD](https://www.shadertoy.com/view/Dl2XRz) | kishimisu | Radar + paper plane + graph panels flight-style 2D HUD | CC BY-NC-SA 3.0 |
+| 23 | [Chrome Metaball](https://www.shadertoy.com/view/7dtSDf) | — | PBR + multi-reflection chrome metaball | CC BY-NC-SA 3.0 |

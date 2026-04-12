@@ -2,7 +2,7 @@
 
 [Japanese (日本語)](README.md)
 
-Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan / Metal). Tap the top-right button to switch shaders. 21 shaders total.
+Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan / Metal). Tap the top-right button to switch shaders. 22 shaders total.
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -25,8 +25,8 @@ Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan
 | ![Voxel Lines](./screenshots/screenshot17.png) | ![Mandelbulb 2](./screenshots/screenshot18.png) |
 | **Protean Clouds** | **Rocaille** |
 | ![Protean Clouds](./screenshots/screenshot19.png) | ![Rocaille](./screenshots/screenshot20.png) |
-| **HUD Rings** | |
-| ![HUD Rings](./screenshots/screenshot21.png) | |
+| **HUD Rings** | **Flight HUD** |
+| ![HUD Rings](./screenshots/screenshot21.png) | ![Flight HUD](./screenshots/screenshot22.png) |
 
 ## Supported Platforms
 
@@ -62,6 +62,7 @@ sparks/
 │   ├── protean.frag.glsl      # Shader 19
 │   ├── rocaille.frag.glsl     # Shader 20
 │   ├── hudrings.frag.glsl     # Shader 21
+│   ├── flighthud.frag.glsl    # Shader 22
 │   ├── fxaa.frag.glsl         # FXAA post-process shader
 │   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
 ├── android/            # Android Studio project (Vulkan)
@@ -88,7 +89,8 @@ sparks/
         ├── voxellines.metal       # Voxel Lines
         ├── protean.metal          # Protean Clouds
         ├── rocaille.metal         # Rocaille
-        └── hudrings.metal         # HUD Rings
+        ├── hudrings.metal         # HUD Rings
+        └── flighthud.metal        # Flight HUD
 ```
 
 ## How It Works
@@ -98,7 +100,7 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 ### Controls (top-right)
 | Button | Function |
 |:---:|---|
-| ◇ | Cycle through 21 shaders |
+| ◇ | Cycle through 22 shaders |
 | ◎ | Toggle mode (Sparks: parallax / Rainforest: temporal reprojection / Mandelbulb: FXAA) |
 | 1 / ½ | Half-resolution toggle (½ orange = render at half size + linear upscale) |
 
@@ -213,6 +215,12 @@ Each effect runs as a single fragment shader pass on a fullscreen triangle. No g
 - **UI overlay suite**: Rectangles, triangles, graphs, arrows and side-lines composed into a mecha HUD
 - **30-second looped animation**: `cubicInOut` easing cycles both camera angle and ring thickness
 
+### Shader 22: Flight HUD
+- **Radar display**: Rotating sweep line + polar-coordinate grid + numbered tick marks
+- **Paper plane overlay**: Origami-style aircraft built from triangle SDF combinations
+- **Four graph panels**: Bar graph, histogram, waveform, and dot plot
+- **Multiple small UIs**: Rotating ring gauges, crosshair, skewed 7-segment digits
+
 Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9/17 also use textures.
 
 ## Build
@@ -259,3 +267,4 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 | 19 | [Protean Clouds](https://www.shadertoy.com/view/3l23Rh) | nimitz (@stormoid) | Deformed periodic grid procedural clouds | CC BY-NC-SA 3.0 |
 | 20 | [Rocaille](https://www.shadertoy.com/view/WXyczK) | @XorDev | Multi-layer turbulence ornamental pattern | CC BY-NC-SA 3.0 |
 | 21 | [HUD Rings](https://www.shadertoy.com/view/Dsf3WH) | kishimisu | Spinning rings + 7-seg digits + HUD overlays mecha UI raymarching | CC BY-NC-SA 3.0 |
+| 22 | [Flight HUD](https://www.shadertoy.com/view/Dl2XRz) | kishimisu | Radar + paper plane + graph panels flight-style 2D HUD | CC BY-NC-SA 3.0 |

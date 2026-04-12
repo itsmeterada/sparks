@@ -2,7 +2,7 @@
 
 [English](README_en.md)
 
-フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全21シェーダー。
+フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全22シェーダー。
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -25,8 +25,8 @@
 | ![Voxel Lines](./screenshots/screenshot17.png) | ![Mandelbulb 2](./screenshots/screenshot18.png) |
 | **Protean Clouds** | **Rocaille** |
 | ![Protean Clouds](./screenshots/screenshot19.png) | ![Rocaille](./screenshots/screenshot20.png) |
-| **HUD Rings** | |
-| ![HUD Rings](./screenshots/screenshot21.png) | |
+| **HUD Rings** | **Flight HUD** |
+| ![HUD Rings](./screenshots/screenshot21.png) | ![Flight HUD](./screenshots/screenshot22.png) |
 
 ## 対応プラットフォーム
 
@@ -62,6 +62,7 @@ sparks/
 │   ├── protean.frag.glsl      # シェーダー19
 │   ├── rocaille.frag.glsl     # シェーダー20
 │   ├── hudrings.frag.glsl     # シェーダー21
+│   ├── flighthud.frag.glsl    # シェーダー22
 │   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -88,7 +89,8 @@ sparks/
         ├── voxellines.metal       # Voxel Lines
         ├── protean.metal          # Protean Clouds
         ├── rocaille.metal         # Rocaille
-        └── hudrings.metal         # HUD Rings
+        ├── hudrings.metal         # HUD Rings
+        └── flighthud.metal        # Flight HUD
 ```
 
 ## 仕組み
@@ -98,7 +100,7 @@ sparks/
 ### 操作ボタン（右上）
 | ボタン | 機能 |
 |:---:|---|
-| ◇ | シェーダー切替（21種類を順に切り替え） |
+| ◇ | シェーダー切替（22種類を順に切り替え） |
 | ◎ | モード切替（Sparks: 視差 / Rainforest: 時間的再投影 / Mandelbulb: FXAA） |
 | 1 / ½ | 半解像度トグル（½でオレンジ表示 = 縦横半分でレンダリング+アップスケール） |
 
@@ -213,6 +215,12 @@ sparks/
 - **UIオーバーレイ群**: 矩形・三角・グラフ・矢印・サイドラインなど複数のHUDパーツを重ね合わせ
 - **30秒循環アニメーション**: `cubicInOut` イージングでカメラ角度とリング厚みが周期的に変化
 
+### シェーダー22: Flight HUD
+- **レーダー表示**: 回転スイープ線+極座標グリッド+数字付き目盛りのレーダーUI
+- **紙飛行機オーバーレイ**: 三角形SDFの組合せで折り紙風の機体を描画
+- **4種のグラフパネル**: バーグラフ・ヒストグラム・波形・ドットプロット
+- **複数の小型UI**: 回転リングゲージ・十字照準・スキュー7セグ数字
+
 Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17はテクスチャも使用。
 
 ## ビルド
@@ -259,3 +267,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 19 | [Protean Clouds](https://www.shadertoy.com/view/3l23Rh) | nimitz (@stormoid) | 変形周期グリッドのプロシージャル雲 | CC BY-NC-SA 3.0 |
 | 20 | [Rocaille](https://www.shadertoy.com/view/WXyczK) | @XorDev | タービュレンス多層レイヤーの装飾模様 | CC BY-NC-SA 3.0 |
 | 21 | [HUD Rings](https://www.shadertoy.com/view/Dsf3WH) | kishimisu | 回転リング群+7セグ風数字+HUD装飾のメカUIレイマーチング | CC BY-NC-SA 3.0 |
+| 22 | [Flight HUD](https://www.shadertoy.com/view/Dl2XRz) | kishimisu | レーダー+紙飛行機+グラフ群のフライト風2D HUD | CC BY-NC-SA 3.0 |

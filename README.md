@@ -27,8 +27,8 @@
 | ![Protean Clouds](./screenshots/screenshot19.png) | ![Rocaille](./screenshots/screenshot20.png) |
 | **HUD Rings** | **Flight HUD** |
 | ![HUD Rings](./screenshots/screenshot21.png) | ![Flight HUD](./screenshots/screenshot22.png) |
-| **Chrome Metaball** | **Shuto Highway** |
-| ![Chrome Metaball](./screenshots/screenshot23.png) | ![Shuto Highway](./screenshots/screenshot24.png) |
+| **Chrome Metaball** | **Smooth Heart** |
+| ![Chrome Metaball](./screenshots/screenshot23.png) | ![Smooth Heart](./screenshots/screenshot24.png) |
 
 ## 対応プラットフォーム
 
@@ -66,7 +66,7 @@ sparks/
 │   ├── hudrings.frag.glsl     # シェーダー21
 │   ├── flighthud.frag.glsl    # シェーダー22
 │   ├── metalball.frag.glsl    # シェーダー23
-│   ├── shutohwy.frag.glsl    # シェーダー24
+│   ├── heart.frag.glsl        # シェーダー24
 │   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -95,7 +95,8 @@ sparks/
         ├── rocaille.metal         # Rocaille
         ├── hudrings.metal         # HUD Rings
         ├── flighthud.metal        # Flight HUD
-        └── metalball.metal        # Chrome Metaball
+        ├── metalball.metal        # Chrome Metaball
+        └── heart.metal            # Smooth Heart
 ```
 
 ## 仕組み
@@ -232,11 +233,11 @@ sparks/
 - **5回反射**: extinction ベースの多重反射でクロム質感を表現
 - **11秒ループアニメーション**: バウンス・変形・カメラ軌道を `smoothstep` キーフレームで制御
 
-### シェーダー24: Shuto Highway 83
-- **DDAグリッド都市**: 3D DDAでビルグリッドを走査、セルごとに4分割のパラメトリックビル/和風家屋を生成
-- **高速道路**: 距離関数ベースの曲線道路+路面標示+LCD看板+街灯
-- **PBR+影+AO**: Hosek空プローブ+GGXスペキュラ+シャドウレイ+マーチAO
-- **7カメラ自動切替**: ドライブ・螺旋飛行・屋上散策・橋下・等角俯瞰など約130秒のカメラワーク
+### シェーダー24: Smooth Heart
+- **almostIdentity関数**: ミラー軸の曲率不連続をスムージングし滑らかなハート形状を生成
+- **64サンプルAO**: 球面フィボナッチ分布による高品質アンビエントオクルージョン
+- **フレネル反射+環境照明**: 表面角度に応じた反射色変化とスカイライトブレンド
+- **マウスインタラクション**: x軸でカメラ回転、y軸でスムージング量を制御
 
 Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17はテクスチャも使用。
 
@@ -286,4 +287,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 21 | [HUD Rings](https://www.shadertoy.com/view/Dsf3WH) | kishimisu | 回転リング群+7セグ風数字+HUD装飾のメカUIレイマーチング | CC BY-NC-SA 3.0 |
 | 22 | [Flight HUD](https://www.shadertoy.com/view/Dl2XRz) | kishimisu | レーダー+紙飛行機+グラフ群のフライト風2D HUD | CC BY-NC-SA 3.0 |
 | 23 | [Chrome Metaball](https://www.shadertoy.com/view/7dtSDf) | — | PBR+多重反射のクロムメタボール | CC BY-NC-SA 3.0 |
-| 24 | [Shuto Highway 83](https://www.shadertoy.com/view/XdyyDV) | Jerome Liard | DDA都市+高速道路+PBR+7カメラのフルシティレンダラー | CC BY-NC-SA 3.0 |
+| 24 | [Smooth Heart](https://www.shadertoy.com/view/4lByWK) | iq原作ベース | almostIdentityで滑らかな曲率のハートレイマーチング | CC BY-NC-SA 3.0 |

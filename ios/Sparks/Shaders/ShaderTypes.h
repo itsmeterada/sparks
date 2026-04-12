@@ -15,7 +15,6 @@ struct Uniforms {
     float _pad;
     float4 iMouse;
     int mode;
-    int iFrame;
 };
 
 #endif

@@ -8,7 +8,6 @@ struct Uniforms {
     var _pad: Float = 0
     var iMouse: SIMD4<Float> = .zero
     var mode: Int32 = 0
-    var iFrame: Int32 = 0
 }
 
 class MetalRenderer {
@@ -21,23 +20,6 @@ class MetalRenderer {
     private let noiseSmallTexture: MTLTexture?
     private let noise3DTexture: MTLTexture?
     private let samplerState: MTLSamplerState
-
-    // --- Fluid (multipass) ---
-    private static let FLUID_SHADER_INDEX = 21
-    private static let FLUID_MAX_DIM = 1024
-    private static let FLUID_MIP_COUNT = 11
-    private let fluidPipelineA: MTLRenderPipelineState
-    private let fluidPipelineB: MTLRenderPipelineState
-    private let fluidPipelineC: MTLRenderPipelineState
-    private let fluidPipelineD: MTLRenderPipelineState
-    private var fluidTexA: [MTLTexture] = []
-    private var fluidTexB: [MTLTexture] = []
-    private var fluidTexC: [MTLTexture] = []
-    private var fluidTexD: [MTLTexture] = []
-    private var fluidSimWidth: Int = 0
-    private var fluidSimHeight: Int = 0
-    private var fluidFrameIndex: Int32 = 0
-    private var fluidReadIdx: Int = 0
 
     private let startTime: CFAbsoluteTime
     private var currentShader: Int = 0
@@ -67,7 +49,7 @@ class MetalRenderer {
             fatalError("Failed to create default Metal library")
         }
 
-        let fragmentNames = ["sparks_fragment", "cosmic_fragment", "starship_fragment", "clouds_fragment", "seascape_fragment", "rainforest_fragment", "plasma_fragment", "grid_fragment", "interstellar_fragment", "mandelbulb_fragment", "cyberspace_fragment", "tunnel_fragment", "fractal_fragment", "mandelbulb2_fragment", "octgrams_fragment", "palette_fragment", "primitives_fragment", "voxellines_fragment", "protean_fragment", "rocaille_fragment", "hudrings_fragment", "fluid_image_fragment"]
+        let fragmentNames = ["sparks_fragment", "cosmic_fragment", "starship_fragment", "clouds_fragment", "seascape_fragment", "rainforest_fragment", "plasma_fragment", "grid_fragment", "interstellar_fragment", "mandelbulb_fragment", "cyberspace_fragment", "tunnel_fragment", "fractal_fragment", "mandelbulb2_fragment", "octgrams_fragment", "palette_fragment", "primitives_fragment", "voxellines_fragment", "protean_fragment", "rocaille_fragment", "hudrings_fragment"]
         var states: [MTLRenderPipelineState] = []
         for name in fragmentNames {
             let descriptor = MTLRenderPipelineDescriptor()
@@ -81,23 +63,6 @@ class MetalRenderer {
             }
         }
         self.pipelineStates = states
-
-        // --- Fluid buffer pipelines (render into rgba16Float offscreen targets) ---
-        func makeFluidPipeline(_ name: String) -> MTLRenderPipelineState {
-            let d = MTLRenderPipelineDescriptor()
-            d.vertexFunction = library.makeFunction(name: "sparks_vertex")
-            d.fragmentFunction = library.makeFunction(name: name)
-            d.colorAttachments[0].pixelFormat = .rgba16Float
-            do {
-                return try device.makeRenderPipelineState(descriptor: d)
-            } catch {
-                fatalError("Failed to create fluid pipeline \(name): \(error)")
-            }
-        }
-        self.fluidPipelineA = makeFluidPipeline("fluid_bufferA_fragment")
-        self.fluidPipelineB = makeFluidPipeline("fluid_bufferB_fragment")
-        self.fluidPipelineC = makeFluidPipeline("fluid_bufferC_fragment")
-        self.fluidPipelineD = makeFluidPipeline("fluid_bufferD_fragment")
 
         // Load textures
         let loader = MTKTextureLoader(device: device)
@@ -114,7 +79,6 @@ class MetalRenderer {
         let samplerDescriptor = MTLSamplerDescriptor()
         samplerDescriptor.minFilter = .linear
         samplerDescriptor.magFilter = .linear
-        samplerDescriptor.mipFilter = .linear
         samplerDescriptor.sAddressMode = .repeat
         samplerDescriptor.tAddressMode = .repeat
         samplerDescriptor.rAddressMode = .repeat
@@ -184,7 +148,10 @@ class MetalRenderer {
     }
 
     func draw(in view: MTKView) {
-        guard let drawable = view.currentDrawable else { return }
+        guard let drawable = view.currentDrawable,
+              let renderPassDescriptor = view.currentRenderPassDescriptor else {
+            return
+        }
 
         let iTime = Float(CFAbsoluteTimeGetCurrent() - startTime)
 
@@ -195,171 +162,38 @@ class MetalRenderer {
             mode: currentMode
         )
 
-        guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
-
-        if currentShader == MetalRenderer.FLUID_SHADER_INDEX {
-            drawFluid(in: view, commandBuffer: commandBuffer, baseUniforms: uniforms)
-        } else {
-            guard let renderPassDescriptor = view.currentRenderPassDescriptor,
-                  let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
-                return
-            }
-
-            encoder.setRenderPipelineState(pipelineStates[currentShader])
-            encoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 0)
-            encoder.setFragmentSamplerState(samplerState, index: 0)
-
-            switch currentShader {
-            case 2: // starship
-                if let tex = starsTexture { encoder.setFragmentTexture(tex, index: 0) }
-            case 3: // clouds
-                if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
-                if let tex = noiseSmallTexture { encoder.setFragmentTexture(tex, index: 1) }
-                if let tex = noise3DTexture { encoder.setFragmentTexture(tex, index: 2) }
-            case 6: // plasma
-                if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
-            case 7: // grid
-                if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
-            case 8: // interstellar
-                if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
-            case 17: // voxellines
-                if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
-            default:
-                break
-            }
-
-            encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
-            encoder.endEncoding()
-        }
-
-        commandBuffer.present(drawable)
-        commandBuffer.commit()
-    }
-
-    // --- Fluid (multipass) helpers ---
-
-    private func ensureFluidResources() {
-        let screenW = Float(screenSize.width)
-        let screenH = Float(screenSize.height)
-        let aspect = max(0.1, screenW / max(1.0, screenH))
-        var simW: Int
-        var simH: Int
-        if aspect >= 1.0 {
-            simW = MetalRenderer.FLUID_MAX_DIM
-            simH = max(128, Int(Float(MetalRenderer.FLUID_MAX_DIM) / aspect))
-        } else {
-            simH = MetalRenderer.FLUID_MAX_DIM
-            simW = max(128, Int(Float(MetalRenderer.FLUID_MAX_DIM) * aspect))
-        }
-        if fluidSimWidth == simW && fluidSimHeight == simH && fluidTexA.count == 2 {
+        guard let commandBuffer = commandQueue.makeCommandBuffer(),
+              let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
             return
         }
-        fluidSimWidth = simW
-        fluidSimHeight = simH
-        fluidFrameIndex = 0
-        fluidReadIdx = 0
 
-        let desc = MTLTextureDescriptor()
-        desc.textureType = .type2D
-        desc.pixelFormat = .rgba16Float
-        desc.width = simW
-        desc.height = simH
-        desc.mipmapLevelCount = MetalRenderer.FLUID_MIP_COUNT
-        desc.usage = [.renderTarget, .shaderRead]
-        desc.storageMode = .private
-
-        func makePair() -> [MTLTexture] {
-            return [device.makeTexture(descriptor: desc)!, device.makeTexture(descriptor: desc)!]
-        }
-        fluidTexA = makePair()
-        fluidTexB = makePair()
-        fluidTexC = makePair()
-        fluidTexD = makePair()
-    }
-
-    private func runFluidBufferPass(commandBuffer: MTLCommandBuffer,
-                                    target: MTLTexture,
-                                    pipeline: MTLRenderPipelineState,
-                                    textures: [MTLTexture],
-                                    uniforms: inout Uniforms) {
-        let rp = MTLRenderPassDescriptor()
-        rp.colorAttachments[0].texture = target
-        rp.colorAttachments[0].loadAction = .dontCare
-        rp.colorAttachments[0].storeAction = .store
-        rp.colorAttachments[0].level = 0
-        guard let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: rp) else { return }
-        encoder.setRenderPipelineState(pipeline)
+        encoder.setRenderPipelineState(pipelineStates[currentShader])
         encoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 0)
         encoder.setFragmentSamplerState(samplerState, index: 0)
-        for (i, tex) in textures.enumerated() {
-            encoder.setFragmentTexture(tex, index: i)
+
+        switch currentShader {
+        case 2: // starship
+            if let tex = starsTexture { encoder.setFragmentTexture(tex, index: 0) }
+        case 3: // clouds
+            if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
+            if let tex = noiseSmallTexture { encoder.setFragmentTexture(tex, index: 1) }
+            if let tex = noise3DTexture { encoder.setFragmentTexture(tex, index: 2) }
+        case 6: // plasma
+            if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
+        case 7: // grid
+            if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
+        case 8: // interstellar
+            if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
+        case 17: // voxellines
+            if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
+        default:
+            break
         }
+
         encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
+
         encoder.endEncoding()
-
-        if let blit = commandBuffer.makeBlitCommandEncoder() {
-            blit.generateMipmaps(texture: target)
-            blit.endEncoding()
-        }
-    }
-
-    private func drawFluid(in view: MTKView, commandBuffer: MTLCommandBuffer, baseUniforms: Uniforms) {
-        ensureFluidResources()
-        let simW = fluidSimWidth
-        let simH = fluidSimHeight
-
-        var fluidUniforms = baseUniforms
-        fluidUniforms.iResolution = SIMD2<Float>(Float(simW), Float(simH))
-        fluidUniforms.iFrame = fluidFrameIndex
-        // Scale mouse coords from screen pixel space to sim pixel space
-        let sx = Float(simW) / max(1.0, Float(screenSize.width))
-        let sy = Float(simH) / max(1.0, Float(screenSize.height))
-        fluidUniforms.iMouse = SIMD4<Float>(
-            baseUniforms.iMouse.x * sx,
-            baseUniforms.iMouse.y * sy,
-            baseUniforms.iMouse.z * sx,
-            baseUniforms.iMouse.w * sy
-        )
-
-        let readIdx = fluidReadIdx
-        let writeIdx = 1 - readIdx
-
-        runFluidBufferPass(commandBuffer: commandBuffer,
-                           target: fluidTexA[writeIdx],
-                           pipeline: fluidPipelineA,
-                           textures: [fluidTexA[readIdx], fluidTexD[readIdx], fluidTexC[readIdx], fluidTexB[readIdx]],
-                           uniforms: &fluidUniforms)
-        runFluidBufferPass(commandBuffer: commandBuffer,
-                           target: fluidTexB[writeIdx],
-                           pipeline: fluidPipelineB,
-                           textures: [fluidTexA[writeIdx]],
-                           uniforms: &fluidUniforms)
-        runFluidBufferPass(commandBuffer: commandBuffer,
-                           target: fluidTexC[writeIdx],
-                           pipeline: fluidPipelineC,
-                           textures: [fluidTexB[writeIdx]],
-                           uniforms: &fluidUniforms)
-        runFluidBufferPass(commandBuffer: commandBuffer,
-                           target: fluidTexD[writeIdx],
-                           pipeline: fluidPipelineD,
-                           textures: [fluidTexB[writeIdx], fluidTexD[readIdx]],
-                           uniforms: &fluidUniforms)
-
-        // Final image pass into the drawable
-        if let renderPassDescriptor = view.currentRenderPassDescriptor,
-           let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) {
-            encoder.setRenderPipelineState(pipelineStates[currentShader])
-            encoder.setFragmentBytes(&fluidUniforms, length: MemoryLayout<Uniforms>.stride, index: 0)
-            encoder.setFragmentSamplerState(samplerState, index: 0)
-            encoder.setFragmentTexture(fluidTexA[writeIdx], index: 0)
-            encoder.setFragmentTexture(fluidTexB[writeIdx], index: 1)
-            encoder.setFragmentTexture(fluidTexD[writeIdx], index: 2)
-            encoder.setFragmentTexture(fluidTexC[writeIdx], index: 3)
-            encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
-            encoder.endEncoding()
-        }
-
-        fluidReadIdx = writeIdx
-        fluidFrameIndex += 1
+        commandBuffer.present(drawable)
+        commandBuffer.commit()
     }
 }

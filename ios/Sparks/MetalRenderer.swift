@@ -22,7 +22,7 @@ class MetalRenderer {
     private let samplerState: MTLSamplerState
 
     private let startTime: CFAbsoluteTime
-    private var currentShader: Int = 22
+    private var currentShader: Int = 0
     private var currentMode: Int32 = 0
     private var mouseState: SIMD4<Float> = .zero
     private var mousePressed: Bool = false

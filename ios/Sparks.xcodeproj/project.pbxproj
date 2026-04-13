@@ -42,6 +42,7 @@
 		A10050 /* flighthud.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10050 /* flighthud.metal */; };
 		A10051 /* metalball.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10051 /* metalball.metal */; };
 		A10052 /* heart.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10052 /* heart.metal */; };
+		A10053 /* jellyfish.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10053 /* jellyfish.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -84,6 +85,7 @@
 		B10050 /* flighthud.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = flighthud.metal; sourceTree = "<group>"; };
 		B10051 /* metalball.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = metalball.metal; sourceTree = "<group>"; };
 		B10052 /* heart.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = heart.metal; sourceTree = "<group>"; };
+		B10053 /* jellyfish.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = jellyfish.metal; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -151,6 +153,7 @@
 				B10050 /* flighthud.metal */,
 				B10051 /* metalball.metal */,
 				B10052 /* heart.metal */,
+				B10053 /* jellyfish.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -279,6 +282,7 @@
 				A10050 /* flighthud.metal in Sources */,
 				A10051 /* metalball.metal in Sources */,
 				A10052 /* heart.metal in Sources */,
+				A10053 /* jellyfish.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

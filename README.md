@@ -2,7 +2,7 @@
 
 [English](README_en.md)
 
-フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全24シェーダー。
+フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全25シェーダー。
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -29,6 +29,8 @@
 | ![HUD Rings](./screenshots/screenshot21.png) | ![Flight HUD](./screenshots/screenshot22.png) |
 | **Chrome Metaball** | **Smooth Heart** |
 | ![Chrome Metaball](./screenshots/screenshot23.png) | ![Smooth Heart](./screenshots/screenshot24.png) |
+| **Luminescence** | |
+| ![Luminescence](./screenshots/screenshot25.png) | |
 
 ## 対応プラットフォーム
 
@@ -67,6 +69,7 @@ sparks/
 │   ├── flighthud.frag.glsl    # シェーダー22
 │   ├── metalball.frag.glsl    # シェーダー23
 │   ├── heart.frag.glsl        # シェーダー24
+│   ├── jellyfish.frag.glsl    # シェーダー25
 │   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -96,7 +99,8 @@ sparks/
         ├── hudrings.metal         # HUD Rings
         ├── flighthud.metal        # Flight HUD
         ├── metalball.metal        # Chrome Metaball
-        └── heart.metal            # Smooth Heart
+        ├── heart.metal            # Smooth Heart
+        └── jellyfish.metal        # Luminescence
 ```
 
 ## 仕組み
@@ -239,6 +243,12 @@ sparks/
 - **フレネル反射+環境照明**: 表面角度に応じた反射色変化とスカイライトブレンド
 - **マウスインタラクション**: x軸でカメラ回転、y軸でスムージング量を制御
 
+### シェーダー25: Luminescence
+- **繰り返しグリッド配置**: セル分割で無数のクラゲを生成するプロシージャルシーン
+- **ボリュメトリックテクスチャ**: 傘内部の発光パターンを8ステップのボリュームサンプリングで描画
+- **極座標タッチパターン**: pModPolarで6本の内側触手と13本の外側触手を生成
+- **ポンプアニメーション+うねり**: 傘の拍動と触手のsin波スウェイで有機的な動きを表現
+
 Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17はテクスチャも使用。
 
 ## ビルド
@@ -288,3 +298,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 22 | [Flight HUD](https://www.shadertoy.com/view/Dl2XRz) | kishimisu | レーダー+紙飛行機+グラフ群のフライト風2D HUD | CC BY-NC-SA 3.0 |
 | 23 | [Chrome Metaball](https://www.shadertoy.com/view/7dtSDf) | — | PBR+多重反射のクロムメタボール | CC BY-NC-SA 3.0 |
 | 24 | [Smooth Heart](https://www.shadertoy.com/view/4lByWK) | iq原作ベース | almostIdentityで滑らかな曲率のハートレイマーチング | CC BY-NC-SA 3.0 |
+| 25 | [Luminescence](https://www.shadertoy.com/view/4sXBRn) | Martijn Steinrucken (BigWings) | 繰り返しグリッド上のクラゲ群のボリュメトリックレイマーチング | CC BY-NC-SA 3.0 |

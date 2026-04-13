@@ -2,7 +2,7 @@
 
 [English](README_en.md)
 
-フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全25シェーダー。
+フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全26シェーダー。
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -29,8 +29,8 @@
 | ![HUD Rings](./screenshots/screenshot21.png) | ![Flight HUD](./screenshots/screenshot22.png) |
 | **Chrome Metaball** | **Smooth Heart** |
 | ![Chrome Metaball](./screenshots/screenshot23.png) | ![Smooth Heart](./screenshots/screenshot24.png) |
-| **Luminescence** | |
-| ![Luminescence](./screenshots/screenshot25.png) | |
+| **Luminescence** | **Hyper Tunnel** |
+| ![Luminescence](./screenshots/screenshot25.png) | ![Hyper Tunnel](./screenshots/screenshot26.png) |
 
 ## 対応プラットフォーム
 
@@ -70,6 +70,7 @@ sparks/
 │   ├── metalball.frag.glsl    # シェーダー23
 │   ├── heart.frag.glsl        # シェーダー24
 │   ├── jellyfish.frag.glsl    # シェーダー25
+│   ├── hypertunnel.frag.glsl  # シェーダー26
 │   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -100,7 +101,8 @@ sparks/
         ├── flighthud.metal        # Flight HUD
         ├── metalball.metal        # Chrome Metaball
         ├── heart.metal            # Smooth Heart
-        └── jellyfish.metal        # Luminescence
+        ├── jellyfish.metal        # Luminescence
+        └── hypertunnel.metal      # Hyper Tunnel
 ```
 
 ## 仕組み
@@ -249,6 +251,12 @@ sparks/
 - **極座標タッチパターン**: pModPolarで6本の内側触手と13本の外側触手を生成
 - **ポンプアニメーション+うねり**: 傘の拍動と触手のsin波スウェイで有機的な動きを表現
 
+### シェーダー26: Hyper Tunnel
+- **SOR最適化レイマーチング**: Over-relaxation付きSphere Tracingで内部シリンダーを高速走査
+- **2層シリンダーSDF**: 蛇行カーブ `yC` でワープした2本の無限円筒の差分でチューブ空間を形成
+- **fBMボリュームスチーム**: 24ステップのレイ沿いfBMサンプリングで青緑のスチーム霧を加算
+- **ダイナミックカメラ**: 前方100 units/sの自動飛行+cos/sin合成のアップベクター回転
+
 Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17はテクスチャも使用。
 
 ## ビルド
@@ -299,3 +307,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 23 | [Chrome Metaball](https://www.shadertoy.com/view/7dtSDf) | — | PBR+多重反射のクロムメタボール | CC BY-NC-SA 3.0 |
 | 24 | [Smooth Heart](https://www.shadertoy.com/view/4lByWK) | iq原作ベース | almostIdentityで滑らかな曲率のハートレイマーチング | CC BY-NC-SA 3.0 |
 | 25 | [Luminescence](https://www.shadertoy.com/view/4sXBRn) | Martijn Steinrucken (BigWings) | 繰り返しグリッド上のクラゲ群のボリュメトリックレイマーチング | CC BY-NC-SA 3.0 |
+| 26 | [Hyper Tunnel](https://www.shadertoy.com/view/4t2cR1) | — ("Sailing Beyond" demoscene) | SOR最適化Sphere Tracingによる蛇行ハイパートンネル | CC BY-NC-SA 3.0 |

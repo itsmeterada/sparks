@@ -503,7 +503,7 @@ bool VulkanEngine::createGraphicsPipeline() {
         "shaders/protean.frag.spv", "shaders/rocaille.frag.spv",
         "shaders/hudrings.frag.spv", "shaders/flighthud.frag.spv",
         "shaders/metalball.frag.spv", "shaders/heart.frag.spv",
-        "shaders/jellyfish.frag.spv"
+        "shaders/jellyfish.frag.spv", "shaders/hypertunnel.frag.spv"
     };
     std::vector<uint32_t> fragCodes[SHADER_COUNT];
     VkShaderModule fragModules[SHADER_COUNT]{};

@@ -295,7 +295,7 @@ fragment float4 jellyfish_fragment(VertexOut in [[stage_in]],
     float2 iRes = uniforms.iResolution;
     float iTime = uniforms.iTime;
     float4 iMouse = uniforms.iMouse;
-    float2 fragCoord = float2(in.uv.x, 1.0 - in.uv.y) * iRes;
+    float2 fragCoord = in.uv * iRes;
 
     float t = iTime*0.04;
     float2 uv = fragCoord / iRes;

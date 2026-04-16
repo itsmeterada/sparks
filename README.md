@@ -1,8 +1,8 @@
 # Sparks
 
-[English](README_en.md)
+[Japanese (日本語)](README_jp.md)
 
-フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全28シェーダー。
+Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan / Metal). Tap the buttons in the top-right to switch shaders. 28 shaders total.
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -34,58 +34,58 @@
 | **Fluid** | **Fur Ball** |
 | ![Fluid](./screenshots/screenshot27.png) | ![Fur Ball](./screenshots/screenshot28.png) |
 
-## 対応プラットフォーム
+## Supported Platforms
 
-| プラットフォーム | GPU API | 言語 | 最小バージョン |
-|-----------------|---------|------|---------------|
+| Platform | GPU API | Language | Minimum Version |
+|----------|---------|----------|-----------------|
 | Android | Vulkan | Kotlin + C++/NDK | API 26 (Android 8.0) |
 | iOS | Metal | Swift | iOS 15.0 |
 
-## プロジェクト構成
+## Project Structure
 
 ```
 sparks/
-├── shared/shaders/     # シェーダーソース (GLSL)
-│   ├── fullscreen.vert.glsl   # フルスクリーン三角形 頂点シェーダー
-│   ├── sparks.frag.glsl       # シェーダー1 フラグメントシェーダー
-│   ├── cosmic.frag.glsl       # シェーダー2
-│   ├── starship.frag.glsl     # シェーダー3
-│   ├── clouds.frag.glsl       # シェーダー4
-│   ├── seascape.frag.glsl     # シェーダー5
-│   ├── rainforest.frag.glsl   # シェーダー6
-│   ├── plasma.frag.glsl       # シェーダー7
-│   ├── grid.frag.glsl         # シェーダー8
-│   ├── interstellar.frag.glsl # シェーダー9
-│   ├── mandelbulb.frag.glsl   # シェーダー10
-│   ├── cyberspace.frag.glsl   # シェーダー11
-│   ├── tunnel.frag.glsl       # シェーダー12
-│   ├── primitives.frag.glsl   # シェーダー13
-│   ├── fractal.frag.glsl      # シェーダー14
-│   ├── palette.frag.glsl      # シェーダー15
-│   ├── octgrams.frag.glsl     # シェーダー16
-│   ├── voxellines.frag.glsl   # シェーダー17
-│   ├── mandelbulb2.frag.glsl  # シェーダー18
-│   ├── protean.frag.glsl      # シェーダー19
-│   ├── rocaille.frag.glsl     # シェーダー20
-│   ├── hudrings.frag.glsl     # シェーダー21
-│   ├── flighthud.frag.glsl    # シェーダー22
-│   ├── metalball.frag.glsl    # シェーダー23
-│   ├── heart.frag.glsl        # シェーダー24
-│   ├── jellyfish.frag.glsl    # シェーダー25
-│   ├── hypertunnel.frag.glsl  # シェーダー26
-│   ├── fluid_a.frag.glsl     # シェーダー27 Fluid (buffer A: velocity)
-│   ├── fluid_b.frag.glsl     # シェーダー27 Fluid (buffer B: turbulence)
-│   ├── fluid_c.frag.glsl     # シェーダー27 Fluid (buffer C: confinement)
-│   ├── fluid_d.frag.glsl     # シェーダー27 Fluid (buffer D: pressure)
-│   ├── fluid_image.frag.glsl # シェーダー27 Fluid (image: visualization)
-│   ├── furball.frag.glsl     # シェーダー28 Fur Ball
-│   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
-│   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
-├── android/            # Android Studio プロジェクト (Vulkan)
-└── ios/                # Xcode プロジェクト (Metal)
+├── shared/shaders/     # Shader sources (GLSL)
+│   ├── fullscreen.vert.glsl   # Fullscreen triangle vertex shader
+│   ├── sparks.frag.glsl       # Shader 1 fragment shader
+│   ├── cosmic.frag.glsl       # Shader 2
+│   ├── starship.frag.glsl     # Shader 3
+│   ├── clouds.frag.glsl       # Shader 4
+│   ├── seascape.frag.glsl     # Shader 5
+│   ├── rainforest.frag.glsl   # Shader 6
+│   ├── plasma.frag.glsl       # Shader 7
+│   ├── grid.frag.glsl         # Shader 8
+│   ├── interstellar.frag.glsl # Shader 9
+│   ├── mandelbulb.frag.glsl   # Shader 10
+│   ├── cyberspace.frag.glsl   # Shader 11
+│   ├── tunnel.frag.glsl       # Shader 12
+│   ├── primitives.frag.glsl   # Shader 13
+│   ├── fractal.frag.glsl      # Shader 14
+│   ├── palette.frag.glsl      # Shader 15
+│   ├── octgrams.frag.glsl     # Shader 16
+│   ├── voxellines.frag.glsl   # Shader 17
+│   ├── mandelbulb2.frag.glsl  # Shader 18
+│   ├── protean.frag.glsl      # Shader 19
+│   ├── rocaille.frag.glsl     # Shader 20
+│   ├── hudrings.frag.glsl     # Shader 21
+│   ├── flighthud.frag.glsl    # Shader 22
+│   ├── metalball.frag.glsl    # Shader 23
+│   ├── heart.frag.glsl        # Shader 24
+│   ├── jellyfish.frag.glsl    # Shader 25
+│   ├── hypertunnel.frag.glsl  # Shader 26
+│   ├── fluid_a.frag.glsl     # Shader 27 Fluid (buffer A: velocity)
+│   ├── fluid_b.frag.glsl     # Shader 27 Fluid (buffer B: turbulence)
+│   ├── fluid_c.frag.glsl     # Shader 27 Fluid (buffer C: confinement)
+│   ├── fluid_d.frag.glsl     # Shader 27 Fluid (buffer D: pressure)
+│   ├── fluid_image.frag.glsl # Shader 27 Fluid (image: visualization)
+│   ├── furball.frag.glsl     # Shader 28 Fur Ball
+│   ├── fxaa.frag.glsl         # FXAA post-process shader
+│   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
+├── android/            # Android Studio project (Vulkan)
+└── ios/                # Xcode project (Metal)
     └── Sparks/Shaders/
-        ├── ShaderTypes.h          # 共通構造体 (VertexOut, Uniforms)
-        ├── sparks.metal           # 共通頂点シェーダー + Sparks フラグメント
+        ├── ShaderTypes.h          # Shared structs (VertexOut, Uniforms)
+        ├── sparks.metal           # Shared vertex shader + Sparks fragment
         ├── cosmic.metal           # Cosmic (per-file -fno-fast-math)
         ├── starship.metal         # Starship
         ├── clouds.metal           # Clouds
@@ -119,223 +119,223 @@ sparks/
         └── furball.metal          # Fur Ball
 ```
 
-## 仕組み
+## How It Works
 
-各エフェクトはフルスクリーン三角形上のフラグメントシェーダーで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。シェーダー27（Fluid）のみ5段マルチパス。ドラッグでカメラ/視点操作。
+Each effect runs as a fragment shader on a fullscreen triangle. No geometry or particle buffers needed — every pixel is computed procedurally each frame. Only Shader 27 (Fluid) uses 5-pass multi-pass rendering. Drag to control camera/viewpoint.
 
-### 操作ボタン（右上）
-| ボタン | 機能 |
+### Controls (top-right)
+| Button | Function |
 |:---:|---|
-| ▷ | 次のシェーダーへ |
-| ◁ | 前のシェーダーへ |
-| ◎ | モード切替（Sparks: 視差 / Rainforest: 時間的再投影 / Mandelbulb: FXAA） |
-| 1 / ½ | 半解像度トグル（½でオレンジ表示 = 縦横半分でレンダリング+アップスケール） |
+| ▷ | Next shader |
+| ◁ | Previous shader |
+| ◎ | Toggle mode (Sparks: parallax / Rainforest: temporal reprojection / Mandelbulb: FXAA) |
+| 1 / ½ | Half-resolution toggle (½ orange = render at half size + linear upscale) |
 
-### シェーダー1: Sparks
-- **Voronoiベースの火花パーティクル**: アニメーションするVoronoiセルのレイヤードグリッド、各セルにブルーム付きの光る火花
-- **プロシージャルスモーク**: 方向性のあるレイヤードバリューノイズ、追加ノイズで有機的な穴を生成
-- **温度カラーパレット**: 白 → 黄 → 橙 → 赤 の火花グラデーション
-- **15パーティクルレイヤー**: サイズ/アルファ変調で擬似3D深度を表現
+### Shader 1: Sparks
+- **Voronoi-based spark particles**: Layered grid of animated Voronoi cells, each with a glowing bloom spark
+- **Procedural smoke**: Directional layered value noise with organic holes
+- **Temperature color palette**: White to yellow to orange to red gradient
+- **15 particle layers**: Size/alpha modulation for pseudo-3D depth
 
-### シェーダー2: Cosmic
-- **反復変換**: 19回の反復ループで複雑なフラクタル的パターンを生成
-- **回転行列変形**: 各反復でUV座標を回転行列で変換し、有機的な動きを実現
-- **トーンマッピング**: 非線形のカラー圧縮で宇宙的な色彩を表現
+### Shader 2: Cosmic
+- **Iterative transforms**: 19-iteration loop generating complex fractal-like patterns
+- **Rotation matrix warping**: UV coordinates rotated per iteration for organic motion
+- **Tone mapping**: Nonlinear color compression for cosmic color palette
 
-### シェーダー3: Starship
-- **50パーティクルループ**: 各パーティクルが独立した軌跡とフラッシュ周波数を持つ
-- **テクスチャノイズ**: `stars.jpg` テクスチャをサンプリングして雲状の奥行き感を生成
-- **トレイルエフェクト**: 非対称スケーリングで長い尾を持つデブリパーティクルを表現
+### Shader 3: Starship
+- **50 particle loop**: Each particle with independent trajectory and flash frequency
+- **Texture noise**: `stars.jpg` texture sampling for cloudy depth effect
+- **Trail effect**: Asymmetric scaling for long-tailed debris particles
 
-### シェーダー4: Clouds
-- **ボリュメトリックレイマーチング**: fBMノイズで密度場を定義し、レイマーチングでボリュームレンダリング
-- **3Dノイズテクスチャ**: 32x32x32の3Dテクスチャでハードウェア補間による滑らかなノイズ
-- **LODレイマーチ**: 距離に応じてノイズのオクターブ数を減らし、パフォーマンスを最適化
-- **タッチカメラ操作**: ドラッグで視点を回転（離すと位置を保持）
+### Shader 4: Clouds
+- **Volumetric raymarching**: fBM noise density field with volume rendering
+- **3D noise texture**: 32x32x32 3D texture with hardware-interpolated smooth noise
+- **LOD raymarching**: Reduces noise octaves with distance for performance
+- **Touch camera control**: Drag to rotate viewpoint (holds position on release)
 
-### シェーダー5: Seascape
-- **ハイトマップレイマーチング**: 海面の高さ関数とレイの交差を二分法で求解
-- **fBMオクターブ海波**: `sea_octave` を複数スケールで重ね合わせたリアルな波形
-- **フレネル反射**: 視線角度に応じた空と水面色のブレンド
-- **ドラッグで時間操作**: タッチ移動でカメラの進行時間を制御
+### Shader 5: Seascape
+- **Heightmap raymarching**: Bisection method for ray-ocean surface intersection
+- **fBM octave waves**: Multiple scales of `sea_octave` for realistic wave shapes
+- **Fresnel reflection**: View-angle-dependent sky and water color blending
+- **Drag time control**: Touch movement controls camera time progression
 
-### シェーダー6: Rainforest
-- **fBM地形**: 9オクターブの2Dノイズで地形高さと法線を解析的に計算
-- **プロシージャル木**: 楕円体+ノイズ変形でVoronoiグリッド上に木を配置
-- **ボリュメトリック雲**: y=900の雲層をレイマーチングで描画、影・ライティング付き
-- **カメラアニメーション**: 時間で自動的に地形上を移動
+### Shader 6: Rainforest
+- **fBM terrain**: 9-octave 2D noise for terrain height with analytical normals
+- **Procedural trees**: Ellipsoids with noise distortion placed on a Voronoi grid
+- **Volumetric clouds**: Cloud layer at y=900 raymarched with shadows and lighting
+- **Camera animation**: Automatic movement over the terrain surface
 
-### シェーダー7: Plasma Globe
-- **ボリュメトリックレイマーチング**: 13本のレイで放電パターンをマーチング
-- **フローノイズ**: fBMベースの動的ノイズで球体内部の光を表現
-- **フレネル反射**: 球体表面でのリフレクションとリフラクション
-- **ドラッグでカメラ回転**: タッチ移動で視点を回転
+### Shader 7: Plasma Globe
+- **Volumetric raymarching**: 13 rays march through discharge patterns
+- **Flow noise**: fBM-based dynamic noise for inner sphere illumination
+- **Fresnel reflection**: Reflection and refraction on the sphere surface
+- **Drag camera rotation**: Touch movement rotates the viewpoint
 
-### シェーダー8: Warped Extruded Skewed Grid
-- **スキューグリッド**: 大小2種のタイルをピンウィール配置でスキュー座標系に構築
-- **テクスチャエクストルージョン**: テクスチャの輝度を高さマップとして各ブロックを押出
-- **空間ワープ**: カメラパス+ツイストでトンネル状の空間を生成
-- **グロー演出**: ランダムに光るブロックでデモシーン風の雰囲気を演出
+### Shader 8: Warped Extruded Skewed Grid
+- **Skewed grid**: Two tile sizes arranged in pinwheel pattern on skewed coordinate system
+- **Texture extrusion**: Texture luminance used as height map for block extrusion
+- **Space warping**: Camera path + twist generates tunnel-like warped space
+- **Glow effects**: Randomly lit blocks for demoscene-style atmosphere
 
-### シェーダー9: Interstellar
-- **星フィールド**: ノイズテクスチャから星の位置と深度を生成
-- **ワープ速度変動**: sin/cosベースの速度変化でハイパースペース感を演出
-- **RGB色シフト**: 奥行きに応じた赤・緑・青の分離で立体感を表現
+### Shader 9: Interstellar
+- **Star field**: Noise texture generates star positions and depth
+- **Warp speed variation**: sin/cos-based speed changes for hyperspace feel
+- **RGB color shift**: Red/green/blue separation by depth for stereoscopic effect
 
-### シェーダー10: Inside the Mandelbulb II
-- **8次Mandelbulb SDF**: パワー8のMandelbulb距離関数をレイマーチング
-- **屈折+反射**: 最大5回バウンスで内部の光の透過・反射を表現
-- **ACESトーンマッピング**: 映画的な色調変換+sRGB出力
-- **FXAAポストプロセス**: モード切替で2パスFXAAアンチエイリアシングを適用
+### Shader 10: Inside the Mandelbulb II
+- **8th-power Mandelbulb SDF**: Raymarched power-8 Mandelbulb distance field
+- **Refraction + Reflection**: Up to 5 bounces for light transmission inside the fractal
+- **ACES tone mapping**: Cinematic color transform + sRGB output
+- **FXAA post-process**: Toggle 2-pass FXAA anti-aliasing via mode button
 
-### シェーダー11: Cyberspace Data Warehouse
-- **六角グリッド**: 六角セルをアイソメトリックな3面タイルに変換
-- **データ球体**: 各タイルにアニメーションする光るメモリ球体を配置
-- **点滅ピクセル**: ノイズベースの動的データ表示パターン
+### Shader 11: Cyberspace Data Warehouse
+- **Hexagonal grid**: Hex cells converted to isometric 3-face tiles
+- **Data spheres**: Animated glowing memory spheres on each tile
+- **Blinking pixels**: Noise-based dynamic data display patterns
 
-### シェーダー12: Neon Tunnel
-- **蛇行トンネル**: パス関数に沿って蛇行するトンネルのレイマーチング
-- **ネオンライト**: 赤と青の螺旋状ネオンラインのボリュメトリックグロー
-- **フラクタルテクスチャ**: ボックス状の繰り返しパターンで壁面を装飾
-- **反射マーチング**: 表面反射によるスペキュラ効果
+### Shader 12: Neon Tunnel
+- **Winding tunnel**: Raymarched tunnel following a path function
+- **Neon lights**: Red and blue spiral neon lines with volumetric glow
+- **Fractal texture**: Repeating box patterns for wall decoration
+- **Reflection marching**: Specular effects from surface reflections
 
-### シェーダー13: SDF Primitives
-- **25種以上のSDF距離関数**: 球、箱、トーラス、カプセル、錐体、八面体、ピラミッドなど
-- **バウンディングボックス最適化**: レイマーチングの効率化
-- **ソフトシャドウ+AO**: チェッカーフロア付きのライティング
+### Shader 13: SDF Primitives
+- **25+ SDF distance functions**: Sphere, box, torus, capsule, cone, octahedron, pyramid, etc.
+- **Bounding box optimization**: Efficient raymarching acceleration
+- **Soft shadows + AO**: Full lighting with checker floor
 
-### シェーダー14: Fractal Pyramid
-- **反復回転+abs折り畳み**: 8回の反復でフラクタル形状を生成
-- **ボリュメトリックカラー**: 距離に応じたパレット加算で発光感を表現
+### Shader 14: Fractal Pyramid
+- **Iterative rotation + abs folding**: 8 iterations generating fractal geometry
+- **Volumetric color**: Distance-based palette accumulation for glow effect
 
-### シェーダー15: Palette
-- **IQコサインパレット**: 4回のfract反復でネストしたリング模様
-- **距離ベースの発光**: pow(0.01/d, 1.2) による鮮やかなグロー
+### Shader 15: Palette
+- **IQ cosine palette**: 4 fract iterations creating nested ring patterns
+- **Distance-based glow**: pow(0.01/d, 1.2) for vivid emission
 
-### シェーダー16: Octgrams
-- **回転ボックスSDF**: 複数ボックスの組み合わせで八芒星形状を生成
-- **mod空間の繰り返し**: 無限パターンのボリュメトリックグロー
-- **時間変化するブルー色調**: 動的な雰囲気演出
+### Shader 16: Octgrams
+- **Rotating box SDF**: Multiple box combinations forming octagram shapes
+- **Mod-space repetition**: Infinite pattern with volumetric glow
+- **Time-varying blue tones**: Dynamic atmosphere
 
-### シェーダー17: Voxel Lines
-- **DDAボクセルレイキャスト**: ノイズ地形をボクセル化してレイキャスト
-- **ワイヤーフレーム+エッジグロー**: ボクセルAO付きの光るエッジ表現
-- **カラー/モノクロ切替**: 周期的な色調変化
+### Shader 17: Voxel Lines
+- **DDA voxel raycast**: Noise terrain voxelized and raycast
+- **Wireframe + edge glow**: Voxel AO with glowing edge rendering
+- **Color/mono toggle**: Periodic color mode switching
 
-### シェーダー18: Mandelbulb (evilryu)
-- **8次Mandelbulb SDF**: オーバーステッピング最適化のレイマーチング
-- **ソフトシャドウ**: 自動回転カメラ+距離ベースカラーマッピング
-- **ポストプロセス**: ガンマ、コントラスト、彩度、ビネット
+### Shader 18: Mandelbulb (evilryu)
+- **Power-8 Mandelbulb SDF**: Overstepping-optimized raymarching
+- **Soft shadows**: Auto-rotating camera + distance-based color mapping
+- **Post-processing**: Gamma, contrast, saturation, vignette
 
-### シェーダー19: Protean Clouds
-- **変形周期グリッド**: テクスチャ不要のプロシージャルボリュームノイズ
-- **動的ステップサイズ**: 密度に基づく適応的マーチングで高速化
-- **彩度保持補間**: iLerpによるカラーブレンド
+### Shader 19: Protean Clouds
+- **Deformed periodic grid**: Texture-free procedural volume noise
+- **Dynamic step size**: Density-adaptive marching for performance
+- **Saturation-preserving interpolation**: iLerp color blending
 
-### シェーダー20: Rocaille
-- **二重ループタービュレンス**: 9レイヤー×9回のsin変形で複雑な模様を生成
-- **コサインカラーリング+tanhトーンマッピング**: コンパクトで美しいエフェクト
+### Shader 20: Rocaille
+- **Double-loop turbulence**: 9 layers × 9 sin deformations for complex patterns
+- **Cosine coloring + tanh tone mapping**: Compact and beautiful effect
 
-### シェーダー21: HUD Rings
-- **7リングのレイヤードSDF**: 異なる回転速度の同心リングをz方向に並べてレイマーチング
-- **7セグ風プロシージャルフォント**: mod空間のグリッド+SDF合成で桁を動的に描画
-- **UIオーバーレイ群**: 矩形・三角・グラフ・矢印・サイドラインなど複数のHUDパーツを重ね合わせ
-- **30秒循環アニメーション**: `cubicInOut` イージングでカメラ角度とリング厚みが周期的に変化
+### Shader 21: HUD Rings
+- **Seven layered ring SDFs**: Concentric rings spinning at different rates, stacked along z and raymarched
+- **Seven-segment procedural font**: Digits drawn dynamically via mod-space grid + SDF composition
+- **UI overlay suite**: Rectangles, triangles, graphs, arrows and side-lines composed into a mecha HUD
+- **30-second looped animation**: `cubicInOut` easing cycles both camera angle and ring thickness
 
-### シェーダー22: Flight HUD
-- **レーダー表示**: 回転スイープ線+極座標グリッド+数字付き目盛りのレーダーUI
-- **紙飛行機オーバーレイ**: 三角形SDFの組合せで折り紙風の機体を描画
-- **4種のグラフパネル**: バーグラフ・ヒストグラム・波形・ドットプロット
-- **複数の小型UI**: 回転リングゲージ・十字照準・スキュー7セグ数字
+### Shader 22: Flight HUD
+- **Radar display**: Rotating sweep line + polar-coordinate grid + numbered tick marks
+- **Paper plane overlay**: Origami-style aircraft built from triangle SDF combinations
+- **Four graph panels**: Bar graph, histogram, waveform, and dot plot
+- **Multiple small UIs**: Rotating ring gauges, crosshair, skewed 7-segment digits
 
-### シェーダー23: Chrome Metaball
-- **メタボールSDF**: 球面調和変形+地面との smooth union で有機的な形状を生成
-- **PBRライティング**: GGX NDF + Smith-GGX Visibility + Schlick Fresnel の物理ベースBRDF
-- **5回反射**: extinction ベースの多重反射でクロム質感を表現
-- **11秒ループアニメーション**: バウンス・変形・カメラ軌道を `smoothstep` キーフレームで制御
+### Shader 23: Chrome Metaball
+- **Metaball SDF**: Spherical harmonic deformation + smooth union with ground plane
+- **PBR lighting**: GGX NDF + Smith-GGX Visibility + Schlick Fresnel physically-based BRDF
+- **5-bounce reflections**: Extinction-based multi-reflection for chrome appearance
+- **11-second loop animation**: Bounce, deformation, and camera orbit via smoothstep keyframes
 
-### シェーダー24: Smooth Heart
-- **almostIdentity関数**: ミラー軸の曲率不連続をスムージングし滑らかなハート形状を生成
-- **64サンプルAO**: 球面フィボナッチ分布による高品質アンビエントオクルージョン
-- **フレネル反射+環境照明**: 表面角度に応じた反射色変化とスカイライトブレンド
-- **マウスインタラクション**: x軸でカメラ回転、y軸でスムージング量を制御
+### Shader 24: Smooth Heart
+- **almostIdentity function**: Smooths mirror-axis curvature discontinuity for organic heart shape
+- **64-sample AO**: High-quality ambient occlusion via spherical Fibonacci distribution
+- **Fresnel reflection + environment lighting**: View-angle-dependent color shifts and skylight blend
+- **Mouse interaction**: x-axis rotates camera, y-axis controls smoothing amount
 
-### シェーダー25: Luminescence
-- **繰り返しグリッド配置**: セル分割で無数のクラゲを生成するプロシージャルシーン
-- **ボリュメトリックテクスチャ**: 傘内部の発光パターンを8ステップのボリュームサンプリングで描画
-- **極座標タッチパターン**: pModPolarで6本の内側触手と13本の外側触手を生成
-- **ポンプアニメーション+うねり**: 傘の拍動と触手のsin波スウェイで有機的な動きを表現
+### Shader 25: Luminescence
+- **Repeating grid placement**: Cell subdivision generates countless jellyfish in a procedural scene
+- **Volumetric textures**: Internal bell glow rendered via 8-step volume sampling
+- **Polar-coordinate touch pattern**: pModPolar generates 6 inner tentacles and 13 outer tentacles
+- **Pump animation + sway**: Bell pulsing and sin-wave tentacle sway for organic motion
 
-### シェーダー26: Hyper Tunnel
-- **SOR最適化レイマーチング**: Over-relaxation付きSphere Tracingで内部シリンダーを高速走査
-- **2層シリンダーSDF**: 蛇行カーブ `yC` でワープした2本の無限円筒の差分でチューブ空間を形成
-- **fBMボリュームスチーム**: 24ステップのレイ沿いfBMサンプリングで青緑のスチーム霧を加算
-- **ダイナミックカメラ**: 前方100 units/sの自動飛行+cos/sin合成のアップベクター回転
+### Shader 26: Hyper Tunnel
+- **SOR-optimized raymarching**: Over-relaxation Sphere Tracing for fast inner cylinder traversal
+- **2-layer cylinder SDF**: Tube space formed from the difference of two infinite cylinders warped by a curving `yC`
+- **fBM volumetric steam**: Blue-green steam mist additively accumulated via 24-step fBM along the ray
+- **Dynamic camera**: 100 units/sec auto-flight + cos/sin composite up-vector rotation
 
-### シェーダー27: Fluid
-- **5段マルチパスレンダリング**: ナビエ・ストークス方程式ベースの流体シミュレーション
-- **マルチスケール手法**: Mipmap LODを活用した11段階の乱流・渦度・圧力計算
-- **Ping-Pong RGBA16F**: 速度場と圧力場を2枚のテクスチャで交互に更新
-- **GGXライティング**: 流体表面をノーマルマップ的に解釈した物理ベースの反射表現
-- **タッチインタラクション**: 絶対座標タッチで直接流体に力を注入
+### Shader 27: Fluid
+- **5-pass multi-pass rendering**: Navier-Stokes-based fluid simulation
+- **Multiscale technique**: 11-level turbulence/vorticity/pressure computation using mipmap LOD
+- **Ping-Pong RGBA16F**: Velocity and pressure fields alternated between two textures each frame
+- **GGX lighting**: Physically-based reflection treating fluid surface as a normal map
+- **Touch interaction**: Absolute-coordinate touch injects force directly into the fluid
 
-### シェーダー28: Fur Ball
-- **ボリュメトリックファーレンダリング**: 球体内部を64レイヤーマーチングで毛皮として描画
-- **球面UV+カール変形**: cartesian-to-spherical変換 + 動的なY軸curlで毛流れアニメーション
-- **二段サンプリング**: ノイズ密度(.x .y)で毛の太さ・長さ、色用ノイズ(.xyz)で毛色を決定
-- **Phongシェーディング**: 法線をノイズ勾配から推定 + ハイライト50で毛先のシャイン表現
-- **タッチカメラ操作**: ドラッグでX/Y軸回転、離すと自動回転
+### Shader 28: Fur Ball
+- **Volumetric fur rendering**: Sphere interior raymarched as fur via 64-layer marching
+- **Spherical UV + curl warp**: Cartesian-to-spherical conversion + dynamic Y-axis curl for hair-flow animation
+- **Two-stage sampling**: Noise density (.x .y) determines hair thickness/length; color noise (.xyz) determines color
+- **Phong shading**: Normal estimated from noise gradient + shininess 50 for tip highlights
+- **Touch camera control**: Drag for X/Y rotation, auto-rotates when released
 
-Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17/28はテクスチャも使用。
+Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9/17/28 also use textures.
 
-## ビルド
+## Build
 
 ### Android
 
-1. [Vulkan SDK](https://vulkan.lunarg.com/) をインストール（`glslangValidator` に必要）
-2. シェーダーをコンパイル:
+1. Install [Vulkan SDK](https://vulkan.lunarg.com/) (needed for `glslangValidator`)
+2. Compile shaders:
    ```bash
    cd shared/shaders
    bash compile_spirv.sh
    ```
-3. `android/` を Android Studio で開く
-4. Vulkan対応の実機にビルド・デプロイ
+3. Open `android/` in Android Studio
+4. Build and deploy to a Vulkan-capable device
 
 ### iOS
 
-1. `ios/Sparks.xcodeproj` を Xcode で開く
-2. 実機をターゲットに選択
-3. ビルド・実行 (Cmd+R)
+1. Open `ios/Sparks.xcodeproj` in Xcode
+2. Select a physical device as target
+3. Build and run (Cmd+R)
 
-## クレジット
+## Credits
 
-| # | シェーダー | 作者 | 説明 | ライセンス |
-|---|-----------|------|------|-----------|
-| 1 | [Sparks](https://www.shadertoy.com/view/4tXXzj) | Jan Mróz (jaszunio15) | Voronoiパーティクル+プロシージャルスモークの炎の火花 | CC BY 3.0 |
-| 2 | [Cosmic](https://www.shadertoy.com/view/XXyGzh) | Nguyen2007 | 反復変換による宇宙的アブストラクトエフェクト | CC BY-NC-SA 3.0 |
-| 3 | [Starship](https://www.shadertoy.com/view/l3cfW4) | @XorDev | テクスチャベースの宇宙船デブリパーティクルトレイル | CC BY-NC-SA 3.0 |
-| 4 | [Clouds](https://www.shadertoy.com/view/XslGRr) | Inigo Quilez | 3Dノイズによるボリュメトリック雲のレイマーチング | 教育目的のみ |
-| 5 | [Seascape](https://www.shadertoy.com/view/Ms2SD1) | Alexander Alekseev (TDM) | fBM海波のハイトマップレイマーチング | CC BY-NC-SA 3.0 |
-| 6 | [Rainforest](https://www.shadertoy.com/view/4ttSWf) | Inigo Quilez | fBM地形・木・雲によるプロシージャル熱帯雨林 | 教育目的のみ |
-| 7 | [Plasma Globe](https://www.shadertoy.com/view/XsjXRm) | nimitz (@stormoid) | ボリュメトリックレイマーチングのプラズマグローブ | CC BY-NC-SA 3.0 |
-| 8 | [Grid](https://www.shadertoy.com/view/wtfBDf) | Shane | スキューグリッドエクストルージョンのデモシーン風トンネル | CC BY-NC-SA 3.0 |
-| 9 | [Interstellar](https://www.shadertoy.com/view/Xdl3D2) | Hazel Quantock | ノイズテクスチャベースの星間ワープエフェクト | CC0 |
-| 10 | [Mandelbulb](https://www.shadertoy.com/view/mtScRc) | mrange | 8次Mandelbulbフラクタル内部探索+FXAA | CC0 |
-| 11 | [Cyberspace](https://www.shadertoy.com/view/NlK3Wt) | bitless | 六角グリッド上のサイバースペースデータウェアハウス | CC BY-NC-SA 3.0 |
-| 12 | [Neon Tunnel](https://www.shadertoy.com/view/scS3Wm) | — | ネオンライト付きトンネルのレイマーチング+反射 | CC BY-NC-SA 3.0 |
-| 13 | [Primitives](https://www.shadertoy.com/view/Xds3zN) | Inigo Quilez | 25種以上のSDF距離関数ショーケース | MIT |
-| 14 | [Fractal Pyramid](https://www.shadertoy.com/view/tsXBzS) | — | 反復回転+abs折り畳みのフラクタル形状 | CC BY-NC-SA 3.0 |
-| 15 | [Palette](https://www.shadertoy.com/view/mtyGWy) | — | IQコサインパレットによるフラクタルリング | CC BY-NC-SA 3.0 |
-| 16 | [Octgrams](https://www.shadertoy.com/view/tlVGDt) | — | 回転ボックスSDFの八芒星パターン | CC BY-NC-SA 3.0 |
-| 17 | [Voxel Lines](https://www.shadertoy.com/view/4dfGzs) | Inigo Quilez | DDAボクセルレイキャスト+ワイヤーフレームグロー | 教育目的のみ |
-| 18 | [Mandelbulb](https://www.shadertoy.com/view/MdXSWn) | evilryu | 8次Mandelbulb+オーバーステッピング最適化 | CC BY-NC-SA 3.0 |
-| 19 | [Protean Clouds](https://www.shadertoy.com/view/3l23Rh) | nimitz (@stormoid) | 変形周期グリッドのプロシージャル雲 | CC BY-NC-SA 3.0 |
-| 20 | [Rocaille](https://www.shadertoy.com/view/WXyczK) | @XorDev | タービュレンス多層レイヤーの装飾模様 | CC BY-NC-SA 3.0 |
-| 21 | [HUD Rings](https://www.shadertoy.com/view/Dsf3WH) | kishimisu | 回転リング群+7セグ風数字+HUD装飾のメカUIレイマーチング | CC BY-NC-SA 3.0 |
-| 22 | [Flight HUD](https://www.shadertoy.com/view/Dl2XRz) | kishimisu | レーダー+紙飛行機+グラフ群のフライト風2D HUD | CC BY-NC-SA 3.0 |
-| 23 | [Chrome Metaball](https://www.shadertoy.com/view/7dtSDf) | — | PBR+多重反射のクロムメタボール | CC BY-NC-SA 3.0 |
-| 24 | [Smooth Heart](https://www.shadertoy.com/view/4lByWK) | iq原作ベース | almostIdentityで滑らかな曲率のハートレイマーチング | CC BY-NC-SA 3.0 |
-| 25 | [Luminescence](https://www.shadertoy.com/view/4sXBRn) | Martijn Steinrucken (BigWings) | 繰り返しグリッド上のクラゲ群のボリュメトリックレイマーチング | CC BY-NC-SA 3.0 |
-| 26 | [Hyper Tunnel](https://www.shadertoy.com/view/4t2cR1) | — ("Sailing Beyond" demoscene) | SOR最適化Sphere Tracingによる蛇行ハイパートンネル | CC BY-NC-SA 3.0 |
-| 27 | [Fluid](https://www.shadertoy.com/view/4tGfDW) | Cornus Ammonis | Mipmapベースマルチスケール流体力学シミュレーション | CC BY-NC-SA 3.0 |
-| 28 | [Fur Ball](https://www.shadertoy.com/view/XsfGWN) | Simon Green (@simesgreen) | 球体上のボリュメトリックファーシェーダー | CC BY-NC-SA 3.0 |
+| # | Shader | Author | Description | License |
+|---|--------|--------|-------------|---------|
+| 1 | [Sparks](https://www.shadertoy.com/view/4tXXzj) | Jan Mróz (jaszunio15) | Voronoi particles + procedural smoke fire sparks | CC BY 3.0 |
+| 2 | [Cosmic](https://www.shadertoy.com/view/XXyGzh) | Nguyen2007 | Iterative cosmic abstract effect | CC BY-NC-SA 3.0 |
+| 3 | [Starship](https://www.shadertoy.com/view/l3cfW4) | @XorDev | Texture-based spaceship debris particle trails | CC BY-NC-SA 3.0 |
+| 4 | [Clouds](https://www.shadertoy.com/view/XslGRr) | Inigo Quilez | Volumetric cloud raymarching with 3D noise | Educational only |
+| 5 | [Seascape](https://www.shadertoy.com/view/Ms2SD1) | Alexander Alekseev (TDM) | fBM ocean wave heightmap raymarching | CC BY-NC-SA 3.0 |
+| 6 | [Rainforest](https://www.shadertoy.com/view/4ttSWf) | Inigo Quilez | Procedural rainforest with fBM terrain, trees & clouds | Educational only |
+| 7 | [Plasma Globe](https://www.shadertoy.com/view/XsjXRm) | nimitz (@stormoid) | Volumetric raymarched plasma globe | CC BY-NC-SA 3.0 |
+| 8 | [Grid](https://www.shadertoy.com/view/wtfBDf) | Shane | Demoscene-style skewed grid extrusion tunnel | CC BY-NC-SA 3.0 |
+| 9 | [Interstellar](https://www.shadertoy.com/view/Xdl3D2) | Hazel Quantock | Noise-texture star warp effect | CC0 |
+| 10 | [Mandelbulb](https://www.shadertoy.com/view/mtScRc) | mrange | 8th-power Mandelbulb fractal interior + FXAA | CC0 |
+| 11 | [Cyberspace](https://www.shadertoy.com/view/NlK3Wt) | bitless | Isometric hex-grid cyberspace data warehouse | CC BY-NC-SA 3.0 |
+| 12 | [Neon Tunnel](https://www.shadertoy.com/view/scS3Wm) | — | Raymarched neon tunnel with reflections | CC BY-NC-SA 3.0 |
+| 13 | [Primitives](https://www.shadertoy.com/view/Xds3zN) | Inigo Quilez | 25+ SDF distance function showcase | MIT |
+| 14 | [Fractal Pyramid](https://www.shadertoy.com/view/tsXBzS) | — | Iterative rotation + abs folding fractal | CC BY-NC-SA 3.0 |
+| 15 | [Palette](https://www.shadertoy.com/view/mtyGWy) | — | IQ cosine palette fractal rings | CC BY-NC-SA 3.0 |
+| 16 | [Octgrams](https://www.shadertoy.com/view/tlVGDt) | — | Rotating box SDF octagram pattern | CC BY-NC-SA 3.0 |
+| 17 | [Voxel Lines](https://www.shadertoy.com/view/4dfGzs) | Inigo Quilez | DDA voxel raycast with wireframe glow | Educational only |
+| 18 | [Mandelbulb](https://www.shadertoy.com/view/MdXSWn) | evilryu | Power-8 Mandelbulb with overstepping optimization | CC BY-NC-SA 3.0 |
+| 19 | [Protean Clouds](https://www.shadertoy.com/view/3l23Rh) | nimitz (@stormoid) | Deformed periodic grid procedural clouds | CC BY-NC-SA 3.0 |
+| 20 | [Rocaille](https://www.shadertoy.com/view/WXyczK) | @XorDev | Multi-layer turbulence ornamental pattern | CC BY-NC-SA 3.0 |
+| 21 | [HUD Rings](https://www.shadertoy.com/view/Dsf3WH) | kishimisu | Spinning rings + 7-seg digits + HUD overlays mecha UI raymarching | CC BY-NC-SA 3.0 |
+| 22 | [Flight HUD](https://www.shadertoy.com/view/Dl2XRz) | kishimisu | Radar + paper plane + graph panels flight-style 2D HUD | CC BY-NC-SA 3.0 |
+| 23 | [Chrome Metaball](https://www.shadertoy.com/view/7dtSDf) | — | PBR + multi-reflection chrome metaball | CC BY-NC-SA 3.0 |
+| 24 | [Smooth Heart](https://www.shadertoy.com/view/4lByWK) | based on iq | almostIdentity smooth-curvature heart raymarching | CC BY-NC-SA 3.0 |
+| 25 | [Luminescence](https://www.shadertoy.com/view/4sXBRn) | Martijn Steinrucken (BigWings) | Volumetric jellyfish field on a repeating grid raymarching | CC BY-NC-SA 3.0 |
+| 26 | [Hyper Tunnel](https://www.shadertoy.com/view/4t2cR1) | — ("Sailing Beyond" demoscene) | Winding hyper-tunnel via SOR-optimized Sphere Tracing | CC BY-NC-SA 3.0 |
+| 27 | [Fluid](https://www.shadertoy.com/view/4tGfDW) | Cornus Ammonis | Mipmap-based multiscale fluid dynamics simulation | CC BY-NC-SA 3.0 |
+| 28 | [Fur Ball](https://www.shadertoy.com/view/XsfGWN) | Simon Green (@simesgreen) | Volumetric fur shader on a sphere | CC BY-NC-SA 3.0 |

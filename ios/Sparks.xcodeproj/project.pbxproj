@@ -19,6 +19,7 @@
 		A10012 /* rgba_noise_medium.png in Resources */ = {isa = PBXBuildFile; fileRef = B10013 /* rgba_noise_medium.png */; };
 		A10013 /* rgba_noise_large.png in Resources */ = {isa = PBXBuildFile; fileRef = B10014 /* rgba_noise_large.png */; };
 		A10014 /* grey_noise_3d.bin in Resources */ = {isa = PBXBuildFile; fileRef = B10015 /* grey_noise_3d.bin */; };
+		A10015 /* rgba_noise_small.png in Resources */ = {isa = PBXBuildFile; fileRef = B10016 /* rgba_noise_small.png */; };
 		A10021 /* cosmic.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10021 /* cosmic.metal */; settings = {COMPILER_FLAGS = "-fno-fast-math"; }; };
 		A10022 /* starship.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10022 /* starship.metal */; };
 		A10023 /* clouds.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* clouds.metal */; };
@@ -49,6 +50,7 @@
 		A10057 /* fluid_c.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10057 /* fluid_c.metal */; };
 		A10058 /* fluid_d.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10058 /* fluid_d.metal */; };
 		A10059 /* fluid_image.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10059 /* fluid_image.metal */; };
+		A10060 /* furball.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10060 /* furball.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -67,6 +69,7 @@
 		B10013 /* rgba_noise_medium.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = rgba_noise_medium.png; sourceTree = "<group>"; };
 		B10014 /* rgba_noise_large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = rgba_noise_large.png; sourceTree = "<group>"; };
 		B10015 /* grey_noise_3d.bin */ = {isa = PBXFileReference; lastKnownFileType = file; path = grey_noise_3d.bin; sourceTree = "<group>"; };
+		B10016 /* rgba_noise_small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = rgba_noise_small.png; sourceTree = "<group>"; };
 		B10020 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		B10021 /* cosmic.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = cosmic.metal; sourceTree = "<group>"; };
 		B10022 /* starship.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = starship.metal; sourceTree = "<group>"; };
@@ -98,6 +101,7 @@
 		B10057 /* fluid_c.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_c.metal; sourceTree = "<group>"; };
 		B10058 /* fluid_d.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_d.metal; sourceTree = "<group>"; };
 		B10059 /* fluid_image.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_image.metal; sourceTree = "<group>"; };
+		B10060 /* furball.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = furball.metal; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -172,6 +176,7 @@
 				B10057 /* fluid_c.metal */,
 				B10058 /* fluid_d.metal */,
 				B10059 /* fluid_image.metal */,
+				B10060 /* furball.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -185,6 +190,7 @@
 				B10013 /* rgba_noise_medium.png */,
 				B10014 /* rgba_noise_large.png */,
 				B10015 /* grey_noise_3d.bin */,
+				B10016 /* rgba_noise_small.png */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -259,6 +265,7 @@
 				A10012 /* rgba_noise_medium.png in Resources */,
 				A10013 /* rgba_noise_large.png in Resources */,
 				A10014 /* grey_noise_3d.bin in Resources */,
+				A10015 /* rgba_noise_small.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -307,6 +314,7 @@
 				A10057 /* fluid_c.metal in Sources */,
 				A10058 /* fluid_d.metal in Sources */,
 				A10059 /* fluid_image.metal in Sources */,
+				A10060 /* furball.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

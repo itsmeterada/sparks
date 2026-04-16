@@ -39,11 +39,12 @@ class MetalRenderer {
     private let commandQueue: MTLCommandQueue
     private let library: MTLLibrary
     private let colorPixelFormat: MTLPixelFormat
-    private let pipelineStates: [MTLRenderPipelineState]
+    private let pipelineStates: [MTLRenderPipelineState?]
     private let starsTexture: MTLTexture?
     private let noiseMedTexture: MTLTexture?
     private let noiseSmallTexture: MTLTexture?
     private let noise3DTexture: MTLTexture?
+    private let noiseSmall64Texture: MTLTexture?
     private let samplerState: MTLSamplerState
 
     private let startTime: CFAbsoluteTime
@@ -81,17 +82,22 @@ class MetalRenderer {
         self.colorPixelFormat = colorPixelFormat
         let library = lib
 
-        let fragmentNames = ["sparks_fragment", "cosmic_fragment", "starship_fragment", "clouds_fragment", "seascape_fragment", "rainforest_fragment", "plasma_fragment", "grid_fragment", "interstellar_fragment", "mandelbulb_fragment", "cyberspace_fragment", "tunnel_fragment", "fractal_fragment", "mandelbulb2_fragment", "octgrams_fragment", "palette_fragment", "primitives_fragment", "voxellines_fragment", "protean_fragment", "rocaille_fragment", "hudrings_fragment", "flighthud_fragment", "metalball_fragment", "heart_fragment", "jellyfish_fragment", "hypertunnel_fragment"]
-        var states: [MTLRenderPipelineState] = []
+        // Index 26 reserved for fluid (multi-pass, separate path) -> nil placeholder.
+        let fragmentNames: [String?] = ["sparks_fragment", "cosmic_fragment", "starship_fragment", "clouds_fragment", "seascape_fragment", "rainforest_fragment", "plasma_fragment", "grid_fragment", "interstellar_fragment", "mandelbulb_fragment", "cyberspace_fragment", "tunnel_fragment", "fractal_fragment", "mandelbulb2_fragment", "octgrams_fragment", "palette_fragment", "primitives_fragment", "voxellines_fragment", "protean_fragment", "rocaille_fragment", "hudrings_fragment", "flighthud_fragment", "metalball_fragment", "heart_fragment", "jellyfish_fragment", "hypertunnel_fragment", nil, "furball_fragment"]
+        var states: [MTLRenderPipelineState?] = []
         for name in fragmentNames {
+            guard let n = name else {
+                states.append(nil)
+                continue
+            }
             let descriptor = MTLRenderPipelineDescriptor()
             descriptor.vertexFunction = library.makeFunction(name: "sparks_vertex")
-            descriptor.fragmentFunction = library.makeFunction(name: name)
+            descriptor.fragmentFunction = library.makeFunction(name: n)
             descriptor.colorAttachments[0].pixelFormat = colorPixelFormat
             do {
                 states.append(try device.makeRenderPipelineState(descriptor: descriptor))
             } catch {
-                fatalError("Failed to create render pipeline state for \(name): \(error)")
+                fatalError("Failed to create render pipeline state for \(n): \(error)")
             }
         }
         self.pipelineStates = states
@@ -107,6 +113,7 @@ class MetalRenderer {
         self.noiseMedTexture = Self.loadTexture(loader: loader, name: "rgba_noise_medium", ext: "png", options: texOpts)
         self.noiseSmallTexture = Self.loadTexture(loader: loader, name: "rgba_noise_large", ext: "png", options: texOpts) // iChannel1: 1024x1024 for texelFetch dithering
         self.noise3DTexture = Self.load3DTexture(device: device, name: "grey_noise_3d", ext: "bin", width: 32, height: 32, depth: 32)
+        self.noiseSmall64Texture = Self.loadTexture(loader: loader, name: "rgba_noise_small", ext: "png", options: texOpts)
 
         let samplerDescriptor = MTLSamplerDescriptor()
         samplerDescriptor.minFilter = .linear
@@ -141,7 +148,7 @@ class MetalRenderer {
         return tex
     }
 
-    private var totalShaderCount: Int { pipelineStates.count + 1 } // +1 for fluid
+    private var totalShaderCount: Int { pipelineStates.count } // includes fluid placeholder slot
 
     func toggleShader() {
         currentShader = (currentShader + 1) % totalShaderCount
@@ -363,11 +370,12 @@ class MetalRenderer {
             return
         }
 
-        guard let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
+        guard let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor),
+              let pipeline = pipelineStates[currentShader] else {
             return
         }
 
-        encoder.setRenderPipelineState(pipelineStates[currentShader])
+        encoder.setRenderPipelineState(pipeline)
         encoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 0)
         encoder.setFragmentSamplerState(samplerState, index: 0)
 
@@ -386,6 +394,11 @@ class MetalRenderer {
             if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
         case 17: // voxellines
             if let tex = noiseMedTexture { encoder.setFragmentTexture(tex, index: 0) }
+        case 27: // furball
+            if let tex = noiseSmall64Texture {
+                encoder.setFragmentTexture(tex, index: 0)
+                encoder.setFragmentTexture(tex, index: 1)
+            }
         default:
             break
         }

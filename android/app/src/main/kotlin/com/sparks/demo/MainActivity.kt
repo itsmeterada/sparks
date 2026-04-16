@@ -49,17 +49,17 @@ class MainActivity : Activity() {
             }
         }
 
-        // Previous shader (left arrow)
-        val prevButton = makeButton("\u25C1") { vulkanSurfaceView.prevShader() }
-        root.addView(prevButton, FrameLayout.LayoutParams(sizePx, sizePx).apply {
+        // Next shader (right arrow, top)
+        val nextButton = makeButton("\u25B7") { vulkanSurfaceView.toggleShader() }
+        root.addView(nextButton, FrameLayout.LayoutParams(sizePx, sizePx).apply {
             gravity = Gravity.TOP or Gravity.END
             topMargin = topOffset
             rightMargin = marginPx
         })
 
-        // Next shader (right arrow)
-        val nextButton = makeButton("\u25B7") { vulkanSurfaceView.toggleShader() }
-        root.addView(nextButton, FrameLayout.LayoutParams(sizePx, sizePx).apply {
+        // Previous shader (left arrow)
+        val prevButton = makeButton("\u25C1") { vulkanSurfaceView.prevShader() }
+        root.addView(prevButton, FrameLayout.LayoutParams(sizePx, sizePx).apply {
             gravity = Gravity.TOP or Gravity.END
             topMargin = topOffset + sizePx + gap
             rightMargin = marginPx

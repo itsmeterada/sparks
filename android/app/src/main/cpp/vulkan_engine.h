@@ -10,15 +10,15 @@
 #include "vulkan_utils.h"
 
 static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-static constexpr int SHADER_COUNT = 26;
-static constexpr int MAX_TEXTURES = 5;
+static constexpr int SHADER_COUNT = 28;       // mPipelines slots (index 26 = fluid placeholder, kept VK_NULL_HANDLE)
+static constexpr int MAX_TEXTURES = 6;
 static constexpr int MAX_TEX_BINDINGS = 3;
 
 // Multi-pass (fluid) infrastructure
 static constexpr int FLUID_PASS_COUNT = 5; // buffer_a, b, c, d, image
 static constexpr int FLUID_TEX_BINDINGS = 4; // iChannel0-3
 static constexpr int FLUID_SHADER_INDEX = 26;
-static constexpr int TOTAL_SHADER_COUNT = 27; // SHADER_COUNT + fluid
+static constexpr int TOTAL_SHADER_COUNT = 28;
 
 struct PushConstants {
     float iResolutionX;
@@ -151,8 +151,8 @@ private:
     VkSampler mTextureSampler = VK_NULL_HANDLE;
     VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
-    // Descriptor sets: 0=starship, 1=clouds/plasma, 2=history buffer, 3=grid(organic2)
-    VkDescriptorSet mDescriptorSets[4] = {};
+    // Descriptor sets: 0=starship, 1=clouds/plasma, 2=history buffer, 3=grid(organic2), 4=furball(noise_small)
+    VkDescriptorSet mDescriptorSets[5] = {};
 
     // Fluid multi-pass resources
     FluidResources mFluid;

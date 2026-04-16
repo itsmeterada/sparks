@@ -411,6 +411,7 @@ bool VulkanEngine::createTextures() {
     if (!loadTexture("textures/rgba_noise_large.png", 2)) return false; // iChannel1: 1024x1024 for texelFetch dithering
     if (!loadTexture3D("textures/grey_noise_3d.bin", 3, 32, 32, 32)) return false;
     if (!loadTexture("textures/organic2.png", 4)) return false;
+    if (!loadTexture("textures/rgba_noise_small.png", 5)) return false;
 
     // Sampler
     VkSamplerCreateInfo si{}; si.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -431,17 +432,17 @@ bool VulkanEngine::createTextures() {
     li.bindingCount = MAX_TEX_BINDINGS; li.pBindings = bindings;
     if (vkCreateDescriptorSetLayout(mDevice, &li, nullptr, &mDescriptorSetLayout) != VK_SUCCESS) return false;
 
-    // Descriptor pool (2 sets, 6 combined image samplers total)
+    // Descriptor pool (5 sets total)
     VkDescriptorPoolSize poolSize{}; poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSize.descriptorCount = MAX_TEX_BINDINGS * 4;
+    poolSize.descriptorCount = MAX_TEX_BINDINGS * 5;
     VkDescriptorPoolCreateInfo pi{}; pi.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pi.poolSizeCount = 1; pi.pPoolSizes = &poolSize; pi.maxSets = 4;
+    pi.poolSizeCount = 1; pi.pPoolSizes = &poolSize; pi.maxSets = 5;
     if (vkCreateDescriptorPool(mDevice, &pi, nullptr, &mDescriptorPool) != VK_SUCCESS) return false;
 
-    // Allocate 2 descriptor sets
-    VkDescriptorSetLayout layouts[4] = {mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout};
+    // Allocate 5 descriptor sets
+    VkDescriptorSetLayout layouts[5] = {mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout};
     VkDescriptorSetAllocateInfo dsai{}; dsai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    dsai.descriptorPool = mDescriptorPool; dsai.descriptorSetCount = 4; dsai.pSetLayouts = layouts;
+    dsai.descriptorPool = mDescriptorPool; dsai.descriptorSetCount = 5; dsai.pSetLayouts = layouts;
     if (vkAllocateDescriptorSets(mDevice, &dsai, mDescriptorSets) != VK_SUCCESS) return false;
 
     // Update descriptor set 0 (starship): all bindings → stars texture
@@ -486,12 +487,26 @@ bool VulkanEngine::createTextures() {
         vkUpdateDescriptorSets(mDevice, MAX_TEX_BINDINGS, writes, 0, nullptr);
     }
 
+    // Update descriptor set 4 (furball): all bindings → rgba_noise_small texture
+    {
+        VkDescriptorImageInfo imgInfo{}; imgInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imgInfo.imageView = mTextures[5].imageView; imgInfo.sampler = mTextureSampler;
+        VkWriteDescriptorSet writes[MAX_TEX_BINDINGS]{};
+        for (int i = 0; i < MAX_TEX_BINDINGS; i++) {
+            writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET; writes[i].dstSet = mDescriptorSets[4];
+            writes[i].dstBinding = i; writes[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            writes[i].descriptorCount = 1; writes[i].pImageInfo = &imgInfo;
+        }
+        vkUpdateDescriptorSets(mDevice, MAX_TEX_BINDINGS, writes, 0, nullptr);
+    }
+
     LOGI("All textures and descriptor sets created");
     return true;
 }
 
 bool VulkanEngine::createGraphicsPipeline() {
     auto vertCode = loadShaderFromAsset(mAssetManager, "shaders/fullscreen.vert.spv");
+    // Index 26 is reserved for fluid (multi-pass, no entry in mPipelines).
     const char* fragNames[SHADER_COUNT] = {
         "shaders/sparks.frag.spv", "shaders/cosmic.frag.spv",
         "shaders/starship.frag.spv", "shaders/clouds.frag.spv",
@@ -505,19 +520,25 @@ bool VulkanEngine::createGraphicsPipeline() {
         "shaders/protean.frag.spv", "shaders/rocaille.frag.spv",
         "shaders/hudrings.frag.spv", "shaders/flighthud.frag.spv",
         "shaders/metalball.frag.spv", "shaders/heart.frag.spv",
-        "shaders/jellyfish.frag.spv", "shaders/hypertunnel.frag.spv"
+        "shaders/jellyfish.frag.spv", "shaders/hypertunnel.frag.spv",
+        nullptr,                        // 26: fluid placeholder
+        "shaders/furball.frag.spv"      // 27
     };
     std::vector<uint32_t> fragCodes[SHADER_COUNT];
     VkShaderModule fragModules[SHADER_COUNT]{};
 
     if (vertCode.empty()) { LOGE("Failed to load vertex shader"); return false; }
     for (int i = 0; i < SHADER_COUNT; i++) {
+        if (fragNames[i] == nullptr) continue;
         fragCodes[i] = loadShaderFromAsset(mAssetManager, fragNames[i]);
         if (fragCodes[i].empty()) { LOGE("Failed to load %s", fragNames[i]); return false; }
     }
 
     VkShaderModule vertModule = createShaderModule(mDevice, vertCode);
-    for (int i = 0; i < SHADER_COUNT; i++) fragModules[i] = createShaderModule(mDevice, fragCodes[i]);
+    for (int i = 0; i < SHADER_COUNT; i++) {
+        if (fragNames[i] == nullptr) continue;
+        fragModules[i] = createShaderModule(mDevice, fragCodes[i]);
+    }
 
     // Pipeline layout
     VkPushConstantRange pcRange{}; pcRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -553,6 +574,7 @@ bool VulkanEngine::createGraphicsPipeline() {
     pci.layout = mPipelineLayout; pci.renderPass = mRenderPass; pci.subpass = 0;
 
     for (int i = 0; i < SHADER_COUNT; i++) {
+        if (fragNames[i] == nullptr) { mPipelines[i] = VK_NULL_HANDLE; continue; }
         VkPipelineShaderStageCreateInfo stages[2]{};
         stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT; stages[0].module = vertModule; stages[0].pName = "main";
@@ -583,7 +605,9 @@ bool VulkanEngine::createGraphicsPipeline() {
     }
 
     vkDestroyShaderModule(mDevice, vertModule, nullptr);
-    for (int i = 0; i < SHADER_COUNT; i++) vkDestroyShaderModule(mDevice, fragModules[i], nullptr);
+    for (int i = 0; i < SHADER_COUNT; i++) {
+        if (fragModules[i] != VK_NULL_HANDLE) vkDestroyShaderModule(mDevice, fragModules[i], nullptr);
+    }
     LOGI("All %d graphics pipelines created", SHADER_COUNT);
     return true;
 }
@@ -1248,9 +1272,11 @@ void VulkanEngine::render() {
 
     // Helper: get descriptor set index for current shader
     auto getDsIndex = [&]() -> int {
-        if (mCurrentShader == 3 || mCurrentShader == 6 || mCurrentShader == 8 || mCurrentShader == 16) return 1;
+        if (mCurrentShader == 3 || mCurrentShader == 6 || mCurrentShader == 8 ||
+            mCurrentShader == 16) return 1;
         if (mCurrentShader == 5) return 2;
         if (mCurrentShader == 7) return 3;
+        if (mCurrentShader == 27) return 4; // furball
         return 0;
     };
 

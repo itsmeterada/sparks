@@ -40,31 +40,31 @@ class MetalViewController: UIViewController, MTKViewDelegate {
             return b
         }
 
-        // Previous shader (left arrow, top)
-        let prevButton = makeIconButton(title: "\u{25C1}", action: #selector(switchPrevShader))
-        view.addSubview(prevButton)
-        NSLayoutConstraint.activate([
-            prevButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
-            prevButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
-            prevButton.widthAnchor.constraint(equalToConstant: 36),
-            prevButton.heightAnchor.constraint(equalToConstant: 36)
-        ])
-
-        // Next shader (right arrow)
+        // Next shader (right arrow, top)
         let nextButton = makeIconButton(title: "\u{25B7}", action: #selector(switchShader))
         view.addSubview(nextButton)
         NSLayoutConstraint.activate([
-            nextButton.topAnchor.constraint(equalTo: prevButton.bottomAnchor, constant: 8),
+            nextButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
             nextButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
             nextButton.widthAnchor.constraint(equalToConstant: 36),
             nextButton.heightAnchor.constraint(equalToConstant: 36)
+        ])
+
+        // Previous shader (left arrow)
+        let prevButton = makeIconButton(title: "\u{25C1}", action: #selector(switchPrevShader))
+        view.addSubview(prevButton)
+        NSLayoutConstraint.activate([
+            prevButton.topAnchor.constraint(equalTo: nextButton.bottomAnchor, constant: 8),
+            prevButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            prevButton.widthAnchor.constraint(equalToConstant: 36),
+            prevButton.heightAnchor.constraint(equalToConstant: 36)
         ])
 
         // Mode toggle button
         let modeButton = makeIconButton(title: "\u{25CE}", action: #selector(switchMode))
         view.addSubview(modeButton)
         NSLayoutConstraint.activate([
-            modeButton.topAnchor.constraint(equalTo: nextButton.bottomAnchor, constant: 8),
+            modeButton.topAnchor.constraint(equalTo: prevButton.bottomAnchor, constant: 8),
             modeButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
             modeButton.widthAnchor.constraint(equalToConstant: 36),
             modeButton.heightAnchor.constraint(equalToConstant: 36)

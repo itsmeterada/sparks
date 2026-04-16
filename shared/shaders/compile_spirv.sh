@@ -33,5 +33,11 @@ glslangValidator -V "$SCRIPT_DIR/heart.frag.glsl" -o "$OUTPUT_DIR/heart.frag.spv
 glslangValidator -V "$SCRIPT_DIR/jellyfish.frag.glsl" -o "$OUTPUT_DIR/jellyfish.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/hypertunnel.frag.glsl" -o "$OUTPUT_DIR/hypertunnel.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/tunnel.frag.glsl" -o "$OUTPUT_DIR/tunnel.frag.spv" || exit 1
+# Fluid multi-pass shaders
+glslangValidator -V "$SCRIPT_DIR/fluid_a.frag.glsl" -o "$OUTPUT_DIR/fluid_a.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/fluid_b.frag.glsl" -o "$OUTPUT_DIR/fluid_b.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/fluid_c.frag.glsl" -o "$OUTPUT_DIR/fluid_c.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/fluid_d.frag.glsl" -o "$OUTPUT_DIR/fluid_d.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/fluid_image.frag.glsl" -o "$OUTPUT_DIR/fluid_image.frag.spv" || exit 1
 echo "All shaders compiled successfully."
 ls -la "$OUTPUT_DIR"/*.spv

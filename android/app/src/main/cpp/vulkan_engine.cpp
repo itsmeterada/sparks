@@ -27,6 +27,7 @@ VulkanEngine::~VulkanEngine() {
         if (mPipelines[i] != VK_NULL_HANDLE) vkDestroyPipeline(mDevice, mPipelines[i], nullptr);
     if (mPipelineLayout != VK_NULL_HANDLE) vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
     if (mFxaaPipeline != VK_NULL_HANDLE) vkDestroyPipeline(mDevice, mFxaaPipeline, nullptr);
+    cleanupFluidResources();
     cleanupHistoryBuffer();
     if (mOffscreenRenderPass != VK_NULL_HANDLE) vkDestroyRenderPass(mDevice, mOffscreenRenderPass, nullptr);
     if (mDescriptorPool != VK_NULL_HANDLE) vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
@@ -63,6 +64,7 @@ bool VulkanEngine::init(ANativeWindow* window, AAssetManager* assetManager) {
     if (!createOffscreenRenderPass()) return false;
     if (!createHistoryBuffer()) return false;
     if (!createGraphicsPipeline()) return false;
+    if (!createFluidResources()) LOGI("Fluid resources creation failed (non-fatal, fluid shader will be skipped)");
     mStartTime = std::chrono::high_resolution_clock::now();
     mPaused = false;
     mInitialized = true;
@@ -691,6 +693,480 @@ void VulkanEngine::cleanupHistoryBuffer() {
     if (mHistoryMemory != VK_NULL_HANDLE) { vkFreeMemory(mDevice, mHistoryMemory, nullptr); mHistoryMemory = VK_NULL_HANDLE; }
 }
 
+// --- Multi-pass (fluid) infrastructure -------------------------------------
+
+bool VulkanEngine::createOffscreenTarget(OffscreenTarget& target, uint32_t w, uint32_t h,
+                                         VkFormat format, bool pingPong, bool withMipmaps,
+                                         VkRenderPass renderPassForFramebuffer) {
+    target.width = w; target.height = h; target.format = format;
+    target.pingPong = pingPong; target.mipLevels = 1;
+    if (withMipmaps) {
+        uint32_t mn = std::min(w, h);
+        while (mn > 1) { target.mipLevels++; mn >>= 1; }
+    }
+    const int count = pingPong ? 2 : 1;
+    const VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT |
+                                    VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
+    for (int i = 0; i < count; i++) {
+        VkImageCreateInfo ii{}; ii.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        ii.imageType = VK_IMAGE_TYPE_2D; ii.extent = {w, h, 1};
+        ii.mipLevels = target.mipLevels; ii.arrayLayers = 1;
+        ii.format = format; ii.tiling = VK_IMAGE_TILING_OPTIMAL;
+        ii.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        ii.usage = usage; ii.samples = VK_SAMPLE_COUNT_1_BIT;
+        if (vkCreateImage(mDevice, &ii, nullptr, &target.image[i]) != VK_SUCCESS) return false;
+
+        VkMemoryRequirements memReqs; vkGetImageMemoryRequirements(mDevice, target.image[i], &memReqs);
+        VkMemoryAllocateInfo ai{}; ai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        ai.allocationSize = memReqs.size;
+        ai.memoryTypeIndex = findMemoryType(mPhysicalDevice, memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        if (vkAllocateMemory(mDevice, &ai, nullptr, &target.memory[i]) != VK_SUCCESS) return false;
+        vkBindImageMemory(mDevice, target.image[i], target.memory[i], 0);
+
+        // all-mips view (sampling)
+        VkImageViewCreateInfo vi{}; vi.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        vi.image = target.image[i]; vi.viewType = VK_IMAGE_VIEW_TYPE_2D; vi.format = format;
+        vi.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, target.mipLevels, 0, 1};
+        if (vkCreateImageView(mDevice, &vi, nullptr, &target.viewAll[i]) != VK_SUCCESS) return false;
+
+        // mip-0 view (framebuffer attachment)
+        VkImageViewCreateInfo vi0{}; vi0.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        vi0.image = target.image[i]; vi0.viewType = VK_IMAGE_VIEW_TYPE_2D; vi0.format = format;
+        vi0.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+        if (vkCreateImageView(mDevice, &vi0, nullptr, &target.viewMip0[i]) != VK_SUCCESS) return false;
+
+        if (renderPassForFramebuffer != VK_NULL_HANDLE) {
+            VkFramebufferCreateInfo fbci{}; fbci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            fbci.renderPass = renderPassForFramebuffer;
+            fbci.attachmentCount = 1; fbci.pAttachments = &target.viewMip0[i];
+            fbci.width = w; fbci.height = h; fbci.layers = 1;
+            if (vkCreateFramebuffer(mDevice, &fbci, nullptr, &target.framebuffer[i]) != VK_SUCCESS) return false;
+        }
+    }
+
+    // Initial transition: UNDEFINED -> SHADER_READ_ONLY_OPTIMAL (all mips)
+    VkCommandBufferAllocateInfo cmdAI{}; cmdAI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cmdAI.commandPool = mCommandPool; cmdAI.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; cmdAI.commandBufferCount = 1;
+    VkCommandBuffer cmd; vkAllocateCommandBuffers(mDevice, &cmdAI, &cmd);
+    VkCommandBufferBeginInfo bi{}; bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    vkBeginCommandBuffer(cmd, &bi);
+    for (int i = 0; i < count; i++) {
+        VkImageMemoryBarrier b{}; b.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        b.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        b.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        b.image = target.image[i];
+        b.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, target.mipLevels, 0, 1};
+        b.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                             0, 0, nullptr, 0, nullptr, 1, &b);
+    }
+    vkEndCommandBuffer(cmd);
+    VkSubmitInfo si{}; si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    si.commandBufferCount = 1; si.pCommandBuffers = &cmd;
+    vkQueueSubmit(mQueue, 1, &si, VK_NULL_HANDLE); vkQueueWaitIdle(mQueue);
+    vkFreeCommandBuffers(mDevice, mCommandPool, 1, &cmd);
+
+    target.srcIdx = 0;
+    LOGI("OffscreenTarget created: %ux%u, fmt=%d, pingPong=%d, mips=%u",
+         w, h, (int)format, (int)pingPong, target.mipLevels);
+    return true;
+}
+
+void VulkanEngine::destroyOffscreenTarget(OffscreenTarget& target) {
+    const int count = target.pingPong ? 2 : 1;
+    for (int i = 0; i < count; i++) {
+        if (target.framebuffer[i] != VK_NULL_HANDLE) { vkDestroyFramebuffer(mDevice, target.framebuffer[i], nullptr); target.framebuffer[i] = VK_NULL_HANDLE; }
+        if (target.viewMip0[i] != VK_NULL_HANDLE) { vkDestroyImageView(mDevice, target.viewMip0[i], nullptr); target.viewMip0[i] = VK_NULL_HANDLE; }
+        if (target.viewAll[i] != VK_NULL_HANDLE) { vkDestroyImageView(mDevice, target.viewAll[i], nullptr); target.viewAll[i] = VK_NULL_HANDLE; }
+        if (target.image[i] != VK_NULL_HANDLE) { vkDestroyImage(mDevice, target.image[i], nullptr); target.image[i] = VK_NULL_HANDLE; }
+        if (target.memory[i] != VK_NULL_HANDLE) { vkFreeMemory(mDevice, target.memory[i], nullptr); target.memory[i] = VK_NULL_HANDLE; }
+    }
+}
+
+// Generates the mipmap chain for target.image[idx] via successive blits.
+// Precondition: entire image in SHADER_READ_ONLY_OPTIMAL.
+// Postcondition: entire image in SHADER_READ_ONLY_OPTIMAL with mip chain populated.
+void VulkanEngine::recordGenerateMipmaps(VkCommandBuffer cmd, OffscreenTarget& target, int idx) {
+    if (target.mipLevels <= 1) return;
+    VkImage img = target.image[idx];
+
+    // mips 1..N-1: SHADER_READ_ONLY -> TRANSFER_DST
+    {
+        VkImageMemoryBarrier b{}; b.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        b.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        b.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        b.image = img;
+        b.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 1, target.mipLevels - 1, 0, 1};
+        b.srcAccessMask = VK_ACCESS_SHADER_READ_BIT; b.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             0, 0, nullptr, 0, nullptr, 1, &b);
+    }
+    // mip 0: SHADER_READ_ONLY -> TRANSFER_SRC
+    {
+        VkImageMemoryBarrier b{}; b.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        b.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        b.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        b.image = img;
+        b.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+        b.srcAccessMask = VK_ACCESS_SHADER_READ_BIT; b.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             0, 0, nullptr, 0, nullptr, 1, &b);
+    }
+
+    int32_t mipW = (int32_t)target.width;
+    int32_t mipH = (int32_t)target.height;
+    for (uint32_t i = 1; i < target.mipLevels; i++) {
+        int32_t nextW = std::max(1, mipW >> 1);
+        int32_t nextH = std::max(1, mipH >> 1);
+
+        VkImageBlit blit{};
+        blit.srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, i - 1, 0, 1};
+        blit.srcOffsets[1] = {mipW, mipH, 1};
+        blit.dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, i, 0, 1};
+        blit.dstOffsets[1] = {nextW, nextH, 1};
+        vkCmdBlitImage(cmd, img, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
+
+        if (i + 1 < target.mipLevels) {
+            // this mip becomes source for next iteration
+            VkImageMemoryBarrier b{}; b.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            b.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            b.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            b.image = img;
+            b.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, i, 1, 0, 1};
+            b.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT; b.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                 0, 0, nullptr, 0, nullptr, 1, &b);
+        }
+        mipW = nextW; mipH = nextH;
+    }
+
+    // Final: all mips -> SHADER_READ_ONLY_OPTIMAL
+    VkImageMemoryBarrier finals[2]{};
+    finals[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    finals[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    finals[0].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    finals[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; finals[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    finals[0].image = img;
+    finals[0].subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, target.mipLevels - 1, 0, 1};
+    finals[0].srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT; finals[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    finals[1].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    finals[1].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    finals[1].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    finals[1].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; finals[1].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    finals[1].image = img;
+    finals[1].subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, target.mipLevels - 1, 1, 0, 1};
+    finals[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT; finals[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                         0, 0, nullptr, 0, nullptr, 2, finals);
+}
+
+bool VulkanEngine::createFluidResources() {
+    // Use display dimensions (not swapchain extent which may be rotated)
+    // so the simulation runs in display orientation, matching OpenGL behavior.
+    uint32_t w = (uint32_t)ANativeWindow_getWidth(mWindow);
+    uint32_t h = (uint32_t)ANativeWindow_getHeight(mWindow);
+
+    // 1. RGBA16F render pass (finalLayout = SHADER_READ_ONLY_OPTIMAL)
+    {
+        VkAttachmentDescription att{}; att.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+        att.samples = VK_SAMPLE_COUNT_1_BIT;
+        att.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; att.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        att.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; att.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        att.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        att.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        VkAttachmentReference ref{}; ref.attachment = 0; ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        VkSubpassDescription sub{}; sub.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        sub.colorAttachmentCount = 1; sub.pColorAttachments = &ref;
+        VkSubpassDependency dep{}; dep.srcSubpass = VK_SUBPASS_EXTERNAL; dep.dstSubpass = 0;
+        dep.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        dep.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dep.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        dep.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        VkRenderPassCreateInfo ci{}; ci.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        ci.attachmentCount = 1; ci.pAttachments = &att; ci.subpassCount = 1; ci.pSubpasses = &sub;
+        ci.dependencyCount = 1; ci.pDependencies = &dep;
+        if (vkCreateRenderPass(mDevice, &ci, nullptr, &mFluid.renderPass) != VK_SUCCESS) {
+            LOGE("Failed to create fluid render pass"); return false;
+        }
+    }
+
+    // 2. Sampler with mipmap support (maxLod high enough for 11 levels)
+    {
+        VkSamplerCreateInfo si{}; si.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        si.magFilter = VK_FILTER_LINEAR; si.minFilter = VK_FILTER_LINEAR;
+        si.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        si.addressModeU = si.addressModeV = si.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        si.maxLod = 16.0f;
+        if (vkCreateSampler(mDevice, &si, nullptr, &mFluid.sampler) != VK_SUCCESS) return false;
+    }
+
+    // 3. Descriptor set layout (4 combined image samplers for iChannel0-3)
+    {
+        VkDescriptorSetLayoutBinding bindings[FLUID_TEX_BINDINGS]{};
+        for (int i = 0; i < FLUID_TEX_BINDINGS; i++) {
+            bindings[i].binding = i;
+            bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            bindings[i].descriptorCount = 1;
+            bindings[i].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        }
+        VkDescriptorSetLayoutCreateInfo li{}; li.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        li.bindingCount = FLUID_TEX_BINDINGS; li.pBindings = bindings;
+        if (vkCreateDescriptorSetLayout(mDevice, &li, nullptr, &mFluid.descLayout) != VK_SUCCESS) return false;
+    }
+
+    // 4. Pipeline layout
+    {
+        VkPushConstantRange pcRange{}; pcRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        pcRange.size = sizeof(PushConstants);
+        VkPipelineLayoutCreateInfo pli{}; pli.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pli.setLayoutCount = 1; pli.pSetLayouts = &mFluid.descLayout;
+        pli.pushConstantRangeCount = 1; pli.pPushConstantRanges = &pcRange;
+        if (vkCreatePipelineLayout(mDevice, &pli, nullptr, &mFluid.pipelineLayout) != VK_SUCCESS) return false;
+    }
+
+    // 5. Descriptor pool + sets
+    {
+        const uint32_t totalSets = FLUID_PASS_COUNT * MAX_FRAMES_IN_FLIGHT;
+        VkDescriptorPoolSize poolSize{}; poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSize.descriptorCount = FLUID_TEX_BINDINGS * totalSets;
+        VkDescriptorPoolCreateInfo pi{}; pi.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        pi.poolSizeCount = 1; pi.pPoolSizes = &poolSize; pi.maxSets = totalSets;
+        if (vkCreateDescriptorPool(mDevice, &pi, nullptr, &mFluid.descPool) != VK_SUCCESS) return false;
+
+        VkDescriptorSetLayout layouts[FLUID_PASS_COUNT * MAX_FRAMES_IN_FLIGHT];
+        for (uint32_t i = 0; i < totalSets; i++) layouts[i] = mFluid.descLayout;
+        VkDescriptorSetAllocateInfo dsai{}; dsai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        dsai.descriptorPool = mFluid.descPool; dsai.descriptorSetCount = totalSets; dsai.pSetLayouts = layouts;
+        if (vkAllocateDescriptorSets(mDevice, &dsai, mFluid.descSets) != VK_SUCCESS) return false;
+    }
+
+    // 6. Offscreen targets
+    if (!createOffscreenTarget(mFluid.velocity, w, h, VK_FORMAT_R16G16B16A16_SFLOAT, true, true, mFluid.renderPass)) return false;
+    if (!createOffscreenTarget(mFluid.pressure, w, h, VK_FORMAT_R16G16B16A16_SFLOAT, true, true, mFluid.renderPass)) return false;
+    if (!createOffscreenTarget(mFluid.turbulence, w, h, VK_FORMAT_R16G16B16A16_SFLOAT, false, true, mFluid.renderPass)) return false;
+    if (!createOffscreenTarget(mFluid.confinement, w, h, VK_FORMAT_R16G16B16A16_SFLOAT, false, false, mFluid.renderPass)) return false;
+
+    // 7. Pipelines (reuse vertex shader, load 5 fragment shaders)
+    auto vertCode = loadShaderFromAsset(mAssetManager, "shaders/fullscreen.vert.spv");
+    if (vertCode.empty()) { LOGE("Failed to load vertex shader for fluid"); return false; }
+    VkShaderModule vertModule = createShaderModule(mDevice, vertCode);
+
+    const char* fragNames[FLUID_PASS_COUNT] = {
+        "shaders/fluid_a.frag.spv", "shaders/fluid_b.frag.spv",
+        "shaders/fluid_c.frag.spv", "shaders/fluid_d.frag.spv",
+        "shaders/fluid_image.frag.spv"
+    };
+
+    // Common pipeline state
+    VkPipelineVertexInputStateCreateInfo vertexInput{}; vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    VkPipelineInputAssemblyStateCreateInfo inputAsm{}; inputAsm.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAsm.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    VkViewport vp{}; vp.width = (float)w; vp.height = (float)h; vp.maxDepth = 1.0f;
+    VkRect2D sc{}; sc.extent = mSwapchainExtent;
+    VkPipelineViewportStateCreateInfo vpState{}; vpState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    vpState.viewportCount = 1; vpState.pViewports = &vp; vpState.scissorCount = 1; vpState.pScissors = &sc;
+    VkPipelineRasterizationStateCreateInfo rast{}; rast.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rast.polygonMode = VK_POLYGON_MODE_FILL; rast.lineWidth = 1.0f; rast.cullMode = VK_CULL_MODE_NONE;
+    VkPipelineMultisampleStateCreateInfo ms{}; ms.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    ms.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    VkPipelineColorBlendAttachmentState cba{}; cba.colorWriteMask = 0xF;
+    VkPipelineColorBlendStateCreateInfo cb{}; cb.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    cb.attachmentCount = 1; cb.pAttachments = &cba;
+    VkDynamicState dynStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+    VkPipelineDynamicStateCreateInfo dynState{}; dynState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynState.dynamicStateCount = 2; dynState.pDynamicStates = dynStates;
+
+    VkGraphicsPipelineCreateInfo pci{}; pci.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pci.stageCount = 2; pci.pVertexInputState = &vertexInput; pci.pInputAssemblyState = &inputAsm;
+    pci.pViewportState = &vpState; pci.pRasterizationState = &rast; pci.pMultisampleState = &ms;
+    pci.pColorBlendState = &cb; pci.pDynamicState = &dynState;
+    pci.layout = mFluid.pipelineLayout; pci.subpass = 0;
+
+    for (int i = 0; i < FLUID_PASS_COUNT; i++) {
+        auto fragCode = loadShaderFromAsset(mAssetManager, fragNames[i]);
+        if (fragCode.empty()) { LOGE("Failed to load %s", fragNames[i]); vkDestroyShaderModule(mDevice, vertModule, nullptr); return false; }
+        VkShaderModule fragModule = createShaderModule(mDevice, fragCode);
+
+        VkPipelineShaderStageCreateInfo stages[2]{};
+        stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT; stages[0].module = vertModule; stages[0].pName = "main";
+        stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT; stages[1].module = fragModule; stages[1].pName = "main";
+        pci.pStages = stages;
+
+        // buffer passes A-D use fluid renderPass (RGBA16F); image pass uses main renderPass (swapchain)
+        pci.renderPass = (i < 4) ? mFluid.renderPass : mRenderPass;
+
+        VkPipeline* target = (i < 4) ? &mFluid.bufferPipelines[i] : &mFluid.imagePipeline;
+        if (vkCreateGraphicsPipelines(mDevice, VK_NULL_HANDLE, 1, &pci, nullptr, target) != VK_SUCCESS) {
+            LOGE("Failed to create fluid pipeline %d", i);
+            vkDestroyShaderModule(mDevice, fragModule, nullptr);
+            vkDestroyShaderModule(mDevice, vertModule, nullptr);
+            return false;
+        }
+        vkDestroyShaderModule(mDevice, fragModule, nullptr);
+    }
+    vkDestroyShaderModule(mDevice, vertModule, nullptr);
+
+    mFluid.initialized = true;
+    LOGI("Fluid resources created: %ux%u, vel mips=%u", w, h, mFluid.velocity.mipLevels);
+    return true;
+}
+
+void VulkanEngine::cleanupFluidResources() {
+    if (!mFluid.initialized) return;
+    for (int i = 0; i < 4; i++) {
+        if (mFluid.bufferPipelines[i] != VK_NULL_HANDLE) { vkDestroyPipeline(mDevice, mFluid.bufferPipelines[i], nullptr); mFluid.bufferPipelines[i] = VK_NULL_HANDLE; }
+    }
+    if (mFluid.imagePipeline != VK_NULL_HANDLE) { vkDestroyPipeline(mDevice, mFluid.imagePipeline, nullptr); mFluid.imagePipeline = VK_NULL_HANDLE; }
+    destroyOffscreenTarget(mFluid.velocity);
+    destroyOffscreenTarget(mFluid.pressure);
+    destroyOffscreenTarget(mFluid.turbulence);
+    destroyOffscreenTarget(mFluid.confinement);
+    if (mFluid.descPool != VK_NULL_HANDLE) { vkDestroyDescriptorPool(mDevice, mFluid.descPool, nullptr); mFluid.descPool = VK_NULL_HANDLE; }
+    if (mFluid.pipelineLayout != VK_NULL_HANDLE) { vkDestroyPipelineLayout(mDevice, mFluid.pipelineLayout, nullptr); mFluid.pipelineLayout = VK_NULL_HANDLE; }
+    if (mFluid.descLayout != VK_NULL_HANDLE) { vkDestroyDescriptorSetLayout(mDevice, mFluid.descLayout, nullptr); mFluid.descLayout = VK_NULL_HANDLE; }
+    if (mFluid.sampler != VK_NULL_HANDLE) { vkDestroySampler(mDevice, mFluid.sampler, nullptr); mFluid.sampler = VK_NULL_HANDLE; }
+    if (mFluid.renderPass != VK_NULL_HANDLE) { vkDestroyRenderPass(mDevice, mFluid.renderPass, nullptr); mFluid.renderPass = VK_NULL_HANDLE; }
+    mFluid.initialized = false;
+}
+
+void VulkanEngine::renderFluid(VkCommandBuffer cmd, uint32_t imageIndex, const PushConstants& pc) {
+    VkClearValue clear{}; clear.color = {{0,0,0,0}};
+
+    // Offscreen targets are at display dimensions (not swapchain extent).
+    uint32_t dispW = mFluid.velocity.width;
+    uint32_t dispH = mFluid.velocity.height;
+
+    // Buffer passes: display-sized viewport, preRotate=0, iResolution=display
+    VkViewport bufVp{}; bufVp.width = (float)dispW; bufVp.height = (float)dispH; bufVp.maxDepth = 1.0f;
+    VkRect2D bufSc{}; bufSc.extent = {dispW, dispH};
+    VkExtent2D bufExtent = {dispW, dispH};
+
+    PushConstants bufferPc = pc;
+    bufferPc.iResolutionX = (float)dispW;
+    bufferPc.iResolutionY = (float)dispH;
+    bufferPc.preRotate = 0;
+
+    // Image pass: swapchain-sized viewport, display iResolution, normal preRotate
+    VkViewport imgVp{}; imgVp.width = (float)mSwapchainExtent.width; imgVp.height = (float)mSwapchainExtent.height; imgVp.maxDepth = 1.0f;
+    VkRect2D imgSc{}; imgSc.extent = mSwapchainExtent;
+
+    // Helper: update a per-frame descriptor set's 4 channels
+    auto updateDescSet = [&](int passIdx, VkImageView ch0, VkImageView ch1, VkImageView ch2, VkImageView ch3) {
+        int dsIdx = passIdx * MAX_FRAMES_IN_FLIGHT + mCurrentFrame;
+        VkImageView channels[FLUID_TEX_BINDINGS] = {ch0, ch1, ch2, ch3};
+        VkDescriptorImageInfo infos[FLUID_TEX_BINDINGS]{};
+        VkWriteDescriptorSet writes[FLUID_TEX_BINDINGS]{};
+        for (int i = 0; i < FLUID_TEX_BINDINGS; i++) {
+            infos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            infos[i].imageView = channels[i] ? channels[i] : mTextures[0].imageView;
+            infos[i].sampler = mFluid.sampler;
+            writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writes[i].dstSet = mFluid.descSets[dsIdx];
+            writes[i].dstBinding = i;
+            writes[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            writes[i].descriptorCount = 1;
+            writes[i].pImageInfo = &infos[i];
+        }
+        vkUpdateDescriptorSets(mDevice, FLUID_TEX_BINDINGS, writes, 0, nullptr);
+    };
+
+    // Helper: record one buffer pass (render to RGBA16F offscreen target)
+    auto recordBufferPass = [&](int passIdx, OffscreenTarget& target, int targetIdx) {
+        int dsIdx = passIdx * MAX_FRAMES_IN_FLIGHT + mCurrentFrame;
+        VkRenderPassBeginInfo rpbi{}; rpbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        rpbi.renderPass = mFluid.renderPass;
+        rpbi.framebuffer = target.framebuffer[targetIdx];
+        rpbi.renderArea.extent = bufExtent;
+        rpbi.clearValueCount = 1; rpbi.pClearValues = &clear;
+        vkCmdBeginRenderPass(cmd, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mFluid.bufferPipelines[passIdx]);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mFluid.pipelineLayout, 0, 1, &mFluid.descSets[dsIdx], 0, nullptr);
+        vkCmdSetViewport(cmd, 0, 1, &bufVp);
+        vkCmdSetScissor(cmd, 0, 1, &bufSc);
+        vkCmdPushConstants(cmd, mFluid.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(bufferPc), &bufferPc);
+        vkCmdDraw(cmd, 3, 1, 0, 0);
+        vkCmdEndRenderPass(cmd);
+    };
+
+    int velSrc = mFluid.velocity.srcIdx;
+    int velDst = 1 - velSrc;
+    int prsSrc = mFluid.pressure.srcIdx;
+    int prsDst = 1 - prsSrc;
+
+    // Pass A: velocity
+    updateDescSet(0,
+        mFluid.velocity.viewAll[velSrc],
+        mFluid.pressure.viewAll[prsSrc],
+        mFluid.confinement.viewAll[0],
+        mFluid.turbulence.viewAll[0]);
+    recordBufferPass(0, mFluid.velocity, velDst);
+    recordGenerateMipmaps(cmd, mFluid.velocity, velDst);
+
+    // Pass B: turbulence
+    updateDescSet(1,
+        mFluid.velocity.viewAll[velDst],
+        mTextures[0].imageView,
+        mTextures[0].imageView,
+        mTextures[0].imageView);
+    recordBufferPass(1, mFluid.turbulence, 0);
+    recordGenerateMipmaps(cmd, mFluid.turbulence, 0);
+
+    // Pass C: confinement
+    updateDescSet(2,
+        mFluid.turbulence.viewAll[0],
+        mTextures[0].imageView,
+        mTextures[0].imageView,
+        mTextures[0].imageView);
+    recordBufferPass(2, mFluid.confinement, 0);
+
+    // Pass D: pressure
+    updateDescSet(3,
+        mFluid.velocity.viewAll[velDst],
+        mFluid.pressure.viewAll[prsSrc],
+        mTextures[0].imageView,
+        mTextures[0].imageView);
+    recordBufferPass(3, mFluid.pressure, prsDst);
+    recordGenerateMipmaps(cmd, mFluid.pressure, prsDst);
+
+    // Image pass: render to swapchain
+    updateDescSet(4,
+        mFluid.velocity.viewAll[velDst],
+        mFluid.pressure.viewAll[prsDst],
+        mFluid.turbulence.viewAll[0],
+        mFluid.confinement.viewAll[0]);
+    {
+        VkRenderPassBeginInfo rpbi{}; rpbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        rpbi.renderPass = mRenderPass;
+        rpbi.framebuffer = mFramebuffers[imageIndex];
+        rpbi.renderArea.extent = mSwapchainExtent;
+        rpbi.clearValueCount = 1; rpbi.pClearValues = &clear;
+        vkCmdBeginRenderPass(cmd, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mFluid.imagePipeline);
+        int imgDsIdx = 4 * MAX_FRAMES_IN_FLIGHT + mCurrentFrame;
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mFluid.pipelineLayout, 0, 1, &mFluid.descSets[imgDsIdx], 0, nullptr);
+        vkCmdSetViewport(cmd, 0, 1, &imgVp);
+        vkCmdSetScissor(cmd, 0, 1, &imgSc);
+        vkCmdPushConstants(cmd, mFluid.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pc), &pc);
+        vkCmdDraw(cmd, 3, 1, 0, 0);
+        vkCmdEndRenderPass(cmd);
+    }
+
+    // Swap ping-pong targets
+    mFluid.velocity.srcIdx = velDst;
+    mFluid.pressure.srcIdx = prsDst;
+}
+
 void VulkanEngine::cleanupSwapchain() {
     for (auto fb : mFramebuffers) vkDestroyFramebuffer(mDevice, fb, nullptr);
     mFramebuffers.clear();
@@ -701,11 +1177,13 @@ void VulkanEngine::cleanupSwapchain() {
 
 void VulkanEngine::recreateSwapchain() {
     vkDeviceWaitIdle(mDevice);
+    cleanupFluidResources();
     cleanupHistoryBuffer();
     cleanupSwapchain();
     createSwapchain();
     createFramebuffers();
     createHistoryBuffer();
+    if (!createFluidResources()) LOGI("Fluid resources recreation failed (non-fatal)");
 }
 
 void VulkanEngine::render() {
@@ -742,14 +1220,17 @@ void VulkanEngine::render() {
         default: pc.preRotate = 0; break;
     }
 
+    // Fluid multi-pass path
+    bool isFluid = (mCurrentShader == FLUID_SHADER_INDEX && mFluid.initialized);
+
     // Auto-skip null pipelines (e.g. GPU failed to compile a heavy shader)
-    if (mPipelines[mCurrentShader] == VK_NULL_HANDLE) {
+    if (!isFluid && mPipelines[mCurrentShader] == VK_NULL_HANDLE) {
         for (int i = 0; i < SHADER_COUNT; i++) {
             mCurrentShader = (mCurrentShader + 1) % SHADER_COUNT;
             if (mPipelines[mCurrentShader] != VK_NULL_HANDLE) break;
         }
     }
-    bool pipelineValid = (mPipelines[mCurrentShader] != VK_NULL_HANDLE);
+    bool pipelineValid = isFluid || (mPipelines[mCurrentShader] != VK_NULL_HANDLE);
 
     VkClearValue clear{}; clear.color = {{0,0,0,1}};
     VkRenderPassBeginInfo rpbi{}; rpbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -777,6 +1258,8 @@ void VulkanEngine::render() {
         // Pipeline failed to compile — just clear to black so fences/present still work
         vkCmdBeginRenderPass(cmd, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdEndRenderPass(cmd);
+    } else if (isFluid) {
+        renderFluid(cmd, imageIndex, pc);
     } else if (doFxaa) {
         // 2-pass FXAA: render to offscreen, then FXAA to swapchain
         VkRenderPassBeginInfo offRpbi{}; offRpbi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -944,12 +1427,29 @@ void VulkanEngine::render() {
 void VulkanEngine::onResize(uint32_t w, uint32_t h) { if (w && h) mNeedsResize = true; }
 
 void VulkanEngine::toggleShader() {
-    for (int i = 0; i < SHADER_COUNT; i++) {
-        mCurrentShader = (mCurrentShader + 1) % SHADER_COUNT;
-        if (mPipelines[mCurrentShader] != VK_NULL_HANDLE) break;
+    for (int i = 0; i < TOTAL_SHADER_COUNT; i++) {
+        mCurrentShader = (mCurrentShader + 1) % TOTAL_SHADER_COUNT;
+        if (mCurrentShader == FLUID_SHADER_INDEX) {
+            if (mFluid.initialized) break;
+        } else {
+            if (mPipelines[mCurrentShader] != VK_NULL_HANDLE) break;
+        }
     }
-    mFrameCount = 0; // reset temporal accumulation
-    LOGI("Switched to shader %d", mCurrentShader);
+    mFrameCount = 0;
+    LOGI("Switched to shader %d%s", mCurrentShader, mCurrentShader == FLUID_SHADER_INDEX ? " (fluid)" : "");
+}
+
+void VulkanEngine::prevShader() {
+    for (int i = 0; i < TOTAL_SHADER_COUNT; i++) {
+        mCurrentShader = (mCurrentShader - 1 + TOTAL_SHADER_COUNT) % TOTAL_SHADER_COUNT;
+        if (mCurrentShader == FLUID_SHADER_INDEX) {
+            if (mFluid.initialized) break;
+        } else {
+            if (mPipelines[mCurrentShader] != VK_NULL_HANDLE) break;
+        }
+    }
+    mFrameCount = 0;
+    LOGI("Switched to shader %d%s", mCurrentShader, mCurrentShader == FLUID_SHADER_INDEX ? " (fluid)" : "");
 }
 
 void VulkanEngine::toggleMode() {
@@ -965,7 +1465,22 @@ void VulkanEngine::toggleHalfRes() {
 
 void VulkanEngine::onTouch(float x, float y, int action) {
     // x,y in pixel coordinates (Y flipped by caller for Shadertoy convention)
-    // Initialize virtual mouse to screen center on first use
+
+    // Fluid: absolute touch position (Shadertoy convention)
+    if (mCurrentShader == FLUID_SHADER_INDEX) {
+        if (action == 0) { // DOWN
+            mMousePressed = true;
+            mMouseX = x; mMouseY = y;
+            mMouseZ = x; mMouseW = y;
+        } else if (action == 1) { // MOVE
+            if (mMousePressed) { mMouseX = x; mMouseY = y; }
+        } else { // UP
+            mMousePressed = false;
+        }
+        return;
+    }
+
+    // Other shaders: relative/trackpad style
     if (!mMouseInitialized) {
         mMouseX = (float)ANativeWindow_getWidth(mWindow) * 0.5f;
         mMouseY = (float)ANativeWindow_getHeight(mWindow) * 0.4f;

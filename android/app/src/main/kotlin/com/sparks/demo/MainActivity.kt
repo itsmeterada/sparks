@@ -29,47 +29,49 @@ class MainActivity : Activity() {
             FrameLayout.LayoutParams.MATCH_PARENT
         ))
 
-        // Subtle shader switch button (top-right)
+        // Shader navigation buttons (top-right, vertical column)
         val sizePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 36f, resources.displayMetrics).toInt()
         val marginPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16f, resources.displayMetrics).toInt()
-
-        val button = TextView(this).apply {
-            text = "\u25C7" // diamond
-            setTextColor(Color.argb(77, 255, 255, 255)) // 30% white
-            textSize = 16f
-            gravity = Gravity.CENTER
-            val bg = GradientDrawable()
-            bg.setColor(Color.argb(20, 255, 255, 255)) // 8% white
-            bg.cornerRadius = sizePx / 2f
-            background = bg
-            setOnClickListener { vulkanSurfaceView.toggleShader() }
-        }
         val topOffset = marginPx + getStatusBarHeight()
-        val lp = FrameLayout.LayoutParams(sizePx, sizePx).apply {
+        val gap = marginPx / 2
+
+        fun makeButton(label: String, onClick: () -> Unit): TextView {
+            return TextView(this).apply {
+                text = label
+                setTextColor(Color.argb(77, 255, 255, 255))
+                textSize = 16f
+                gravity = Gravity.CENTER
+                val bg = GradientDrawable()
+                bg.setColor(Color.argb(20, 255, 255, 255))
+                bg.cornerRadius = sizePx / 2f
+                background = bg
+                setOnClickListener { onClick() }
+            }
+        }
+
+        // Previous shader (left arrow)
+        val prevButton = makeButton("\u25C1") { vulkanSurfaceView.prevShader() }
+        root.addView(prevButton, FrameLayout.LayoutParams(sizePx, sizePx).apply {
             gravity = Gravity.TOP or Gravity.END
             topMargin = topOffset
             rightMargin = marginPx
-        }
-        root.addView(button, lp)
+        })
 
-        // Mode toggle button (below shader button)
-        val modeButton = TextView(this).apply {
-            text = "\u25CE" // bullseye
-            setTextColor(Color.argb(77, 255, 255, 255))
-            textSize = 16f
-            gravity = Gravity.CENTER
-            val bg = GradientDrawable()
-            bg.setColor(Color.argb(20, 255, 255, 255))
-            bg.cornerRadius = sizePx / 2f
-            background = bg
-            setOnClickListener { vulkanSurfaceView.toggleMode() }
-        }
-        val mlp = FrameLayout.LayoutParams(sizePx, sizePx).apply {
+        // Next shader (right arrow)
+        val nextButton = makeButton("\u25B7") { vulkanSurfaceView.toggleShader() }
+        root.addView(nextButton, FrameLayout.LayoutParams(sizePx, sizePx).apply {
             gravity = Gravity.TOP or Gravity.END
-            topMargin = topOffset + sizePx + (marginPx / 2)
+            topMargin = topOffset + sizePx + gap
             rightMargin = marginPx
-        }
-        root.addView(modeButton, mlp)
+        })
+
+        // Mode toggle button (below shader buttons)
+        val modeButton = makeButton("\u25CE") { vulkanSurfaceView.toggleMode() }
+        root.addView(modeButton, FrameLayout.LayoutParams(sizePx, sizePx).apply {
+            gravity = Gravity.TOP or Gravity.END
+            topMargin = topOffset + (sizePx + gap) * 2
+            rightMargin = marginPx
+        })
 
         // Half-res toggle button (below mode button)
         val halfResButton = TextView(this).apply {
@@ -93,7 +95,7 @@ class MainActivity : Activity() {
         }
         val hlp = FrameLayout.LayoutParams(sizePx, sizePx).apply {
             gravity = Gravity.TOP or Gravity.END
-            topMargin = topOffset + (sizePx + marginPx / 2) * 2
+            topMargin = topOffset + (sizePx + gap) * 3
             rightMargin = marginPx
         }
         root.addView(halfResButton, hlp)

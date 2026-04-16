@@ -100,6 +100,13 @@ Java_com_sparks_demo_VulkanSurfaceView_nativeToggleShader(JNIEnv*, jobject) {
 }
 
 JNIEXPORT void JNICALL
+Java_com_sparks_demo_VulkanSurfaceView_nativePrevShader(JNIEnv*, jobject) {
+    if (gEngine != nullptr) {
+        gEngine->prevShader();
+    }
+}
+
+JNIEXPORT void JNICALL
 Java_com_sparks_demo_VulkanSurfaceView_nativeToggleMode(JNIEnv*, jobject) {
     if (gEngine != nullptr) {
         gEngine->toggleMode();

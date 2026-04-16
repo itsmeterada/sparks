@@ -14,6 +14,12 @@ static constexpr int SHADER_COUNT = 26;
 static constexpr int MAX_TEXTURES = 5;
 static constexpr int MAX_TEX_BINDINGS = 3;
 
+// Multi-pass (fluid) infrastructure
+static constexpr int FLUID_PASS_COUNT = 5; // buffer_a, b, c, d, image
+static constexpr int FLUID_TEX_BINDINGS = 4; // iChannel0-3
+static constexpr int FLUID_SHADER_INDEX = 26;
+static constexpr int TOTAL_SHADER_COUNT = 27; // SHADER_COUNT + fluid
+
 struct PushConstants {
     float iResolutionX;
     float iResolutionY;
@@ -33,6 +39,39 @@ struct TextureResource {
     VkImageView imageView = VK_NULL_HANDLE;
 };
 
+// Offscreen render target supporting ping-pong and mipmaps.
+// When pingPong=true, image[0]/image[1] alternate as src/dst each frame.
+// When pingPong=false, only image[0] is used.
+// Format is typically RGBA16F for fluid simulation buffers.
+struct OffscreenTarget {
+    VkImage image[2] = {VK_NULL_HANDLE, VK_NULL_HANDLE};
+    VkDeviceMemory memory[2] = {VK_NULL_HANDLE, VK_NULL_HANDLE};
+    VkImageView viewAll[2] = {VK_NULL_HANDLE, VK_NULL_HANDLE};  // all mips, for sampling
+    VkImageView viewMip0[2] = {VK_NULL_HANDLE, VK_NULL_HANDLE}; // mip 0 only, for framebuffer
+    VkFramebuffer framebuffer[2] = {VK_NULL_HANDLE, VK_NULL_HANDLE};
+    uint32_t width = 0, height = 0;
+    uint32_t mipLevels = 1;
+    VkFormat format = VK_FORMAT_R16G16B16A16_SFLOAT;
+    bool pingPong = false;
+    int srcIdx = 0; // index holding current content; dst = 1 - srcIdx when pingPong
+};
+
+struct FluidResources {
+    OffscreenTarget velocity;     // pingPong, mipmap
+    OffscreenTarget pressure;     // pingPong, mipmap
+    OffscreenTarget turbulence;   // single, mipmap
+    OffscreenTarget confinement;  // single, no mipmap
+    VkRenderPass renderPass = VK_NULL_HANDLE;
+    VkDescriptorSetLayout descLayout = VK_NULL_HANDLE;
+    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+    VkDescriptorPool descPool = VK_NULL_HANDLE;
+    VkDescriptorSet descSets[FLUID_PASS_COUNT * MAX_FRAMES_IN_FLIGHT] = {};
+    VkPipeline bufferPipelines[4] = {}; // buffer_a, b, c, d
+    VkPipeline imagePipeline = VK_NULL_HANDLE;
+    VkSampler sampler = VK_NULL_HANDLE;
+    bool initialized = false;
+};
+
 class VulkanEngine {
 public:
     VulkanEngine() = default;
@@ -45,6 +84,7 @@ public:
     void render();
     void onResize(uint32_t width, uint32_t height);
     void toggleShader();
+    void prevShader();
     void toggleMode();
     void toggleHalfRes();
     void onTouch(float x, float y, int action);
@@ -69,6 +109,17 @@ private:
     bool createHistoryBuffer();
     bool createOffscreenRenderPass();
     void cleanupHistoryBuffer();
+
+    // Multi-pass (fluid) helpers
+    bool createOffscreenTarget(OffscreenTarget& target, uint32_t w, uint32_t h,
+                               VkFormat format, bool pingPong, bool withMipmaps,
+                               VkRenderPass renderPassForFramebuffer);
+    void destroyOffscreenTarget(OffscreenTarget& target);
+    void recordGenerateMipmaps(VkCommandBuffer cmd, OffscreenTarget& target, int idx);
+
+    bool createFluidResources();
+    void cleanupFluidResources();
+    void renderFluid(VkCommandBuffer cmd, uint32_t imageIndex, const PushConstants& pc);
     void cleanupSwapchain();
     void recreateSwapchain();
 
@@ -102,6 +153,9 @@ private:
     VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
     // Descriptor sets: 0=starship, 1=clouds/plasma, 2=history buffer, 3=grid(organic2)
     VkDescriptorSet mDescriptorSets[4] = {};
+
+    // Fluid multi-pass resources
+    FluidResources mFluid;
 
     // History buffer for temporal reprojection / FXAA intermediate
     VkImage mHistoryImage = VK_NULL_HANDLE;

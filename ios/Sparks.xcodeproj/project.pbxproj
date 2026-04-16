@@ -44,6 +44,11 @@
 		A10052 /* heart.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10052 /* heart.metal */; };
 		A10053 /* jellyfish.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10053 /* jellyfish.metal */; };
 		A10054 /* hypertunnel.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10054 /* hypertunnel.metal */; };
+		A10055 /* fluid_a.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10055 /* fluid_a.metal */; };
+		A10056 /* fluid_b.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10056 /* fluid_b.metal */; };
+		A10057 /* fluid_c.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10057 /* fluid_c.metal */; };
+		A10058 /* fluid_d.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10058 /* fluid_d.metal */; };
+		A10059 /* fluid_image.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10059 /* fluid_image.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -88,6 +93,11 @@
 		B10052 /* heart.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = heart.metal; sourceTree = "<group>"; };
 		B10053 /* jellyfish.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = jellyfish.metal; sourceTree = "<group>"; };
 		B10054 /* hypertunnel.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = hypertunnel.metal; sourceTree = "<group>"; };
+		B10055 /* fluid_a.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_a.metal; sourceTree = "<group>"; };
+		B10056 /* fluid_b.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_b.metal; sourceTree = "<group>"; };
+		B10057 /* fluid_c.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_c.metal; sourceTree = "<group>"; };
+		B10058 /* fluid_d.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_d.metal; sourceTree = "<group>"; };
+		B10059 /* fluid_image.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_image.metal; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -157,6 +167,11 @@
 				B10052 /* heart.metal */,
 				B10053 /* jellyfish.metal */,
 				B10054 /* hypertunnel.metal */,
+				B10055 /* fluid_a.metal */,
+				B10056 /* fluid_b.metal */,
+				B10057 /* fluid_c.metal */,
+				B10058 /* fluid_d.metal */,
+				B10059 /* fluid_image.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -287,6 +302,11 @@
 				A10052 /* heart.metal in Sources */,
 				A10053 /* jellyfish.metal in Sources */,
 				A10054 /* hypertunnel.metal in Sources */,
+				A10055 /* fluid_a.metal in Sources */,
+				A10056 /* fluid_b.metal in Sources */,
+				A10057 /* fluid_c.metal in Sources */,
+				A10058 /* fluid_d.metal in Sources */,
+				A10059 /* fluid_image.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

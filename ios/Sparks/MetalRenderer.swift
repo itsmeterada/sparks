@@ -8,12 +8,37 @@ struct Uniforms {
     var _pad: Float = 0
     var iMouse: SIMD4<Float> = .zero
     var mode: Int32 = 0
+    var iFrame: Int32 = 0
+}
+
+private struct FluidPingPong {
+    var textures: [MTLTexture] = []
+    var srcIdx: Int = 0
+    var dstIdx: Int { 1 - srcIdx }
+}
+
+private struct FluidResources {
+    var velocity = FluidPingPong()
+    var pressure = FluidPingPong()
+    var turbulence: MTLTexture?
+    var confinement: MTLTexture?
+    var pipelineA: MTLRenderPipelineState?
+    var pipelineB: MTLRenderPipelineState?
+    var pipelineC: MTLRenderPipelineState?
+    var pipelineD: MTLRenderPipelineState?
+    var pipelineImage: MTLRenderPipelineState?
+    var sampler: MTLSamplerState?
+    var width: Int = 0
+    var height: Int = 0
+    var initialized: Bool = false
 }
 
 class MetalRenderer {
 
     private let device: MTLDevice
     private let commandQueue: MTLCommandQueue
+    private let library: MTLLibrary
+    private let colorPixelFormat: MTLPixelFormat
     private let pipelineStates: [MTLRenderPipelineState]
     private let starsTexture: MTLTexture?
     private let noiseMedTexture: MTLTexture?
@@ -24,6 +49,7 @@ class MetalRenderer {
     private let startTime: CFAbsoluteTime
     private var currentShader: Int = 0
     private var currentMode: Int32 = 0
+    private var currentFrame: Int32 = 0
     private var mouseState: SIMD4<Float> = .zero
     private var mousePressed: Bool = false
     private var mouseInitialized: Bool = false
@@ -33,6 +59,9 @@ class MetalRenderer {
     private var touchStartY: Float = 0
     private var virtualStartX: Float = 0
     private var virtualStartY: Float = 0
+
+    private var fluid = FluidResources()
+    private static let fluidShaderIndex: Int = 26
 
     var screenSize: CGSize = CGSize(width: 1, height: 1)
 
@@ -45,9 +74,12 @@ class MetalRenderer {
         }
         self.commandQueue = queue
 
-        guard let library = device.makeDefaultLibrary() else {
+        guard let lib = device.makeDefaultLibrary() else {
             fatalError("Failed to create default Metal library")
         }
+        self.library = lib
+        self.colorPixelFormat = colorPixelFormat
+        let library = lib
 
         let fragmentNames = ["sparks_fragment", "cosmic_fragment", "starship_fragment", "clouds_fragment", "seascape_fragment", "rainforest_fragment", "plasma_fragment", "grid_fragment", "interstellar_fragment", "mandelbulb_fragment", "cyberspace_fragment", "tunnel_fragment", "fractal_fragment", "mandelbulb2_fragment", "octgrams_fragment", "palette_fragment", "primitives_fragment", "voxellines_fragment", "protean_fragment", "rocaille_fragment", "hudrings_fragment", "flighthud_fragment", "metalball_fragment", "heart_fragment", "jellyfish_fragment", "hypertunnel_fragment"]
         var states: [MTLRenderPipelineState] = []
@@ -109,13 +141,20 @@ class MetalRenderer {
         return tex
     }
 
+    private var totalShaderCount: Int { pipelineStates.count + 1 } // +1 for fluid
+
     func toggleShader() {
-        currentShader = (currentShader + 1) % pipelineStates.count
-        // Reset mouse state so shaders that check iMouse.z (e.g. Voxel Lines
-        // uses it to offset the camera path) start from a clean state matching
-        // the Shadertoy default of "no interaction".
+        currentShader = (currentShader + 1) % totalShaderCount
         mouseState = .zero
         mouseInitialized = false
+        currentFrame = 0
+    }
+
+    func prevShader() {
+        currentShader = (currentShader - 1 + totalShaderCount) % totalShaderCount
+        mouseState = .zero
+        mouseInitialized = false
+        currentFrame = 0
     }
 
     func toggleMode() {
@@ -125,6 +164,12 @@ class MetalRenderer {
     var halfRes: Bool = false
 
     func onTouchDown(x: Float, y: Float) {
+        // Fluid: absolute touch position (Shadertoy convention)
+        if currentShader == Self.fluidShaderIndex {
+            mousePressed = true
+            mouseState = SIMD4<Float>(x, y, x, y)
+            return
+        }
         if !mouseInitialized {
             virtualMouseX = Float(screenSize.width) * 0.5
             virtualMouseY = Float(screenSize.height) * 0.4
@@ -139,6 +184,10 @@ class MetalRenderer {
     }
 
     func onTouchMove(x: Float, y: Float) {
+        if currentShader == Self.fluidShaderIndex {
+            if mousePressed { mouseState.x = x; mouseState.y = y }
+            return
+        }
         if mousePressed {
             virtualMouseX = virtualStartX + (x - touchStartX)
             virtualMouseY = virtualStartY + (y - touchStartY)
@@ -150,6 +199,140 @@ class MetalRenderer {
     func onTouchUp() {
         mousePressed = false
         // Keep z positive so shader holds camera position
+    }
+
+    private func setupFluidResources(width: Int, height: Int) {
+        guard width > 0 && height > 0 else { return }
+        if fluid.initialized && fluid.width == width && fluid.height == height { return }
+        fluid = FluidResources()
+        fluid.width = width
+        fluid.height = height
+
+        // Mipmap-capable sampler for fluid
+        let samp = MTLSamplerDescriptor()
+        samp.minFilter = .linear; samp.magFilter = .linear
+        samp.mipFilter = .linear
+        samp.sAddressMode = .repeat; samp.tAddressMode = .repeat
+        samp.maxAnisotropy = 1
+        fluid.sampler = device.makeSamplerState(descriptor: samp)
+
+        // Helper to create RGBA16F target
+        func makeTex(mipmapped: Bool) -> MTLTexture? {
+            let desc = MTLTextureDescriptor.texture2DDescriptor(
+                pixelFormat: .rgba16Float,
+                width: width, height: height,
+                mipmapped: mipmapped)
+            desc.usage = [.shaderRead, .renderTarget]
+            desc.storageMode = .private
+            return device.makeTexture(descriptor: desc)
+        }
+
+        // Ping-pong velocity (mipmapped) and pressure (mipmapped)
+        guard let v0 = makeTex(mipmapped: true), let v1 = makeTex(mipmapped: true),
+              let p0 = makeTex(mipmapped: true), let p1 = makeTex(mipmapped: true),
+              let turb = makeTex(mipmapped: true), let conf = makeTex(mipmapped: false) else {
+            return
+        }
+        fluid.velocity.textures = [v0, v1]
+        fluid.pressure.textures = [p0, p1]
+        fluid.turbulence = turb
+        fluid.confinement = conf
+
+        // Pipelines (4 buffer passes use rgba16Float, image uses swap chain format)
+        func makePipeline(frag: String, format: MTLPixelFormat) -> MTLRenderPipelineState? {
+            let d = MTLRenderPipelineDescriptor()
+            d.vertexFunction = library.makeFunction(name: "sparks_vertex")
+            d.fragmentFunction = library.makeFunction(name: frag)
+            d.colorAttachments[0].pixelFormat = format
+            return try? device.makeRenderPipelineState(descriptor: d)
+        }
+        fluid.pipelineA = makePipeline(frag: "fluid_a_fragment", format: .rgba16Float)
+        fluid.pipelineB = makePipeline(frag: "fluid_b_fragment", format: .rgba16Float)
+        fluid.pipelineC = makePipeline(frag: "fluid_c_fragment", format: .rgba16Float)
+        fluid.pipelineD = makePipeline(frag: "fluid_d_fragment", format: .rgba16Float)
+        fluid.pipelineImage = makePipeline(frag: "fluid_image_fragment", format: colorPixelFormat)
+
+        fluid.initialized = (fluid.pipelineA != nil && fluid.pipelineB != nil &&
+                             fluid.pipelineC != nil && fluid.pipelineD != nil &&
+                             fluid.pipelineImage != nil)
+        fluid.velocity.srcIdx = 0
+        fluid.pressure.srcIdx = 0
+        currentFrame = 0
+    }
+
+    private func renderFluid(commandBuffer: MTLCommandBuffer,
+                             swapchainDescriptor: MTLRenderPassDescriptor,
+                             uniforms: inout Uniforms) {
+        guard fluid.initialized,
+              let sampler = fluid.sampler,
+              let turb = fluid.turbulence, let conf = fluid.confinement,
+              let pipeA = fluid.pipelineA, let pipeB = fluid.pipelineB,
+              let pipeC = fluid.pipelineC, let pipeD = fluid.pipelineD,
+              let pipeImg = fluid.pipelineImage else { return }
+
+        let velSrc = fluid.velocity.srcIdx, velDst = fluid.velocity.dstIdx
+        let prsSrc = fluid.pressure.srcIdx, prsDst = fluid.pressure.dstIdx
+        let velSrcTex = fluid.velocity.textures[velSrc]
+        let velDstTex = fluid.velocity.textures[velDst]
+        let prsSrcTex = fluid.pressure.textures[prsSrc]
+        let prsDstTex = fluid.pressure.textures[prsDst]
+
+        // Helper to render one buffer pass to a target's mip 0
+        func runPass(target: MTLTexture, pipeline: MTLRenderPipelineState,
+                     channels: [MTLTexture]) {
+            let rpd = MTLRenderPassDescriptor()
+            rpd.colorAttachments[0].texture = target
+            rpd.colorAttachments[0].level = 0
+            rpd.colorAttachments[0].loadAction = .dontCare
+            rpd.colorAttachments[0].storeAction = .store
+            guard let enc = commandBuffer.makeRenderCommandEncoder(descriptor: rpd) else { return }
+            enc.setRenderPipelineState(pipeline)
+            enc.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 0)
+            enc.setFragmentSamplerState(sampler, index: 0)
+            for (i, t) in channels.enumerated() {
+                enc.setFragmentTexture(t, index: i)
+            }
+            enc.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
+            enc.endEncoding()
+        }
+
+        func generateMipmaps(_ tex: MTLTexture) {
+            guard tex.mipmapLevelCount > 1, let blit = commandBuffer.makeBlitCommandEncoder() else { return }
+            blit.generateMipmaps(for: tex)
+            blit.endEncoding()
+        }
+
+        // Pass A: velocity = f(velocity.src, pressure.src, confinement, turbulence)
+        runPass(target: velDstTex, pipeline: pipeA,
+                channels: [velSrcTex, prsSrcTex, conf, turb])
+        generateMipmaps(velDstTex)
+
+        // Pass B: turbulence = f(velocity)
+        runPass(target: turb, pipeline: pipeB, channels: [velDstTex])
+        generateMipmaps(turb)
+
+        // Pass C: confinement = f(turbulence)
+        runPass(target: conf, pipeline: pipeC, channels: [turb])
+
+        // Pass D: pressure = f(velocity, pressure.src)
+        runPass(target: prsDstTex, pipeline: pipeD, channels: [velDstTex, prsSrcTex])
+        generateMipmaps(prsDstTex)
+
+        // Image pass to swapchain
+        guard let enc = commandBuffer.makeRenderCommandEncoder(descriptor: swapchainDescriptor) else { return }
+        enc.setRenderPipelineState(pipeImg)
+        enc.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: 0)
+        enc.setFragmentSamplerState(sampler, index: 0)
+        enc.setFragmentTexture(velDstTex, index: 0)
+        enc.setFragmentTexture(prsDstTex, index: 1)
+        enc.setFragmentTexture(turb, index: 2)
+        enc.setFragmentTexture(conf, index: 3)
+        enc.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
+        enc.endEncoding()
+
+        // Swap ping-pong indices
+        fluid.velocity.srcIdx = velDst
+        fluid.pressure.srcIdx = prsDst
     }
 
     func draw(in view: MTKView) {
@@ -164,11 +347,23 @@ class MetalRenderer {
             iResolution: SIMD2<Float>(Float(screenSize.width), Float(screenSize.height)),
             iTime: iTime,
             iMouse: mouseState,
-            mode: currentMode
+            mode: currentMode,
+            iFrame: currentFrame
         )
 
-        guard let commandBuffer = commandQueue.makeCommandBuffer(),
-              let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
+        guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
+
+        // Fluid multi-pass path
+        if currentShader == Self.fluidShaderIndex {
+            setupFluidResources(width: Int(screenSize.width), height: Int(screenSize.height))
+            renderFluid(commandBuffer: commandBuffer, swapchainDescriptor: renderPassDescriptor, uniforms: &uniforms)
+            commandBuffer.present(drawable)
+            commandBuffer.commit()
+            currentFrame &+= 1
+            return
+        }
+
+        guard let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
             return
         }
 
@@ -200,5 +395,6 @@ class MetalRenderer {
         encoder.endEncoding()
         commandBuffer.present(drawable)
         commandBuffer.commit()
+        currentFrame &+= 1
     }
 }

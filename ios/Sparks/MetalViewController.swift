@@ -28,35 +28,43 @@ class MetalViewController: UIViewController, MTKViewDelegate {
 
         renderer = MetalRenderer(device: device, colorPixelFormat: metalView.colorPixelFormat)
 
-        // Shader switch button (top-right, subtle)
-        let button = UIButton(type: .system)
-        button.setTitle("\u{25C7}", for: .normal) // diamond symbol
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .light)
-        button.setTitleColor(UIColor.white.withAlphaComponent(0.3), for: .normal)
-        button.backgroundColor = UIColor.white.withAlphaComponent(0.08)
-        button.layer.cornerRadius = 18
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(switchShader), for: .touchUpInside)
-        view.addSubview(button)
+        func makeIconButton(title: String, action: Selector) -> UIButton {
+            let b = UIButton(type: .system)
+            b.setTitle(title, for: .normal)
+            b.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .light)
+            b.setTitleColor(UIColor.white.withAlphaComponent(0.3), for: .normal)
+            b.backgroundColor = UIColor.white.withAlphaComponent(0.08)
+            b.layer.cornerRadius = 18
+            b.translatesAutoresizingMaskIntoConstraints = false
+            b.addTarget(self, action: action, for: .touchUpInside)
+            return b
+        }
+
+        // Previous shader (left arrow, top)
+        let prevButton = makeIconButton(title: "\u{25C1}", action: #selector(switchPrevShader))
+        view.addSubview(prevButton)
         NSLayoutConstraint.activate([
-            button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
-            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
-            button.widthAnchor.constraint(equalToConstant: 36),
-            button.heightAnchor.constraint(equalToConstant: 36)
+            prevButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
+            prevButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            prevButton.widthAnchor.constraint(equalToConstant: 36),
+            prevButton.heightAnchor.constraint(equalToConstant: 36)
+        ])
+
+        // Next shader (right arrow)
+        let nextButton = makeIconButton(title: "\u{25B7}", action: #selector(switchShader))
+        view.addSubview(nextButton)
+        NSLayoutConstraint.activate([
+            nextButton.topAnchor.constraint(equalTo: prevButton.bottomAnchor, constant: 8),
+            nextButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            nextButton.widthAnchor.constraint(equalToConstant: 36),
+            nextButton.heightAnchor.constraint(equalToConstant: 36)
         ])
 
         // Mode toggle button
-        let modeButton = UIButton(type: .system)
-        modeButton.setTitle("\u{25CE}", for: .normal) // bullseye symbol
-        modeButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .light)
-        modeButton.setTitleColor(UIColor.white.withAlphaComponent(0.3), for: .normal)
-        modeButton.backgroundColor = UIColor.white.withAlphaComponent(0.08)
-        modeButton.layer.cornerRadius = 18
-        modeButton.translatesAutoresizingMaskIntoConstraints = false
-        modeButton.addTarget(self, action: #selector(switchMode), for: .touchUpInside)
+        let modeButton = makeIconButton(title: "\u{25CE}", action: #selector(switchMode))
         view.addSubview(modeButton)
         NSLayoutConstraint.activate([
-            modeButton.topAnchor.constraint(equalTo: button.bottomAnchor, constant: 8),
+            modeButton.topAnchor.constraint(equalTo: nextButton.bottomAnchor, constant: 8),
             modeButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
             modeButton.widthAnchor.constraint(equalToConstant: 36),
             modeButton.heightAnchor.constraint(equalToConstant: 36)
@@ -82,6 +90,10 @@ class MetalViewController: UIViewController, MTKViewDelegate {
 
     @objc private func switchShader() {
         renderer.toggleShader()
+    }
+
+    @objc private func switchPrevShader() {
+        renderer.prevShader()
     }
 
     @objc private func switchMode() {

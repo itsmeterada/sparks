@@ -94,9 +94,11 @@ fragment float4 fluid_image_fragment(VertexOut in [[stage_in]],
                                       texture2d<float> iChannel3 [[texture(3)]], // confinement (unused)
                                       sampler s [[sampler(0)]])
 {
-    float2 fragCoord = in.position.xy;
     float2 iResolution = uniforms.iResolution;
     float iTime = uniforms.iTime;
+    // Y flip: Metal's position is Y-down; buffer passes store data keyed to
+    // a Y-up iMouse (Shadertoy convention), so sample textures with Y-up uv.
+    float2 fragCoord = float2(in.position.x, iResolution.y - in.position.y);
     float2 uv = fragCoord / iResolution;
 
     float2 dxy = float2(0.0);

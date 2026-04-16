@@ -2,7 +2,7 @@
 
 [English](README_en.md)
 
-フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全27シェーダー。
+フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全28シェーダー。
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -31,8 +31,8 @@
 | ![Chrome Metaball](./screenshots/screenshot23.png) | ![Smooth Heart](./screenshots/screenshot24.png) |
 | **Luminescence** | **Hyper Tunnel** |
 | ![Luminescence](./screenshots/screenshot25.png) | ![Hyper Tunnel](./screenshots/screenshot26.png) |
-| **Fluid** | |
-| ![Fluid](./screenshots/screenshot27.png) | |
+| **Fluid** | **Fur Ball** |
+| ![Fluid](./screenshots/screenshot27.png) | ![Fur Ball](./screenshots/screenshot28.png) |
 
 ## 対応プラットフォーム
 
@@ -78,6 +78,7 @@ sparks/
 │   ├── fluid_c.frag.glsl     # シェーダー27 Fluid (buffer C: confinement)
 │   ├── fluid_d.frag.glsl     # シェーダー27 Fluid (buffer D: pressure)
 │   ├── fluid_image.frag.glsl # シェーダー27 Fluid (image: visualization)
+│   ├── furball.frag.glsl     # シェーダー28 Fur Ball
 │   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -109,7 +110,13 @@ sparks/
         ├── metalball.metal        # Chrome Metaball
         ├── heart.metal            # Smooth Heart
         ├── jellyfish.metal        # Luminescence
-        └── hypertunnel.metal      # Hyper Tunnel
+        ├── hypertunnel.metal      # Hyper Tunnel
+        ├── fluid_a.metal          # Fluid (buffer A: velocity)
+        ├── fluid_b.metal          # Fluid (buffer B: turbulence)
+        ├── fluid_c.metal          # Fluid (buffer C: confinement)
+        ├── fluid_d.metal          # Fluid (buffer D: pressure)
+        ├── fluid_image.metal      # Fluid (image: visualization)
+        └── furball.metal          # Fur Ball
 ```
 
 ## 仕組み
@@ -119,8 +126,8 @@ sparks/
 ### 操作ボタン（右上）
 | ボタン | 機能 |
 |:---:|---|
-| ◁ | 前のシェーダーへ |
 | ▷ | 次のシェーダーへ |
+| ◁ | 前のシェーダーへ |
 | ◎ | モード切替（Sparks: 視差 / Rainforest: 時間的再投影 / Mandelbulb: FXAA） |
 | 1 / ½ | 半解像度トグル（½でオレンジ表示 = 縦横半分でレンダリング+アップスケール） |
 
@@ -272,7 +279,14 @@ sparks/
 - **GGXライティング**: 流体表面をノーマルマップ的に解釈した物理ベースの反射表現
 - **タッチインタラクション**: 絶対座標タッチで直接流体に力を注入
 
-Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17はテクスチャも使用。
+### シェーダー28: Fur Ball
+- **ボリュメトリックファーレンダリング**: 球体内部を64レイヤーマーチングで毛皮として描画
+- **球面UV+カール変形**: cartesian-to-spherical変換 + 動的なY軸curlで毛流れアニメーション
+- **二段サンプリング**: ノイズ密度(.x .y)で毛の太さ・長さ、色用ノイズ(.xyz)で毛色を決定
+- **Phongシェーディング**: 法線をノイズ勾配から推定 + ハイライト50で毛先のシャイン表現
+- **タッチカメラ操作**: ドラッグでX/Y軸回転、離すと自動回転
+
+Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17/28はテクスチャも使用。
 
 ## ビルド
 
@@ -324,3 +338,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 25 | [Luminescence](https://www.shadertoy.com/view/4sXBRn) | Martijn Steinrucken (BigWings) | 繰り返しグリッド上のクラゲ群のボリュメトリックレイマーチング | CC BY-NC-SA 3.0 |
 | 26 | [Hyper Tunnel](https://www.shadertoy.com/view/4t2cR1) | — ("Sailing Beyond" demoscene) | SOR最適化Sphere Tracingによる蛇行ハイパートンネル | CC BY-NC-SA 3.0 |
 | 27 | [Fluid](https://www.shadertoy.com/view/4tGfDW) | Cornus Ammonis | Mipmapベースマルチスケール流体力学シミュレーション | CC BY-NC-SA 3.0 |
+| 28 | [Fur Ball](https://www.shadertoy.com/view/XsfGWN) | Simon Green (@simesgreen) | 球体上のボリュメトリックファーシェーダー | CC BY-NC-SA 3.0 |

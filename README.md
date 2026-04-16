@@ -2,7 +2,7 @@
 
 [English](README_en.md)
 
-フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全26シェーダー。
+フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全27シェーダー。
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -31,6 +31,8 @@
 | ![Chrome Metaball](./screenshots/screenshot23.png) | ![Smooth Heart](./screenshots/screenshot24.png) |
 | **Luminescence** | **Hyper Tunnel** |
 | ![Luminescence](./screenshots/screenshot25.png) | ![Hyper Tunnel](./screenshots/screenshot26.png) |
+| **Fluid** | |
+| ![Fluid](./screenshots/screenshot27.png) | |
 
 ## 対応プラットフォーム
 
@@ -71,6 +73,11 @@ sparks/
 │   ├── heart.frag.glsl        # シェーダー24
 │   ├── jellyfish.frag.glsl    # シェーダー25
 │   ├── hypertunnel.frag.glsl  # シェーダー26
+│   ├── fluid_a.frag.glsl     # シェーダー27 Fluid (buffer A: velocity)
+│   ├── fluid_b.frag.glsl     # シェーダー27 Fluid (buffer B: turbulence)
+│   ├── fluid_c.frag.glsl     # シェーダー27 Fluid (buffer C: confinement)
+│   ├── fluid_d.frag.glsl     # シェーダー27 Fluid (buffer D: pressure)
+│   ├── fluid_image.frag.glsl # シェーダー27 Fluid (image: visualization)
 │   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -107,12 +114,13 @@ sparks/
 
 ## 仕組み
 
-各エフェクトはフルスクリーン三角形上の単一フラグメントシェーダーパスで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。ドラッグでカメラ/視点操作。
+各エフェクトはフルスクリーン三角形上のフラグメントシェーダーで動作します。ジオメトリもパーティクルバッファも不要 — 全ピクセルが毎フレームプロシージャルに計算されます。シェーダー27（Fluid）のみ5段マルチパス。ドラッグでカメラ/視点操作。
 
 ### 操作ボタン（右上）
 | ボタン | 機能 |
 |:---:|---|
-| ◇ | シェーダー切替（24種類を順に切り替え） |
+| ◁ | 前のシェーダーへ |
+| ▷ | 次のシェーダーへ |
 | ◎ | モード切替（Sparks: 視差 / Rainforest: 時間的再投影 / Mandelbulb: FXAA） |
 | 1 / ½ | 半解像度トグル（½でオレンジ表示 = 縦横半分でレンダリング+アップスケール） |
 
@@ -257,6 +265,13 @@ sparks/
 - **fBMボリュームスチーム**: 24ステップのレイ沿いfBMサンプリングで青緑のスチーム霧を加算
 - **ダイナミックカメラ**: 前方100 units/sの自動飛行+cos/sin合成のアップベクター回転
 
+### シェーダー27: Fluid
+- **5段マルチパスレンダリング**: ナビエ・ストークス方程式ベースの流体シミュレーション
+- **マルチスケール手法**: Mipmap LODを活用した11段階の乱流・渦度・圧力計算
+- **Ping-Pong RGBA16F**: 速度場と圧力場を2枚のテクスチャで交互に更新
+- **GGXライティング**: 流体表面をノーマルマップ的に解釈した物理ベースの反射表現
+- **タッチインタラクション**: 絶対座標タッチで直接流体に力を注入
+
 Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17はテクスチャも使用。
 
 ## ビルド
@@ -308,3 +323,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 24 | [Smooth Heart](https://www.shadertoy.com/view/4lByWK) | iq原作ベース | almostIdentityで滑らかな曲率のハートレイマーチング | CC BY-NC-SA 3.0 |
 | 25 | [Luminescence](https://www.shadertoy.com/view/4sXBRn) | Martijn Steinrucken (BigWings) | 繰り返しグリッド上のクラゲ群のボリュメトリックレイマーチング | CC BY-NC-SA 3.0 |
 | 26 | [Hyper Tunnel](https://www.shadertoy.com/view/4t2cR1) | — ("Sailing Beyond" demoscene) | SOR最適化Sphere Tracingによる蛇行ハイパートンネル | CC BY-NC-SA 3.0 |
+| 27 | [Fluid](https://www.shadertoy.com/view/4tGfDW) | Cornus Ammonis | Mipmapベースマルチスケール流体力学シミュレーション | CC BY-NC-SA 3.0 |

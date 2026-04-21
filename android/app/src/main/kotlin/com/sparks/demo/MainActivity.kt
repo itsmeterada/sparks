@@ -261,25 +261,32 @@ class MainActivity : Activity() {
     }
 
     private fun formatSummary(json: String): String {
-        // Lightweight human-readable extract; full data is in the saved JSON.
-        val scoreRe = Regex("\"overallScore\":\\s*([0-9.eE+-]+)")
-        val score = scoreRe.find(json)?.groupValues?.get(1)?.toDoubleOrNull() ?: 0.0
         val sb = StringBuilder()
-        sb.append(String.format(Locale.US, "Overall score: %.0f\n", score))
-        sb.append("Thermal: $benchThermalStart → ${readThermalState()}\n\n")
-        val shaderRe = Regex("\\{\"index\":(\\d+),\"name\":\"([^\"]+)\",\"avgFps\":([0-9.eE+-]+),\"onePctLowFps\":([0-9.eE+-]+),\"medianFrameMs\":[0-9.eE+-]+,\"p99FrameMs\":([0-9.eE+-]+),.*?\"skipped\":(true|false)\\}")
-        for (m in shaderRe.findAll(json)) {
-            val name = m.groupValues[2]
-            val skipped = m.groupValues[6] == "true"
-            if (skipped) {
-                sb.append("• $name: skipped\n")
-            } else {
-                val avg = m.groupValues[3].toDoubleOrNull() ?: 0.0
-                val low = m.groupValues[4].toDoubleOrNull() ?: 0.0
-                val p99 = m.groupValues[5].toDoubleOrNull() ?: 0.0
-                sb.append(String.format(Locale.US, "• %s: %.1f fps (1%% low %.1f, p99 %.1fms)\n",
-                    name, avg, low, p99))
+        try {
+            val obj = org.json.JSONObject(json)
+            val score = obj.optDouble("overallScore", 0.0)
+            val thermalStart = obj.optString("thermalStateStart", "?")
+            val thermalEnd = obj.optString("thermalStateEnd", "?")
+            sb.append(String.format(Locale.US, "Overall score: %.0f\n", score))
+            sb.append("Thermal: $thermalStart → $thermalEnd\n\n")
+            val shaders = obj.optJSONArray("shaders")
+            if (shaders != null) {
+                for (i in 0 until shaders.length()) {
+                    val s = shaders.getJSONObject(i)
+                    val name = s.optString("name", "?")
+                    if (s.optBoolean("skipped", false)) {
+                        sb.append("• $name: skipped\n")
+                    } else {
+                        val avg = s.optDouble("avgFps", 0.0)
+                        val low = s.optDouble("onePctLowFps", 0.0)
+                        val p99 = s.optDouble("p99FrameMs", 0.0)
+                        sb.append(String.format(Locale.US, "• %s: %.1f fps (1%% low %.1f, p99 %.1fms)\n",
+                            name, avg, low, p99))
+                    }
+                }
             }
+        } catch (t: Throwable) {
+            sb.append("(failed to parse report: ${t.message})")
         }
         return sb.toString()
     }

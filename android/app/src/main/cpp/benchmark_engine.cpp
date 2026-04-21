@@ -209,41 +209,42 @@ std::string BenchmarkEngine::reportJson(int resW, int resH, bool halfRes, bool v
     std::lock_guard<std::mutex> lock(mMutex);
     std::ostringstream ss;
     ss.precision(6);
-    ss << "{";
-    ss << "\"version\":1,";
-    ss << "\"timestamp\":\"" << escapeJson(timestamp) << "\",";
-    ss << "\"device\":{";
-    ss <<   "\"os\":\"" << escapeJson(osVersion) << "\",";
-    ss <<   "\"model\":\"" << escapeJson(model) << "\",";
-    ss <<   "\"gpu\":\"" << escapeJson(gpuName) << "\"";
-    ss << "},";
-    ss << "\"config\":{";
-    ss <<   "\"resolution\":[" << resW << "," << resH << "],";
-    ss <<   "\"halfRes\":" << (halfRes ? "true" : "false") << ",";
-    ss <<   "\"vsync\":" << (vsync ? "true" : "false") << ",";
-    ss <<   "\"warmupSec\":" << kWarmupSec << ",";
-    ss <<   "\"measureSec\":" << kMeasureSec << ",";
-    ss <<   "\"cooldownSec\":" << kCooldownSec;
-    ss << "},";
-    ss << "\"thermalStateStart\":\"" << escapeJson(thermalStart) << "\",";
-    ss << "\"thermalStateEnd\":\"" << escapeJson(thermalEnd) << "\",";
-    ss << "\"shaders\":[";
+    ss << "{\n";
+    ss << "  \"version\": 1,\n";
+    ss << "  \"timestamp\": \"" << escapeJson(timestamp) << "\",\n";
+    ss << "  \"device\": {\n";
+    ss << "    \"os\": \"" << escapeJson(osVersion) << "\",\n";
+    ss << "    \"model\": \"" << escapeJson(model) << "\",\n";
+    ss << "    \"gpu\": \"" << escapeJson(gpuName) << "\"\n";
+    ss << "  },\n";
+    ss << "  \"config\": {\n";
+    ss << "    \"resolution\": [" << resW << ", " << resH << "],\n";
+    ss << "    \"halfRes\": " << (halfRes ? "true" : "false") << ",\n";
+    ss << "    \"vsync\": " << (vsync ? "true" : "false") << ",\n";
+    ss << "    \"warmupSec\": " << kWarmupSec << ",\n";
+    ss << "    \"measureSec\": " << kMeasureSec << ",\n";
+    ss << "    \"cooldownSec\": " << kCooldownSec << "\n";
+    ss << "  },\n";
+    ss << "  \"thermalStateStart\": \"" << escapeJson(thermalStart) << "\",\n";
+    ss << "  \"thermalStateEnd\": \"" << escapeJson(thermalEnd) << "\",\n";
+    ss << "  \"shaders\": [\n";
     for (size_t i = 0; i < mResults.size(); ++i) {
         const auto& s = mResults[i];
-        if (i > 0) ss << ",";
-        ss << "{";
-        ss <<   "\"index\":" << s.index << ",";
-        ss <<   "\"name\":\"" << escapeJson(s.name) << "\",";
-        ss <<   "\"avgFps\":" << s.avgFps << ",";
-        ss <<   "\"onePctLowFps\":" << s.onePctLowFps << ",";
-        ss <<   "\"medianFrameMs\":" << s.medianFrameMs << ",";
-        ss <<   "\"p99FrameMs\":" << s.p99FrameMs << ",";
-        ss <<   "\"frames\":" << s.frames << ",";
-        ss <<   "\"droppedFrames\":" << s.droppedFrames << ",";
-        ss <<   "\"skipped\":" << (s.skipped ? "true" : "false");
-        ss << "}";
+        ss << "    {\n";
+        ss << "      \"index\": " << s.index << ",\n";
+        ss << "      \"name\": \"" << escapeJson(s.name) << "\",\n";
+        ss << "      \"avgFps\": " << s.avgFps << ",\n";
+        ss << "      \"onePctLowFps\": " << s.onePctLowFps << ",\n";
+        ss << "      \"medianFrameMs\": " << s.medianFrameMs << ",\n";
+        ss << "      \"p99FrameMs\": " << s.p99FrameMs << ",\n";
+        ss << "      \"frames\": " << s.frames << ",\n";
+        ss << "      \"droppedFrames\": " << s.droppedFrames << ",\n";
+        ss << "      \"skipped\": " << (s.skipped ? "true" : "false") << "\n";
+        ss << "    }";
+        if (i + 1 < mResults.size()) ss << ",";
+        ss << "\n";
     }
-    ss << "],";
+    ss << "  ],\n";
     // overallScore: compute inline to avoid recursive lock
     double sumR = 0;
     int n = 0;
@@ -251,8 +252,8 @@ std::string BenchmarkEngine::reportJson(int resW, int resH, bool halfRes, bool v
         if (!s.skipped && s.avgFps > 0) { sumR += 1.0 / s.avgFps; n++; }
     }
     double score = (n == 0) ? 0 : (double)n / sumR * 100.0;
-    ss << "\"overallScore\":" << score;
-    ss << "}";
+    ss << "  \"overallScore\": " << score << "\n";
+    ss << "}\n";
     return ss.str();
 }
 

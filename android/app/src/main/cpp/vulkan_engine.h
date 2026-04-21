@@ -8,6 +8,7 @@
 #include <chrono>
 
 #include "vulkan_utils.h"
+#include "benchmark_engine.h"
 
 static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 static constexpr int SHADER_COUNT = 28;       // mPipelines slots (index 26 = fluid placeholder, kept VK_NULL_HANDLE)
@@ -90,6 +91,20 @@ public:
     void onTouch(float x, float y, int action);
 
     bool isInitialized() const { return mInitialized; }
+
+    // Benchmark control (called from UI thread)
+    void startBenchmark(bench::Mode mode);
+    void abortBenchmark();
+    bool isBenchmarkRunning() const { return mBenchmark.isRunning(); }
+    bool isBenchmarkDone() const { return mBenchmark.isDone(); }
+    std::string getBenchmarkStatus() const { return mBenchmark.statusText(); }
+    std::string getBenchmarkReportJson(const std::string& osVersion,
+                                       const std::string& model,
+                                       const std::string& thermalStart,
+                                       const std::string& thermalEnd,
+                                       const std::string& timestamp) const;
+    void finishBenchmarkAndRestore();
+    int currentShaderIndex() const { return mCurrentShader; }
 
 private:
     bool createInstance();
@@ -189,4 +204,9 @@ private:
     bool mNeedsResize = false;
     bool mInitialized = false;
     bool mPaused = false;
+
+    // Benchmark state
+    mutable bench::BenchmarkEngine mBenchmark;
+    int mPreBenchShader = 0;
+    int mPreBenchMode = 0;
 };

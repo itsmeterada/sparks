@@ -127,6 +127,59 @@ Java_com_sparks_demo_VulkanSurfaceView_nativeResize(JNIEnv*, jobject, jint width
     }
 }
 
+JNIEXPORT void JNICALL
+Java_com_sparks_demo_VulkanSurfaceView_nativeStartBenchmark(JNIEnv*, jobject, jint modeKind, jint shaderIndex) {
+    if (gEngine == nullptr) return;
+    bench::Mode m;
+    m.kind = (modeKind == 0) ? bench::Mode::Single : bench::Mode::All;
+    m.singleIndex = shaderIndex;
+    gEngine->startBenchmark(m);
+}
+
+JNIEXPORT void JNICALL
+Java_com_sparks_demo_VulkanSurfaceView_nativeAbortBenchmark(JNIEnv*, jobject) {
+    if (gEngine != nullptr) gEngine->abortBenchmark();
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_sparks_demo_VulkanSurfaceView_nativeIsBenchmarkRunning(JNIEnv*, jobject) {
+    return (gEngine != nullptr && gEngine->isBenchmarkRunning()) ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_sparks_demo_VulkanSurfaceView_nativeIsBenchmarkDone(JNIEnv*, jobject) {
+    return (gEngine != nullptr && gEngine->isBenchmarkDone()) ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jstring JNICALL
+Java_com_sparks_demo_VulkanSurfaceView_nativeGetBenchmarkStatus(JNIEnv* env, jobject) {
+    if (gEngine == nullptr) return env->NewStringUTF("");
+    std::string s = gEngine->getBenchmarkStatus();
+    return env->NewStringUTF(s.c_str());
+}
+
+JNIEXPORT jstring JNICALL
+Java_com_sparks_demo_VulkanSurfaceView_nativeTakeBenchmarkReport(JNIEnv* env, jobject,
+        jstring osVersion, jstring model, jstring thermalStart, jstring thermalEnd, jstring timestamp) {
+    if (gEngine == nullptr) return env->NewStringUTF("{}");
+    auto toStd = [env](jstring js) -> std::string {
+        if (js == nullptr) return {};
+        const char* c = env->GetStringUTFChars(js, nullptr);
+        std::string s = c ? c : "";
+        if (c) env->ReleaseStringUTFChars(js, c);
+        return s;
+    };
+    std::string json = gEngine->getBenchmarkReportJson(
+        toStd(osVersion), toStd(model), toStd(thermalStart), toStd(thermalEnd), toStd(timestamp));
+    gEngine->finishBenchmarkAndRestore();
+    return env->NewStringUTF(json.c_str());
+}
+
+JNIEXPORT jint JNICALL
+Java_com_sparks_demo_VulkanSurfaceView_nativeCurrentShader(JNIEnv*, jobject) {
+    return (gEngine != nullptr) ? (jint)gEngine->currentShaderIndex() : 0;
+}
+
 // Called when the activity is truly finishing
 JNIEXPORT void JNICALL
 Java_com_sparks_demo_VulkanSurfaceView_nativeShutdown(JNIEnv*, jobject) {

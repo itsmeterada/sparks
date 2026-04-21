@@ -12,6 +12,7 @@
 		A10003 /* MetalViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10003 /* MetalViewController.swift */; };
 		A10004 /* MetalRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10004 /* MetalRenderer.swift */; };
 		A10005 /* ParticleSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10005 /* ParticleSystem.swift */; };
+		A10070 /* BenchmarkEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10070 /* BenchmarkEngine.swift */; };
 		A10006 /* sparks.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10006 /* sparks.metal */; };
 		A10007 /* particle_sim.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10007 /* particle_sim.metal */; };
 		A10008 /* particle_render.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10008 /* particle_render.metal */; };
@@ -59,6 +60,7 @@
 		B10003 /* MetalViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalViewController.swift; sourceTree = "<group>"; };
 		B10004 /* MetalRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalRenderer.swift; sourceTree = "<group>"; };
 		B10005 /* ParticleSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleSystem.swift; sourceTree = "<group>"; };
+		B10070 /* BenchmarkEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkEngine.swift; sourceTree = "<group>"; };
 		B10006 /* sparks.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = sparks.metal; sourceTree = "<group>"; };
 		B10007 /* particle_sim.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = particle_sim.metal; sourceTree = "<group>"; };
 		B10008 /* particle_render.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = particle_render.metal; sourceTree = "<group>"; };
@@ -132,6 +134,7 @@
 				B10003 /* MetalViewController.swift */,
 				B10004 /* MetalRenderer.swift */,
 				B10005 /* ParticleSystem.swift */,
+				B10070 /* BenchmarkEngine.swift */,
 				D10003 /* Shaders */,
 				D10004 /* Resources */,
 				B10011 /* Info.plist */,
@@ -281,6 +284,7 @@
 				A10003 /* MetalViewController.swift in Sources */,
 				A10004 /* MetalRenderer.swift in Sources */,
 				A10005 /* ParticleSystem.swift in Sources */,
+				A10070 /* BenchmarkEngine.swift in Sources */,
 				A10006 /* sparks.metal in Sources */,
 				A10007 /* particle_sim.metal in Sources */,
 				A10008 /* particle_render.metal in Sources */,

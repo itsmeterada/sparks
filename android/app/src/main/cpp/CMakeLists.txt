@@ -10,6 +10,7 @@ add_library(sparks_native SHARED
     sparks_jni.cpp
     vulkan_engine.cpp
     vulkan_utils.cpp
+    benchmark_engine.cpp
 )
 
 target_include_directories(sparks_native PRIVATE

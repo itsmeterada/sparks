@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-フルスクリーンGPUシェーダーデモ — Shadertoy シェーダーをネイティブモバイル (Vulkan / Metal) に移植。右上のボタンをタップしてシェーダーを切り替え。全28シェーダー。
+フルスクリーンGPUシェーダーデモ **+ ベンチマーク** — Shadertoy シェーダー28本をネイティブモバイル (Vulkan / Metal) に移植し、3DMark / Unigine Superposition / GFXBench 準拠の手法(ウォームアップ → 固定時間計測 → クールダウン、1% low / p99 フレームタイム、調和平均スコア)で動作する GPU ベンチマークを内蔵。右上のボタンでシェーダー切替・ベンチマーク起動。
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -33,6 +33,73 @@
 | ![Luminescence](./screenshots/screenshot25.png) | ![Hyper Tunnel](./screenshots/screenshot26.png) |
 | **Fluid** | **Fur Ball** |
 | ![Fluid](./screenshots/screenshot27.png) | ![Fur Ball](./screenshots/screenshot28.png) |
+
+## ベンチマークモード
+
+各シェーダを順番に走らせ、シェーダごとの性能と全体スコアを算出する GPU ベンチマーク機能を内蔵しています。構造は 3DMark (Time Spy) / Unigine Superposition / GFXBench と同様 — 決定論的なワークロード、固定時間計測、シーンごとの集計と調和平均による最終スコアの方式を採用しています。
+
+右上のコントロール列にある **BM** ボタンから:
+
+- **Current shader** — いま表示中のシェーダのみを計測(約15秒)
+- **All shaders** — 全28シェーダを連続計測(約7分)
+
+### シェーダごとのフェーズ構成
+
+各シェーダは3フェーズで計測します。各フェーズ時間は iOS / Android で共通としてスコアの比較可能性を確保しています:
+
+| フェーズ | 時間 | 目的 |
+|---------|------|------|
+| Warmup | 3秒 | DVFSクロックランプアップ、初回シェーダキャッシュコストの吸収 |
+| Measure | 10秒 | 全フレームの present-to-present 時間を記録 |
+| Cooldown | 2秒 | シェーダ間の熱干渉を抑制 |
+
+### 計測指標
+
+シェーダごとに次の値を算出:
+
+- **avgFps** — frames ÷ 計測の実時間
+- **onePctLowFps** — 最も遅い1%のフレームの平均の逆数(絶対最小値より安定)
+- **medianFrameMs** / **p99FrameMs** — フレームタイムの中央値と99パーセンタイル
+- **frames** / **droppedFrames** — 総フレーム数と、中央値の2倍を超えたフレーム数
+
+**総合スコア** = 各シェーダの avgFps の**調和平均 × 100**(3DMark Time Spy と同じ算出式)。
+
+### 結果
+
+ベンチマーク完了時にサマリーダイアログ(総合スコア・サーマルステート・シェーダごとの FPS)が表示され、同時に JSON レポートがアプリのドキュメントディレクトリに保存されます:
+
+- **Android**: `Android/data/com.sparks.demo/files/benchmark-YYYYMMDD-HHMMSS.json`
+- **iOS**: アプリの Documents(共有シート経由でエクスポート可能)
+
+JSON例:
+
+```json
+{
+  "version": 1,
+  "timestamp": "2026-04-21T03:15:42Z",
+  "device": { "os": "iOS 18.3", "model": "iPhone15,3", "gpu": "Apple A17 Pro GPU" },
+  "config": {
+    "resolution": [1179, 2556],
+    "halfRes": false, "vsync": true,
+    "warmupSec": 3, "measureSec": 10, "cooldownSec": 2
+  },
+  "thermalStateStart": "nominal",
+  "thermalStateEnd": "fair",
+  "shaders": [
+    { "index": 0, "name": "sparks", "avgFps": 59.8, "onePctLowFps": 58.1,
+      "medianFrameMs": 16.71, "p99FrameMs": 17.9,
+      "frames": 598, "droppedFrames": 2, "skipped": false }
+  ],
+  "overallScore": 5821.3
+}
+```
+
+### 注意点
+
+- **VSync は有効**(on-screen レンダリング)です。そのため `avgFps` はディスプレイのリフレッシュレート(通常60Hz、ProMotion 端末で120Hz)で頭打ちになります。非常に高速な GPU を比較する場合は絶対 FPS ではなくフレームタイムの分位数や端末間の比率を見てください。将来バージョンで GFXBench Offscreen 方式のオフスクリーン固定解像度モードを追加する可能性があります。
+- **サーマルステート**は開始時と終了時に記録されます。開始時点で `serious` 以上なら既にスロットリング下の結果である点に注意。
+- ベンチマーク中は**タッチ入力および他のシェーダ切替ボタンをロック**します(入力の決定論性確保のため)。
+- GPU 側でパイプラインのコンパイルに失敗したシェーダは自動的にスキップされ、`"skipped": true` としてレポートされます。
 
 ## 対応プラットフォーム
 
@@ -130,6 +197,7 @@ sparks/
 | ◁ | 前のシェーダーへ |
 | ◎ | モード切替（Sparks: 視差 / Rainforest: 時間的再投影 / Mandelbulb: FXAA） |
 | 1 / ½ | 半解像度トグル（½でオレンジ表示 = 縦横半分でレンダリング+アップスケール） |
+| **BM** | ベンチマーク起動（現在のシェーダ / 全シェーダ — 詳細は[ベンチマークモード](#ベンチマークモード)） |
 
 ### シェーダー1: Sparks
 - **Voronoiベースの火花パーティクル**: アニメーションするVoronoiセルのレイヤードグリッド、各セルにブルーム付きの光る火花

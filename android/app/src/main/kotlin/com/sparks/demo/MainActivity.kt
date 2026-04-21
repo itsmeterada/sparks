@@ -1,10 +1,17 @@
 package com.sparks.demo
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.Context
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.PowerManager
+import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -13,10 +20,23 @@ import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.TextView
+import android.widget.Toast
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class MainActivity : Activity() {
 
     private lateinit var vulkanSurfaceView: VulkanSurfaceView
+    private val shaderButtons: MutableList<View> = mutableListOf()
+    private lateinit var benchOverlay: TextView
+    private lateinit var benchButton: TextView
+    private val uiHandler = Handler(Looper.getMainLooper())
+    private var benchPollRunnable: Runnable? = null
+    private var benchThermalStart: String = "unknown"
+    private var benchStartedAtIso: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,7 +120,189 @@ class MainActivity : Activity() {
         }
         root.addView(halfResButton, hlp)
 
+        // Benchmark button (below half-res)
+        benchButton = TextView(this).apply {
+            text = "BM"
+            setTextColor(Color.argb(77, 255, 255, 255))
+            textSize = 12f
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER
+            val bg = GradientDrawable()
+            bg.setColor(Color.argb(20, 255, 255, 255))
+            bg.cornerRadius = sizePx / 2f
+            background = bg
+            setOnClickListener { showBenchmarkMenu() }
+        }
+        root.addView(benchButton, FrameLayout.LayoutParams(sizePx, sizePx).apply {
+            gravity = Gravity.TOP or Gravity.END
+            topMargin = topOffset + (sizePx + gap) * 4
+            rightMargin = marginPx
+        })
+
+        shaderButtons.addAll(listOf(nextButton, prevButton, modeButton, halfResButton))
+
+        // Benchmark progress overlay (top center, hidden until bench runs)
+        benchOverlay = TextView(this).apply {
+            setTextColor(Color.WHITE)
+            textSize = 14f
+            typeface = Typeface.MONOSPACE
+            setPadding(24, 12, 24, 12)
+            gravity = Gravity.CENTER
+            val bg = GradientDrawable()
+            bg.setColor(Color.argb(140, 0, 0, 0))
+            bg.cornerRadius = 20f
+            background = bg
+            visibility = View.GONE
+        }
+        root.addView(benchOverlay, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+            topMargin = topOffset
+        })
+
         setContentView(root)
+    }
+
+    // MARK: Benchmark
+
+    private fun showBenchmarkMenu() {
+        if (vulkanSurfaceView.isBenchmarkRunning()) {
+            AlertDialog.Builder(this)
+                .setTitle("Benchmark running")
+                .setMessage("Stop the current benchmark?")
+                .setPositiveButton("Stop") { _, _ -> abortBenchmark() }
+                .setNegativeButton("Continue", null)
+                .show()
+            return
+        }
+        val items = arrayOf("Current shader", "All shaders")
+        AlertDialog.Builder(this)
+            .setTitle("Benchmark")
+            .setItems(items) { _, which ->
+                when (which) {
+                    0 -> startBenchmark(modeKind = 0, shaderIndex = vulkanSurfaceView.currentShaderIndex())
+                    1 -> startBenchmark(modeKind = 1, shaderIndex = -1)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun startBenchmark(modeKind: Int, shaderIndex: Int) {
+        benchThermalStart = readThermalState()
+        benchStartedAtIso = nowIsoUtc()
+        vulkanSurfaceView.startBenchmark(modeKind, shaderIndex)
+        benchOverlay.visibility = View.VISIBLE
+        setShaderButtonsEnabled(false)
+        val r = object : Runnable {
+            override fun run() {
+                benchOverlay.text = vulkanSurfaceView.benchmarkStatus()
+                if (vulkanSurfaceView.isBenchmarkDone()) {
+                    finishBenchmarkAndShowResults()
+                } else if (vulkanSurfaceView.isBenchmarkRunning()) {
+                    uiHandler.postDelayed(this, 200)
+                }
+            }
+        }
+        benchPollRunnable = r
+        uiHandler.post(r)
+    }
+
+    private fun abortBenchmark() {
+        vulkanSurfaceView.abortBenchmark()
+        stopBenchmarkUI()
+    }
+
+    private fun stopBenchmarkUI() {
+        benchPollRunnable?.let { uiHandler.removeCallbacks(it) }
+        benchPollRunnable = null
+        benchOverlay.visibility = View.GONE
+        setShaderButtonsEnabled(true)
+    }
+
+    private fun setShaderButtonsEnabled(enabled: Boolean) {
+        for (b in shaderButtons) {
+            b.isEnabled = enabled
+            b.alpha = if (enabled) 1f else 0.3f
+        }
+    }
+
+    private fun finishBenchmarkAndShowResults() {
+        val thermalEnd = readThermalState()
+        val osVersion = "Android ${Build.VERSION.RELEASE}"
+        val model = "${Build.MANUFACTURER} ${Build.MODEL}"
+        val json = vulkanSurfaceView.takeBenchmarkReport(
+            osVersion, model, benchThermalStart, thermalEnd, benchStartedAtIso
+        )
+        stopBenchmarkUI()
+        val savedPath = saveBenchmarkJson(json)
+        val summary = formatSummary(json) + if (savedPath != null) "\n\nSaved: $savedPath" else ""
+        AlertDialog.Builder(this)
+            .setTitle("Benchmark complete")
+            .setMessage(summary)
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
+    private fun saveBenchmarkJson(json: String): String? {
+        return try {
+            val dir = getExternalFilesDir(null) ?: filesDir
+            val fmt = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US)
+            val file = File(dir, "benchmark-${fmt.format(Date())}.json")
+            file.writeText(json)
+            file.absolutePath
+        } catch (t: Throwable) {
+            Log.e("Sparks", "saveBenchmarkJson failed", t)
+            Toast.makeText(this, "Save failed: ${t.message}", Toast.LENGTH_LONG).show()
+            null
+        }
+    }
+
+    private fun formatSummary(json: String): String {
+        // Lightweight human-readable extract; full data is in the saved JSON.
+        val scoreRe = Regex("\"overallScore\":\\s*([0-9.eE+-]+)")
+        val score = scoreRe.find(json)?.groupValues?.get(1)?.toDoubleOrNull() ?: 0.0
+        val sb = StringBuilder()
+        sb.append(String.format(Locale.US, "Overall score: %.0f\n", score))
+        sb.append("Thermal: $benchThermalStart → ${readThermalState()}\n\n")
+        val shaderRe = Regex("\\{\"index\":(\\d+),\"name\":\"([^\"]+)\",\"avgFps\":([0-9.eE+-]+),\"onePctLowFps\":([0-9.eE+-]+),\"medianFrameMs\":[0-9.eE+-]+,\"p99FrameMs\":([0-9.eE+-]+),.*?\"skipped\":(true|false)\\}")
+        for (m in shaderRe.findAll(json)) {
+            val name = m.groupValues[2]
+            val skipped = m.groupValues[6] == "true"
+            if (skipped) {
+                sb.append("• $name: skipped\n")
+            } else {
+                val avg = m.groupValues[3].toDoubleOrNull() ?: 0.0
+                val low = m.groupValues[4].toDoubleOrNull() ?: 0.0
+                val p99 = m.groupValues[5].toDoubleOrNull() ?: 0.0
+                sb.append(String.format(Locale.US, "• %s: %.1f fps (1%% low %.1f, p99 %.1fms)\n",
+                    name, avg, low, p99))
+            }
+        }
+        return sb.toString()
+    }
+
+    private fun readThermalState(): String {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return "unknown"
+        val pm = getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return "unknown"
+        return when (pm.currentThermalStatus) {
+            PowerManager.THERMAL_STATUS_NONE -> "nominal"
+            PowerManager.THERMAL_STATUS_LIGHT -> "light"
+            PowerManager.THERMAL_STATUS_MODERATE -> "moderate"
+            PowerManager.THERMAL_STATUS_SEVERE -> "severe"
+            PowerManager.THERMAL_STATUS_CRITICAL -> "critical"
+            PowerManager.THERMAL_STATUS_EMERGENCY -> "emergency"
+            PowerManager.THERMAL_STATUS_SHUTDOWN -> "shutdown"
+            else -> "unknown"
+        }
+    }
+
+    private fun nowIsoUtc(): String {
+        val fmt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+        fmt.timeZone = TimeZone.getTimeZone("UTC")
+        return fmt.format(Date())
     }
 
     private fun getStatusBarHeight(): Int {

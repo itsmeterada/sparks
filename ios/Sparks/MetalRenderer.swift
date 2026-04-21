@@ -49,6 +49,7 @@ class MetalRenderer {
 
     private let startTime: CFAbsoluteTime
     private var currentShader: Int = 0
+    var currentShaderIndex: Int { currentShader }
     private var currentMode: Int32 = 0
     private var currentFrame: Int32 = 0
     private var mouseState: SIMD4<Float> = .zero
@@ -63,6 +64,28 @@ class MetalRenderer {
 
     private var fluid = FluidResources()
     private static let fluidShaderIndex: Int = 26
+
+    // Benchmark
+    let benchmark = BenchmarkEngine()
+    private var preBenchShader: Int = 0
+    private var preBenchMode: Int32 = 0
+
+    // Display names, indexed by shader slot (must match pipelineStates length).
+    private static let shaderDisplayNames: [String] = [
+        "sparks", "cosmic", "starship", "clouds", "seascape", "rainforest", "plasma",
+        "grid", "interstellar", "mandelbulb", "cyberspace", "tunnel", "fractal",
+        "mandelbulb2", "octgrams", "palette", "primitives", "voxellines", "protean",
+        "rocaille", "hudrings", "flighthud", "metalball", "heart", "jellyfish",
+        "hypertunnel", "fluid", "furball"
+    ]
+
+    var shaderDisplayName: String {
+        (0..<Self.shaderDisplayNames.count).contains(currentShader)
+            ? Self.shaderDisplayNames[currentShader] : "?"
+    }
+
+    var gpuName: String { device.name }
+    var screenSizeInt: (Int, Int) { (Int(screenSize.width), Int(screenSize.height)) }
 
     var screenSize: CGSize = CGSize(width: 1, height: 1)
 
@@ -169,6 +192,56 @@ class MetalRenderer {
     }
 
     var halfRes: Bool = false
+
+    // MARK: - Benchmark control
+
+    func startBenchmark(mode: BenchmarkMode) {
+        preBenchShader = currentShader
+        preBenchMode = currentMode
+        currentMode = 0
+        mouseState = .zero
+        mouseInitialized = false
+        currentFrame = 0
+        benchmark.start(
+            mode: mode,
+            shaderNames: Self.shaderDisplayNames,
+            pipelineAvailable: { [weak self] idx in
+                guard let self = self else { return false }
+                // Fluid uses a separate pipeline path, placeholder in pipelineStates is nil.
+                if idx == Self.fluidShaderIndex { return true }
+                return idx >= 0 && idx < self.pipelineStates.count && self.pipelineStates[idx] != nil
+            }
+        )
+        if let idx = benchmark.activeShaderIndex {
+            currentShader = idx
+        }
+    }
+
+    func abortBenchmark() {
+        benchmark.abort()
+        currentShader = preBenchShader
+        currentMode = preBenchMode
+        currentFrame = 0
+        mouseState = .zero
+        mouseInitialized = false
+    }
+
+    func finishBenchmarkAndRestore() {
+        currentShader = preBenchShader
+        currentMode = preBenchMode
+        currentFrame = 0
+        mouseState = .zero
+        mouseInitialized = false
+    }
+
+    func makeBenchmarkReport() -> BenchmarkReport {
+        return benchmark.makeReport(
+            resolution: screenSizeInt,
+            halfRes: halfRes,
+            vsync: true,
+            gpuName: gpuName
+        )
+    }
 
     func onTouchDown(x: Float, y: Float) {
         // Fluid: absolute touch position (Shadertoy convention)
@@ -348,7 +421,21 @@ class MetalRenderer {
             return
         }
 
-        let iTime = Float(CFAbsoluteTimeGetCurrent() - startTime)
+        let nowCF = CFAbsoluteTimeGetCurrent()
+
+        // Benchmark state machine: record previous frame's present time, then advance phase.
+        if benchmark.isRunning {
+            benchmark.recordPresentTime(now: nowCF)
+            benchmark.advancePhase(now: nowCF)
+            if let idx = benchmark.activeShaderIndex, idx != currentShader {
+                currentShader = idx
+                mouseState = .zero
+                mouseInitialized = false
+                currentFrame = 0
+            }
+        }
+
+        let iTime = Float(nowCF - startTime)
 
         var uniforms = Uniforms(
             iResolution: SIMD2<Float>(Float(screenSize.width), Float(screenSize.height)),

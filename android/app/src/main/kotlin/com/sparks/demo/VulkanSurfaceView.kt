@@ -34,6 +34,7 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (!surfaceReady) return false
+        if (nativeIsBenchmarkRunning()) return false
 
         // Pass pixel coordinates (Y flipped for Shadertoy convention)
         val pixelX = event.x
@@ -65,6 +66,17 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
     fun toggleHalfRes() {
         nativeToggleHalfRes()
     }
+
+    fun startBenchmark(modeKind: Int, shaderIndex: Int) = nativeStartBenchmark(modeKind, shaderIndex)
+    fun abortBenchmark() = nativeAbortBenchmark()
+    fun isBenchmarkRunning(): Boolean = nativeIsBenchmarkRunning()
+    fun isBenchmarkDone(): Boolean = nativeIsBenchmarkDone()
+    fun benchmarkStatus(): String = nativeGetBenchmarkStatus()
+    fun takeBenchmarkReport(osVersion: String, model: String,
+                            thermalStart: String, thermalEnd: String,
+                            timestamp: String): String =
+        nativeTakeBenchmarkReport(osVersion, model, thermalStart, thermalEnd, timestamp)
+    fun currentShaderIndex(): Int = nativeCurrentShader()
 
     fun onResume() {
         paused = false
@@ -123,6 +135,15 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
     private external fun nativeToggleHalfRes()
     private external fun nativeResize(width: Int, height: Int)
     private external fun nativeShutdown()
+    private external fun nativeStartBenchmark(modeKind: Int, shaderIndex: Int)
+    private external fun nativeAbortBenchmark()
+    private external fun nativeIsBenchmarkRunning(): Boolean
+    private external fun nativeIsBenchmarkDone(): Boolean
+    private external fun nativeGetBenchmarkStatus(): String
+    private external fun nativeTakeBenchmarkReport(osVersion: String, model: String,
+                                                   thermalStart: String, thermalEnd: String,
+                                                   timestamp: String): String
+    private external fun nativeCurrentShader(): Int
 
     companion object {
         init {

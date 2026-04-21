@@ -1217,6 +1217,19 @@ void VulkanEngine::render() {
     auto now = std::chrono::high_resolution_clock::now();
     float iTime = std::chrono::duration<float>(now - mStartTime).count();
 
+    // Benchmark state machine: record previous present time, advance phase, switch shader if needed.
+    if (mBenchmark.isRunning()) {
+        mBenchmark.recordPresent(now);
+        mBenchmark.advancePhase(now);
+        int idx = mBenchmark.activeShaderIndex();
+        if (idx >= 0 && idx != mCurrentShader) {
+            mCurrentShader = idx;
+            mFrameCount = 0;
+            mMouseInitialized = false;
+            mMouseX = mMouseY = mMouseZ = mMouseW = 0.0f;
+        }
+    }
+
     vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
     uint32_t imageIndex;
     VkResult acq = vkAcquireNextImageKHR(mDevice, mSwapchain, UINT64_MAX,
@@ -1487,6 +1500,76 @@ void VulkanEngine::toggleMode() {
 void VulkanEngine::toggleHalfRes() {
     mHalfRes = !mHalfRes;
     LOGI("Half-res: %s", mHalfRes ? "ON" : "OFF");
+}
+
+// Display names, indexed by shader slot (must match TOTAL_SHADER_COUNT == 28).
+static const std::vector<std::string>& shaderDisplayNames() {
+    static const std::vector<std::string> kNames = {
+        "sparks", "cosmic", "starship", "clouds", "seascape", "rainforest", "plasma",
+        "grid", "interstellar", "mandelbulb", "cyberspace", "tunnel", "fractal",
+        "mandelbulb2", "octgrams", "palette", "primitives", "voxellines", "protean",
+        "rocaille", "hudrings", "flighthud", "metalball", "heart", "jellyfish",
+        "hypertunnel", "fluid", "furball"
+    };
+    return kNames;
+}
+
+void VulkanEngine::startBenchmark(bench::Mode mode) {
+    mPreBenchShader = mCurrentShader;
+    mPreBenchMode = mMode;
+    mMode = 0;
+    mFrameCount = 0;
+    mMouseInitialized = false;
+    mMouseX = mMouseY = mMouseZ = mMouseW = 0.0f;
+
+    mBenchmark.start(
+        mode,
+        shaderDisplayNames(),
+        [this](int idx) -> bool {
+            if (idx < 0 || idx >= TOTAL_SHADER_COUNT) return false;
+            if (idx == FLUID_SHADER_INDEX) return mFluid.initialized;
+            return mPipelines[idx] != VK_NULL_HANDLE;
+        }
+    );
+    int idx = mBenchmark.activeShaderIndex();
+    if (idx >= 0) {
+        mCurrentShader = idx;
+    }
+}
+
+void VulkanEngine::abortBenchmark() {
+    mBenchmark.abort();
+    mCurrentShader = mPreBenchShader;
+    mMode = mPreBenchMode;
+    mFrameCount = 0;
+    mMouseInitialized = false;
+    mMouseX = mMouseY = mMouseZ = mMouseW = 0.0f;
+}
+
+void VulkanEngine::finishBenchmarkAndRestore() {
+    mCurrentShader = mPreBenchShader;
+    mMode = mPreBenchMode;
+    mFrameCount = 0;
+    mMouseInitialized = false;
+    mMouseX = mMouseY = mMouseZ = mMouseW = 0.0f;
+}
+
+std::string VulkanEngine::getBenchmarkReportJson(const std::string& osVersion,
+                                                 const std::string& model,
+                                                 const std::string& thermalStart,
+                                                 const std::string& thermalEnd,
+                                                 const std::string& timestamp) const {
+    std::string gpuName = "Unknown";
+    if (mPhysicalDevice != VK_NULL_HANDLE) {
+        VkPhysicalDeviceProperties props;
+        vkGetPhysicalDeviceProperties(mPhysicalDevice, &props);
+        gpuName = props.deviceName;
+    }
+    int w = (int)ANativeWindow_getWidth(mWindow);
+    int h = (int)ANativeWindow_getHeight(mWindow);
+    return mBenchmark.reportJson(w, h, mHalfRes, /*vsync=*/true,
+                                 gpuName, osVersion, model,
+                                 thermalStart, thermalEnd, timestamp);
 }
 
 void VulkanEngine::onTouch(float x, float y, int action) {

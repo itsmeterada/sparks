@@ -2,7 +2,7 @@
 
 [Japanese (日本語)](README_jp.md)
 
-Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan / Metal). Tap the buttons in the top-right to switch shaders. 28 shaders total.
+Fullscreen GPU shader demo **and benchmark** — 28 Shadertoy shaders ported to native mobile (Vulkan / Metal), with a built-in GPU benchmark that follows the industry-standard methodology used by 3DMark, Unigine Superposition, and GFXBench (warmup → timed measurement → cooldown, 1% low / p99 frame time, harmonic-mean score). Tap the buttons in the top-right to switch shaders or run the benchmark.
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -33,6 +33,73 @@ Fullscreen GPU shader demo — Shadertoy shaders ported to native mobile (Vulkan
 | ![Luminescence](./screenshots/screenshot25.png) | ![Hyper Tunnel](./screenshots/screenshot26.png) |
 | **Fluid** | **Fur Ball** |
 | ![Fluid](./screenshots/screenshot27.png) | ![Fur Ball](./screenshots/screenshot28.png) |
+
+## Benchmark Mode
+
+A built-in GPU benchmark that runs each shader in sequence and reports per-shader and overall performance. The structure follows the approach used by 3DMark (Time Spy), Unigine Superposition, and GFXBench: a scripted deterministic workload, fixed-time measurement, per-scene aggregation with a harmonic-mean final score.
+
+Tap the **BM** button in the top-right controls to choose:
+
+- **Current shader** — benchmark only the shader currently on screen (~15 s)
+- **All shaders** — sweep all 28 shaders (~7 minutes)
+
+### Per-shader phases
+
+Each shader is measured in three phases. Durations are shared between iOS and Android so scores are directly comparable:
+
+| Phase | Duration | Purpose |
+|-------|----------|---------|
+| Warmup | 3 s | Let DVFS clocks ramp up; absorb first-frame shader cache cost |
+| Measure | 10 s | Record every frame's present-to-present time |
+| Cooldown | 2 s | Limit thermal bleed between shaders |
+
+### Metrics
+
+Each shader reports:
+
+- **avgFps** — frames ÷ wall-clock measurement time
+- **onePctLowFps** — mean of the slowest 1% of frames, inverted (more stable than absolute minimum)
+- **medianFrameMs**, **p99FrameMs** — median and 99th-percentile frame times
+- **frames**, **droppedFrames** — total frames recorded; frames longer than 2× median counted as dropped
+
+**Overall score** = harmonic mean of per-shader `avgFps` × 100 (same formulation as 3DMark Time Spy).
+
+### Results
+
+When the benchmark finishes, a summary dialog shows the overall score, thermal state, and per-shader fps. A full JSON report is saved to the app's documents directory:
+
+- **Android**: `Android/data/com.sparks.demo/files/benchmark-YYYYMMDD-HHMMSS.json`
+- **iOS**: app Documents (a share sheet is offered to export the file)
+
+Example report:
+
+```json
+{
+  "version": 1,
+  "timestamp": "2026-04-21T03:15:42Z",
+  "device": { "os": "iOS 18.3", "model": "iPhone15,3", "gpu": "Apple A17 Pro GPU" },
+  "config": {
+    "resolution": [1179, 2556],
+    "halfRes": false, "vsync": true,
+    "warmupSec": 3, "measureSec": 10, "cooldownSec": 2
+  },
+  "thermalStateStart": "nominal",
+  "thermalStateEnd": "fair",
+  "shaders": [
+    { "index": 0, "name": "sparks", "avgFps": 59.8, "onePctLowFps": 58.1,
+      "medianFrameMs": 16.71, "p99FrameMs": 17.9,
+      "frames": 598, "droppedFrames": 2, "skipped": false }
+  ],
+  "overallScore": 5821.3
+}
+```
+
+### Caveats
+
+- **VSync is enabled** (on-screen rendering), so `avgFps` is capped at the display refresh rate (60 Hz, or 120 Hz on ProMotion devices). To distinguish very fast GPUs, compare frame-time percentiles and cross-device ratios rather than absolute fps. A future version may add an off-screen fixed-resolution mode (à la GFXBench Offscreen) to remove the cap.
+- **Thermal state** is recorded at the start and end of the run. If the device begins in `serious` or above, results reflect an already-throttled GPU.
+- **Touch input is locked** during the benchmark to keep camera / mouse inputs deterministic. The other shader controls are also disabled.
+- Shaders whose pipeline failed to compile on the GPU are automatically skipped (reported with `"skipped": true`).
 
 ## Supported Platforms
 
@@ -130,6 +197,7 @@ Each effect runs as a fragment shader on a fullscreen triangle. No geometry or p
 | ◁ | Previous shader |
 | ◎ | Toggle mode (Sparks: parallax / Rainforest: temporal reprojection / Mandelbulb: FXAA) |
 | 1 / ½ | Half-resolution toggle (½ orange = render at half size + linear upscale) |
+| **BM** | Start benchmark (current shader or all shaders — see [Benchmark Mode](#benchmark-mode)) |
 
 ### Shader 1: Sparks
 - **Voronoi-based spark particles**: Layered grid of animated Voronoi cells, each with a glowing bloom spark

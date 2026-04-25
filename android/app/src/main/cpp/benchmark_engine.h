@@ -61,8 +61,10 @@ public:
     /// Progress text for UI overlay.
     std::string statusText() const;
 
-    /// Harmonic mean of avgFps × 100 across valid (non-skipped) results.
-    double overallScore() const;
+    /// Harmonic mean of avgFps × 100, normalized to 1080p effective pixels.
+    /// effectivePx = width × height × (halfRes ? 0.25 : 1.0)
+    /// score = harmonicMean(avgFps) × 100 × effectivePx / (1920 × 1080)
+    double overallScore(int resW, int resH, bool halfRes) const;
 
     /// JSON report body. The caller supplies metadata (timestamp, thermal state, device info).
     std::string reportJson(int resW, int resH, bool halfRes, bool vsync,

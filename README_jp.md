@@ -62,7 +62,14 @@
 - **medianFrameMs** / **p99FrameMs** — フレームタイムの中央値と99パーセンタイル
 - **frames** / **droppedFrames** — 総フレーム数と、中央値の2倍を超えたフレーム数
 
-**総合スコア** = 各シェーダの avgFps の**調和平均 × 100**(3DMark Time Spy と同じ算出式)。
+**総合スコア** = 各シェーダの avgFps の**調和平均 × 100**(3DMark Time Spy と同じ算出式)を **1080p の有効ピクセル数で正規化**。高解像度ほどスコアが線形に上がり、`halfRes` 時は実描画ピクセルが 1/4 として計上されます:
+
+```
+effectivePx = width × height × (halfRes ? 0.25 : 1.0)
+score       = harmonicMean(avgFps) × 100 × effectivePx / (1920 × 1080)
+```
+
+例えば 4K で 1080p と同じ FPS を出した端末は、1ピクセルあたりの描画コストが約4倍となるためスコアも約4倍になります。
 
 ### 結果
 

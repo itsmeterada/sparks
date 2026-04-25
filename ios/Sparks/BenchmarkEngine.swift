@@ -228,12 +228,17 @@ final class BenchmarkEngine {
                                  skipped: false)
     }
 
-    /// Harmonic mean of avgFps × 100 across valid (non-skipped) results.
-    func overallScore() -> Double {
+    /// Harmonic mean of avgFps × 100, normalized to 1080p effective pixels.
+    /// effectivePx = width × height × (halfRes ? 0.25 : 1.0)
+    /// score = harmonicMean(avgFps) × 100 × effectivePx / (1920 × 1080)
+    func overallScore(resolution: (Int, Int), halfRes: Bool) -> Double {
         let valid = results.filter { !$0.skipped && $0.avgFps > 0 }
         if valid.isEmpty { return 0 }
         let sumReciprocal = valid.reduce(0.0) { $0 + 1.0 / $1.avgFps }
-        return Double(valid.count) / sumReciprocal * 100.0
+        let harmonicMean = Double(valid.count) / sumReciprocal
+        let pixels = Double(resolution.0) * Double(resolution.1) * (halfRes ? 0.25 : 1.0)
+        let referencePixels = 1920.0 * 1080.0
+        return harmonicMean * 100.0 * pixels / referencePixels
     }
 
     func makeReport(resolution: (Int, Int), halfRes: Bool, vsync: Bool, gpuName: String) -> BenchmarkReport {
@@ -254,7 +259,7 @@ final class BenchmarkEngine {
             thermalStateStart: Self.thermalString(thermalStart),
             thermalStateEnd: Self.thermalString(ProcessInfo.processInfo.thermalState),
             shaders: results,
-            overallScore: overallScore()
+            overallScore: overallScore(resolution: resolution, halfRes: halfRes)
         )
     }
 

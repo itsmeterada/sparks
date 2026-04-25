@@ -185,7 +185,7 @@ ShaderResult BenchmarkEngine::makeResultLocked(int idx, const std::vector<double
     return r;
 }
 
-double BenchmarkEngine::overallScore() const {
+double BenchmarkEngine::overallScore(int resW, int resH, bool halfRes) const {
     std::lock_guard<std::mutex> lock(mMutex);
     double sumR = 0;
     int n = 0;
@@ -196,7 +196,10 @@ double BenchmarkEngine::overallScore() const {
         }
     }
     if (n == 0) return 0;
-    return (double)n / sumR * 100.0;
+    double harmonicMean = (double)n / sumR;
+    double pixels = (double)resW * (double)resH * (halfRes ? 0.25 : 1.0);
+    constexpr double kReferencePixels = 1920.0 * 1080.0;
+    return harmonicMean * 100.0 * pixels / kReferencePixels;
 }
 
 std::string BenchmarkEngine::reportJson(int resW, int resH, bool halfRes, bool vsync,
@@ -245,13 +248,21 @@ std::string BenchmarkEngine::reportJson(int resW, int resH, bool halfRes, bool v
         ss << "\n";
     }
     ss << "  ],\n";
-    // overallScore: compute inline to avoid recursive lock
+    // overallScore: compute inline to avoid recursive lock.
+    // effectivePx = resW × resH × (halfRes ? 0.25 : 1.0)
+    // score = harmonicMean(avgFps) × 100 × effectivePx / (1920 × 1080)
     double sumR = 0;
     int n = 0;
     for (const auto& s : mResults) {
         if (!s.skipped && s.avgFps > 0) { sumR += 1.0 / s.avgFps; n++; }
     }
-    double score = (n == 0) ? 0 : (double)n / sumR * 100.0;
+    double score = 0;
+    if (n > 0) {
+        double harmonicMean = (double)n / sumR;
+        double pixels = (double)resW * (double)resH * (halfRes ? 0.25 : 1.0);
+        constexpr double kReferencePixels = 1920.0 * 1080.0;
+        score = harmonicMean * 100.0 * pixels / kReferencePixels;
+    }
     ss << "  \"overallScore\": " << score << "\n";
     ss << "}\n";
     return ss.str();

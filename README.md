@@ -62,7 +62,14 @@ Each shader reports:
 - **medianFrameMs**, **p99FrameMs** — median and 99th-percentile frame times
 - **frames**, **droppedFrames** — total frames recorded; frames longer than 2× median counted as dropped
 
-**Overall score** = harmonic mean of per-shader `avgFps` × 100 (same formulation as 3DMark Time Spy).
+**Overall score** = harmonic mean of per-shader `avgFps` × 100 (same formulation as 3DMark Time Spy), normalized to **1080p effective pixels** so higher resolutions score proportionally higher and `halfRes` is counted as a quarter of full pixels:
+
+```
+effectivePx = width × height × (halfRes ? 0.25 : 1.0)
+score       = harmonicMean(avgFps) × 100 × effectivePx / (1920 × 1080)
+```
+
+A device that hits the same FPS at 4K as another device at 1080p scores ~4× higher, since it does roughly 4× the per-frame pixel work.
 
 ### Results
 

@@ -52,6 +52,8 @@
 		A10058 /* fluid_d.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10058 /* fluid_d.metal */; };
 		A10059 /* fluid_image.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10059 /* fluid_image.metal */; };
 		A10060 /* furball.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10060 /* furball.metal */; };
+		A10061 /* starnest.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10061 /* starnest.metal */; };
+		A10062 /* icosphere.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10062 /* icosphere.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -104,6 +106,8 @@
 		B10058 /* fluid_d.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_d.metal; sourceTree = "<group>"; };
 		B10059 /* fluid_image.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = fluid_image.metal; sourceTree = "<group>"; };
 		B10060 /* furball.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = furball.metal; sourceTree = "<group>"; };
+		B10061 /* starnest.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = starnest.metal; sourceTree = "<group>"; };
+		B10062 /* icosphere.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = icosphere.metal; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -180,6 +184,8 @@
 				B10058 /* fluid_d.metal */,
 				B10059 /* fluid_image.metal */,
 				B10060 /* furball.metal */,
+				B10061 /* starnest.metal */,
+				B10062 /* icosphere.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -319,6 +325,8 @@
 				A10058 /* fluid_d.metal in Sources */,
 				A10059 /* fluid_image.metal in Sources */,
 				A10060 /* furball.metal in Sources */,
+				A10061 /* starnest.metal in Sources */,
+				A10062 /* icosphere.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

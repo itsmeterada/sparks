@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-フルスクリーンGPUシェーダーデモ **+ ベンチマーク** — Shadertoy シェーダー28本をネイティブモバイル (Vulkan / Metal) に移植し、3DMark / Unigine Superposition / GFXBench 準拠の手法(ウォームアップ → 固定時間計測 → クールダウン、1% low / p99 フレームタイム、調和平均スコア)で動作する GPU ベンチマークを内蔵。右上のボタンでシェーダー切替・ベンチマーク起動。
+フルスクリーンGPUシェーダーデモ **+ ベンチマーク** — Shadertoy シェーダー30本をネイティブモバイル (Vulkan / Metal) に移植し、3DMark / Unigine Superposition / GFXBench 準拠の手法(ウォームアップ → 固定時間計測 → クールダウン、1% low / p99 フレームタイム、調和平均スコア)で動作する GPU ベンチマークを内蔵。右上のボタンでシェーダー切替・ベンチマーク起動。
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -33,6 +33,8 @@
 | ![Luminescence](./screenshots/screenshot25.png) | ![Hyper Tunnel](./screenshots/screenshot26.png) |
 | **Fluid** | **Fur Ball** |
 | ![Fluid](./screenshots/screenshot27.png) | ![Fur Ball](./screenshots/screenshot28.png) |
+| **Star Nest** | **Icosphere** |
+| ![Star Nest](./screenshots/screenshot29.png) | ![Icosphere](./screenshots/screenshot30.png) |
 
 ## ベンチマークモード
 
@@ -41,7 +43,7 @@
 右上のコントロール列にある **BM** ボタンから:
 
 - **Current shader** — いま表示中のシェーダのみを計測(約15秒)
-- **All shaders** — 全28シェーダを連続計測(約7分)
+- **All shaders** — 全30シェーダを連続計測(約7分)
 
 ### シェーダごとのフェーズ構成
 
@@ -153,6 +155,8 @@ sparks/
 │   ├── fluid_d.frag.glsl     # シェーダー27 Fluid (buffer D: pressure)
 │   ├── fluid_image.frag.glsl # シェーダー27 Fluid (image: visualization)
 │   ├── furball.frag.glsl     # シェーダー28 Fur Ball
+│   ├── starnest.frag.glsl    # シェーダー29 Star Nest
+│   ├── icosphere.frag.glsl   # シェーダー30 Icosphere
 │   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -190,7 +194,9 @@ sparks/
         ├── fluid_c.metal          # Fluid (buffer C: confinement)
         ├── fluid_d.metal          # Fluid (buffer D: pressure)
         ├── fluid_image.metal      # Fluid (image: visualization)
-        └── furball.metal          # Fur Ball
+        ├── furball.metal          # Fur Ball
+        ├── starnest.metal         # Star Nest
+        └── icosphere.metal        # Icosphere
 ```
 
 ## 仕組み
@@ -361,6 +367,20 @@ sparks/
 - **Phongシェーディング**: 法線をノイズ勾配から推定 + ハイライト50で毛先のシャイン表現
 - **タッチカメラ操作**: ドラッグでX/Y軸回転、離すと自動回転
 
+### シェーダー29: Star Nest
+- **クラインボトル風タイリング折り畳み**: `abs(tile - mod(p, tile*2))` による空間繰り返しでスター/ダストの密集表現
+- **17反復magic formula**: `p = abs(p)/dot(p,p) - formuparam` を反復し、`length(p)` の差分積算で輝度を生成
+- **20ステップボリュメトリックレイマーチング**: ステップごとの距離重み付けカラー(`vec3(s, s², s⁴)`)で星雲のグラデーション
+- **ダークマター減衰**: 一定深度以降に `darkmatter` 項で奥のサンプルをフェードして遠景の淀みを表現
+- **マウス回転**: x/y で from/dir の xz・xy 回転を制御し、内宇宙の方向を自由に変更可能
+
+### シェーダー30: Icosphere
+- **六角形トンネルSDF**: スプライン経路を進む `path()` カメラに沿って `hexagon()` 断面のトンネルを生成、表面に hex グリッドパターンを掘り込み
+- **正20面体+正12面体の面数学**: TdHooper流の平面ステッピングで最近傍面を選択し、面中心まわりの `erot()` 回転で残り2頂点を生成
+- **大円弧による面内六角形**: `sphereLineAB()` の球面上大円6本を組み合わせて各三角面の内接六角形を描画
+- **2バウンス反射レイマーチ**: プライマリ200ステップ + 反射200ステップ。反射時は10反復のMandelbox風フラクタルを壁面テクスチャ代わりにサンプル
+- **アニメーション経路カメラ**: `path(t)` でうねるトンネルを進行、内部で正20面体球が `abs(sin(iTime))` で上下動 + 軸回転
+
 Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17/28はテクスチャも使用。
 
 ## ビルド
@@ -414,3 +434,5 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 26 | [Hyper Tunnel](https://www.shadertoy.com/view/4t2cR1) | — ("Sailing Beyond" demoscene) | SOR最適化Sphere Tracingによる蛇行ハイパートンネル | CC BY-NC-SA 3.0 |
 | 27 | [Fluid](https://www.shadertoy.com/view/4tGfDW) | Cornus Ammonis | Mipmapベースマルチスケール流体力学シミュレーション | CC BY-NC-SA 3.0 |
 | 28 | [Fur Ball](https://www.shadertoy.com/view/XsfGWN) | Simon Green (@simesgreen) | 球体上のボリュメトリックファーシェーダー | CC BY-NC-SA 3.0 |
+| 29 | [Star Nest](https://www.shadertoy.com/view/XlfGRj) | Pablo Roman Andrioli | タイリング折り畳み+magic formulaによる宇宙星雲のボリューメトリックレイマーチング | MIT |
+| 30 | [Icosphere](https://www.shadertoy.com/view/XcXXzS) | (コメントは Shane) | 六角トンネル+正20面体面に大円弧で六角形を描いた2バウンス反射レイマーチ | CC BY-NC-SA 3.0 |

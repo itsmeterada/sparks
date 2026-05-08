@@ -402,6 +402,22 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 2. 実機をターゲットに選択
 3. ビルド・実行 (Cmd+R)
 
+## リリース履歴
+
+| バージョン | 主な変更 |
+|----------|---------|
+| **v1.0.1** | シェーダー29(Star Nest)・30(Icosphere)を追加 |
+| v1.0.0rc | ベンチマークスコアを解像度と `halfRes` で正規化 |
+| v0.9.0 | シェーダー28(Fur Ball)を追加 |
+| v0.8.0 | iOS Luminescence(jellyfish)の上下反転を修正 |
+| v0.7.0 | シェーダー24を Shuto Highway から Smooth Heart に変更 |
+| v0.5.0 | 全20シェーダー構成に拡張 |
+| v0.4.0 | シェーダー17(Voxel Lines)・18(Mandelbulb 2)を追加 |
+| v0.3.2 | 半解像度を独立ボタンに分離 |
+| v0.3.0 | シェーダー10(Mandelbulb)+ 2パスFXAA対応 |
+| v0.2.0 | iOSにシェーダー8(Grid)を移植 |
+| v0.1.0 | 初回公開 |
+
 ## クレジット
 
 | # | シェーダー | 作者 | 説明 | ライセンス |

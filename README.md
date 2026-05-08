@@ -402,6 +402,22 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 2. Select a physical device as target
 3. Build and run (Cmd+R)
 
+## Release History
+
+| Version | Highlights |
+|---------|------------|
+| **v1.0.1** | Added Shader 29 Star Nest and 30 Icosphere |
+| v1.0.0rc | Benchmark score normalized by resolution and `halfRes` |
+| v0.9.0 | Added Shader 28 Fur Ball |
+| v0.8.0 | iOS Luminescence (jellyfish) Y-flip fix |
+| v0.7.0 | Replaced Shader 24 Shuto Highway with Smooth Heart |
+| v0.5.0 | Project expanded to 20 shaders |
+| v0.4.0 | Added Shaders 17 Voxel Lines and 18 Mandelbulb 2 |
+| v0.3.2 | Half-resolution toggle as a dedicated button |
+| v0.3.0 | Added Shader 10 Mandelbulb with 2-pass FXAA |
+| v0.2.0 | iOS port of Shader 8 Grid |
+| v0.1.0 | Initial public release |
+
 ## Credits
 
 | # | Shader | Author | Description | License |

@@ -45,6 +45,17 @@ Tap the **BM** button in the top-right controls to choose:
 - **Current shader** — benchmark only the shader currently on screen (~15 s)
 - **All shaders** — sweep all 30 shaders (~7 minutes)
 
+### What this measures
+
+All shaders run as fragment shaders on a fullscreen triangle (3 vertices per frame), so vertex processing is essentially free and the GPU spends ~100% of its time in the fragment stage. The benchmark therefore measures **fragment-shader (pixel-shader) GPU performance**:
+
+- **ALU throughput** — math-heavy raymarching / SDF / fBM / fractal iteration
+- **Texture sampling** — shaders 3/4/7/8/9/17/28 sample 2D/3D textures
+- **Fill rate / ROP throughput** — every pixel is shaded every frame
+- **Render-target bandwidth** — shader 27 (Fluid) is the only multi-pass case (5 passes with RGBA16F ping-pong)
+
+It does **not** exercise vertex processing, geometry, tessellation, or compute-shader performance. Scores should not be used to compare GPUs on vertex-heavy or compute-heavy workloads.
+
 ### Per-shader phases
 
 Each shader is measured in three phases. Durations are shared between iOS and Android so scores are directly comparable:

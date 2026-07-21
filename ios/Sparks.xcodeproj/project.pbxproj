@@ -54,6 +54,7 @@
 		A10060 /* furball.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10060 /* furball.metal */; };
 		A10061 /* starnest.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10061 /* starnest.metal */; };
 		A10062 /* icosphere.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10062 /* icosphere.metal */; };
+		A10063 /* watercave.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10063 /* watercave.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -108,6 +109,7 @@
 		B10060 /* furball.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = furball.metal; sourceTree = "<group>"; };
 		B10061 /* starnest.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = starnest.metal; sourceTree = "<group>"; };
 		B10062 /* icosphere.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = icosphere.metal; sourceTree = "<group>"; };
+		B10063 /* watercave.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = watercave.metal; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -186,6 +188,7 @@
 				B10060 /* furball.metal */,
 				B10061 /* starnest.metal */,
 				B10062 /* icosphere.metal */,
+				B10063 /* watercave.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -327,6 +330,7 @@
 				A10060 /* furball.metal in Sources */,
 				A10061 /* starnest.metal in Sources */,
 				A10062 /* icosphere.metal in Sources */,
+				A10063 /* watercave.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

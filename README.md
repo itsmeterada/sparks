@@ -2,7 +2,7 @@
 
 [Japanese (日本語)](README_jp.md)
 
-Fullscreen GPU shader demo **and benchmark** — 30 Shadertoy shaders ported to native mobile (Vulkan / Metal), with a built-in GPU benchmark that follows the industry-standard methodology used by 3DMark, Unigine Superposition, and GFXBench (warmup → timed measurement → cooldown, 1% low / p99 frame time, harmonic-mean score). Tap the buttons in the top-right to switch shaders or run the benchmark.
+Fullscreen GPU shader demo **and benchmark** — 31 Shadertoy shaders ported to native mobile (Vulkan / Metal), with a built-in GPU benchmark that follows the industry-standard methodology used by 3DMark, Unigine Superposition, and GFXBench (warmup → timed measurement → cooldown, 1% low / p99 frame time, harmonic-mean score). Tap the buttons in the top-right to switch shaders or run the benchmark.
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -35,6 +35,8 @@ Fullscreen GPU shader demo **and benchmark** — 30 Shadertoy shaders ported to 
 | ![Fluid](./screenshots/screenshot27.png) | ![Fur Ball](./screenshots/screenshot28.png) |
 | **Star Nest** | **Icosphere** |
 | ![Star Nest](./screenshots/screenshot29.png) | ![Icosphere](./screenshots/screenshot30.png) |
+| **Water Cave** | |
+| ![Water Cave](./screenshots/screenshot31.png) | |
 
 ## Benchmark Mode
 
@@ -43,7 +45,7 @@ A built-in GPU benchmark that runs each shader in sequence and reports per-shade
 Tap the **BM** button in the top-right controls to choose:
 
 - **Current shader** — benchmark only the shader currently on screen (~15 s)
-- **All shaders** — sweep all 30 shaders (~7 minutes)
+- **All shaders** — sweep all 31 shaders (~7 minutes)
 
 ### What this measures
 
@@ -168,6 +170,7 @@ sparks/
 │   ├── furball.frag.glsl     # Shader 28 Fur Ball
 │   ├── starnest.frag.glsl    # Shader 29 Star Nest
 │   ├── icosphere.frag.glsl   # Shader 30 Icosphere
+│   ├── watercave.frag.glsl   # Shader 31 Water Cave
 │   ├── fxaa.frag.glsl         # FXAA post-process shader
 │   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
 ├── android/            # Android Studio project (Vulkan)
@@ -207,7 +210,8 @@ sparks/
         ├── fluid_image.metal      # Fluid (image: visualization)
         ├── furball.metal          # Fur Ball
         ├── starnest.metal         # Star Nest
-        └── icosphere.metal        # Icosphere
+        ├── icosphere.metal        # Icosphere
+        └── watercave.metal        # Water Cave
 ```
 
 ## How It Works
@@ -392,6 +396,13 @@ Each effect runs as a fragment shader on a fullscreen triangle. No geometry or p
 - **Two-bounce reflective raymarch**: 200-step primary + 200-step reflection march; reflection samples a 10-iter Mandelbox-style fractal as the wall texture
 - **Animated path camera**: `path(t)` weaves through the tunnel, rolling icosphere bounces with `abs(sin(iTime))` vertical motion
 
+### Shader 31: Water Cave
+- **Trapezoid-noise cave SDF**: `trap()`/`tri()` triangle-wave folding carves the rocky tunnel wall, its radius pulsing open and closed via `openCave()` (a `tanh`-clamped cosine)
+- **Animated water surface**: a distance field split by `waterSurf()` — a sum of nested `sin` waves scrolling with `iTime` — separates the submerged half from the air, tagged per-hit with an object ID
+- **Glowing raymarched ball**: an emissive sphere follows the spline with `tanh`-eased `ballMovez()`/`ballMoveXY()` motion, lit with distance-attenuated diffuse + specular
+- **Two-pass glass refraction**: the primary hit refracts (`refract`, IOR 1.33) and re-marches through the volume, blending the refracted color by a Fresnel term for a glassy water look
+- **Bump-mapped rock + edge/AO**: `bumpMap()` perturbs the wall normal with radial value noise; Laplacian edge detection and 4-tap AO darken creases
+
 Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9/17/28 also use textures.
 
 ## Build
@@ -417,7 +428,8 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 
 | Version | Highlights |
 |---------|------------|
-| **v1.0.1** | Added Shader 29 Star Nest and 30 Icosphere |
+| **v1.0.2** | Added Shader 31 Water Cave |
+| v1.0.1 | Added Shader 29 Star Nest and 30 Icosphere |
 | v1.0.0rc | Benchmark score normalized by resolution and `halfRes` |
 | v0.9.0 | Added Shader 28 Fur Ball |
 | v0.8.0 | iOS Luminescence (jellyfish) Y-flip fix |
@@ -463,3 +475,4 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 | 28 | [Fur Ball](https://www.shadertoy.com/view/XsfGWN) | Simon Green (@simesgreen) | Volumetric fur shader on a sphere | CC BY-NC-SA 3.0 |
 | 29 | [Star Nest](https://www.shadertoy.com/view/XlfGRj) | Pablo Roman Andrioli | Volumetric raymarched cosmic nebula via tiling fold + magic formula | MIT |
 | 30 | [Icosphere](https://www.shadertoy.com/view/XcXXzS) | (commented by Shane) | Hex tunnel + icosahedron with great-circle hex face inscriptions, two-bounce reflective raymarch | CC BY-NC-SA 3.0 |
+| 31 | [Water Cave](https://www.shadertoy.com/view/XcVyWD) | — | Volumetric glass/water underground river with a glowing ball, `tanh`-eased motion + two-pass refraction | CC BY-NC-SA 3.0 |

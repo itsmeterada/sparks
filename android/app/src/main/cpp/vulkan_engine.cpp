@@ -524,7 +524,8 @@ bool VulkanEngine::createGraphicsPipeline() {
         nullptr,                        // 26: fluid placeholder
         "shaders/furball.frag.spv",     // 27
         "shaders/starnest.frag.spv",    // 28
-        "shaders/icosphere.frag.spv"    // 29
+        "shaders/icosphere.frag.spv",   // 29
+        "shaders/watercave.frag.spv"    // 30
     };
     std::vector<uint32_t> fragCodes[SHADER_COUNT];
     VkShaderModule fragModules[SHADER_COUNT]{};
@@ -1504,14 +1505,14 @@ void VulkanEngine::toggleHalfRes() {
     LOGI("Half-res: %s", mHalfRes ? "ON" : "OFF");
 }
 
-// Display names, indexed by shader slot (must match TOTAL_SHADER_COUNT == 30).
+// Display names, indexed by shader slot (must match TOTAL_SHADER_COUNT == 31).
 static const std::vector<std::string>& shaderDisplayNames() {
     static const std::vector<std::string> kNames = {
         "sparks", "cosmic", "starship", "clouds", "seascape", "rainforest", "plasma",
         "grid", "interstellar", "mandelbulb", "cyberspace", "tunnel", "fractal",
         "mandelbulb2", "octgrams", "palette", "primitives", "voxellines", "protean",
         "rocaille", "hudrings", "flighthud", "metalball", "heart", "jellyfish",
-        "hypertunnel", "fluid", "furball", "starnest", "icosphere"
+        "hypertunnel", "fluid", "furball", "starnest", "icosphere", "watercave"
     };
     return kNames;
 }

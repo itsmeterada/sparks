@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-フルスクリーンGPUシェーダーデモ **+ ベンチマーク** — Shadertoy シェーダー30本をネイティブモバイル (Vulkan / Metal) に移植し、3DMark / Unigine Superposition / GFXBench 準拠の手法(ウォームアップ → 固定時間計測 → クールダウン、1% low / p99 フレームタイム、調和平均スコア)で動作する GPU ベンチマークを内蔵。右上のボタンでシェーダー切替・ベンチマーク起動。
+フルスクリーンGPUシェーダーデモ **+ ベンチマーク** — Shadertoy シェーダー31本をネイティブモバイル (Vulkan / Metal) に移植し、3DMark / Unigine Superposition / GFXBench 準拠の手法(ウォームアップ → 固定時間計測 → クールダウン、1% low / p99 フレームタイム、調和平均スコア)で動作する GPU ベンチマークを内蔵。右上のボタンでシェーダー切替・ベンチマーク起動。
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -35,6 +35,8 @@
 | ![Fluid](./screenshots/screenshot27.png) | ![Fur Ball](./screenshots/screenshot28.png) |
 | **Star Nest** | **Icosphere** |
 | ![Star Nest](./screenshots/screenshot29.png) | ![Icosphere](./screenshots/screenshot30.png) |
+| **Water Cave** | |
+| ![Water Cave](./screenshots/screenshot31.png) | |
 
 ## ベンチマークモード
 
@@ -43,7 +45,7 @@
 右上のコントロール列にある **BM** ボタンから:
 
 - **Current shader** — いま表示中のシェーダのみを計測(約15秒)
-- **All shaders** — 全30シェーダを連続計測(約7分)
+- **All shaders** — 全31シェーダを連続計測(約7分)
 
 ### 何を計測しているか
 
@@ -168,6 +170,7 @@ sparks/
 │   ├── furball.frag.glsl     # シェーダー28 Fur Ball
 │   ├── starnest.frag.glsl    # シェーダー29 Star Nest
 │   ├── icosphere.frag.glsl   # シェーダー30 Icosphere
+│   ├── watercave.frag.glsl   # シェーダー31 Water Cave
 │   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -207,7 +210,8 @@ sparks/
         ├── fluid_image.metal      # Fluid (image: visualization)
         ├── furball.metal          # Fur Ball
         ├── starnest.metal         # Star Nest
-        └── icosphere.metal        # Icosphere
+        ├── icosphere.metal        # Icosphere
+        └── watercave.metal        # Water Cave
 ```
 
 ## 仕組み
@@ -392,6 +396,13 @@ sparks/
 - **2バウンス反射レイマーチ**: プライマリ200ステップ + 反射200ステップ。反射時は10反復のMandelbox風フラクタルを壁面テクスチャ代わりにサンプル
 - **アニメーション経路カメラ**: `path(t)` でうねるトンネルを進行、内部で正20面体球が `abs(sin(iTime))` で上下動 + 軸回転
 
+### シェーダー31: Water Cave
+- **台形ノイズ洞窟SDF**: `trap()`/`tri()` の三角波折り畳みで岩肌トンネルを削り出し、半径は `openCave()`(`tanh` でクランプした余弦)で開閉するように脈動
+- **アニメーション水面**: `iTime` でスクロールする入れ子 `sin` 波の合計 `waterSurf()` で距離場を分割し、水没した下半分と空気を分離。ヒットごとにオブジェクトIDを付与
+- **発光レイマーチ球**: `tanh` イージングの `ballMovez()`/`ballMoveXY()` でスプラインに沿って動く発光球を、距離減衰付きの拡散 + 鏡面反射でライティング
+- **2パスガラス屈折**: プライマリヒットを屈折(`refract`、IOR 1.33)させてボリューム内を再マーチし、フレネル項で屈折色をブレンドしてガラス状の水表現を実現
+- **バンプマップ岩肌 + エッジ/AO**: `bumpMap()` が放射状バリューノイズで壁面法線を摂動。ラプラシアンエッジ検出と4タップAOで溝を暗く
+
 Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17/28はテクスチャも使用。
 
 ## ビルド
@@ -417,7 +428,8 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 
 | バージョン | 主な変更 |
 |----------|---------|
-| **v1.0.1** | シェーダー29(Star Nest)・30(Icosphere)を追加 |
+| **v1.0.2** | シェーダー31(Water Cave)を追加 |
+| v1.0.1 | シェーダー29(Star Nest)・30(Icosphere)を追加 |
 | v1.0.0rc | ベンチマークスコアを解像度と `halfRes` で正規化 |
 | v0.9.0 | シェーダー28(Fur Ball)を追加 |
 | v0.8.0 | iOS Luminescence(jellyfish)の上下反転を修正 |
@@ -463,3 +475,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 28 | [Fur Ball](https://www.shadertoy.com/view/XsfGWN) | Simon Green (@simesgreen) | 球体上のボリュメトリックファーシェーダー | CC BY-NC-SA 3.0 |
 | 29 | [Star Nest](https://www.shadertoy.com/view/XlfGRj) | Pablo Roman Andrioli | タイリング折り畳み+magic formulaによる宇宙星雲のボリューメトリックレイマーチング | MIT |
 | 30 | [Icosphere](https://www.shadertoy.com/view/XcXXzS) | (コメントは Shane) | 六角トンネル+正20面体面に大円弧で六角形を描いた2バウンス反射レイマーチ | CC BY-NC-SA 3.0 |
+| 31 | [Water Cave](https://www.shadertoy.com/view/XcVyWD) | — | 発光する球を配した地下水路のボリューメトリックガラス/水表現。`tanh` イージング運動 + 2パス屈折 | CC BY-NC-SA 3.0 |

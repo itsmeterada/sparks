@@ -39,6 +39,7 @@ glslangValidator -V "$SCRIPT_DIR/icosphere.frag.glsl" -o "$OUTPUT_DIR/icosphere.
 glslangValidator -V "$SCRIPT_DIR/watercave.frag.glsl" -o "$OUTPUT_DIR/watercave.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/apollonian.frag.glsl" -o "$OUTPUT_DIR/apollonian.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/synthwave.frag.glsl" -o "$OUTPUT_DIR/synthwave.frag.spv" || exit 1
+glslangValidator -V "$SCRIPT_DIR/glasscube.frag.glsl" -o "$OUTPUT_DIR/glasscube.frag.spv" || exit 1
 # Fluid multi-pass shaders
 glslangValidator -V "$SCRIPT_DIR/fluid_a.frag.glsl" -o "$OUTPUT_DIR/fluid_a.frag.spv" || exit 1
 glslangValidator -V "$SCRIPT_DIR/fluid_b.frag.glsl" -o "$OUTPUT_DIR/fluid_b.frag.spv" || exit 1

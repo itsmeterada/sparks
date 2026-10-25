@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-フルスクリーンGPUシェーダーデモ **+ ベンチマーク** — Shadertoy シェーダー33本をネイティブモバイル (Vulkan / Metal) に移植し、3DMark / Unigine Superposition / GFXBench 準拠の手法(ウォームアップ → 固定時間計測 → クールダウン、1% low / p99 フレームタイム、調和平均スコア)で動作する GPU ベンチマークを内蔵。右上のボタンでシェーダー切替・ベンチマーク起動。
+フルスクリーンGPUシェーダーデモ **+ ベンチマーク** — Shadertoy シェーダー34本をネイティブモバイル (Vulkan / Metal) に移植し、3DMark / Unigine Superposition / GFXBench 準拠の手法(ウォームアップ → 固定時間計測 → クールダウン、1% low / p99 フレームタイム、調和平均スコア)で動作する GPU ベンチマークを内蔵。右上のボタンでシェーダー切替・ベンチマーク起動。
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -37,8 +37,8 @@
 | ![Star Nest](./screenshots/screenshot29.png) | ![Icosphere](./screenshots/screenshot30.png) |
 | **Water Cave** | **4D Apollonian** |
 | ![Water Cave](./screenshots/screenshot31.png) | ![4D Apollonian](./screenshots/screenshot32.png) |
-| **Synthwave Sunset** | |
-| ![Synthwave Sunset](./screenshots/screenshot33.png) | |
+| **Synthwave Sunset** | **Glass Cube** |
+| ![Synthwave Sunset](./screenshots/screenshot33.png) | ![Glass Cube](./screenshots/screenshot34.png) |
 
 ## ベンチマークモード
 
@@ -47,7 +47,7 @@
 右上のコントロール列にある **BM** ボタンから:
 
 - **Current shader** — いま表示中のシェーダのみを計測(約15秒)
-- **All shaders** — 全33シェーダを連続計測(約7分)
+- **All shaders** — 全34シェーダを連続計測(約7分)
 
 ### 何を計測しているか
 
@@ -175,6 +175,7 @@ sparks/
 │   ├── watercave.frag.glsl   # シェーダー31 Water Cave
 │   ├── apollonian.frag.glsl  # シェーダー32 4D Apollonian
 │   ├── synthwave.frag.glsl   # シェーダー33 Synthwave Sunset
+│   ├── glasscube.frag.glsl   # シェーダー34 Glass Cube
 │   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -217,7 +218,8 @@ sparks/
         ├── icosphere.metal        # Icosphere
         ├── watercave.metal        # Water Cave
         ├── apollonian.metal       # 4D Apollonian
-        └── synthwave.metal        # Synthwave Sunset
+        ├── synthwave.metal        # Synthwave Sunset
+        └── glasscube.metal        # Glass Cube
 ```
 
 ## 仕組み
@@ -422,7 +424,13 @@ sparks/
 - **反射する地表**: フレネル重み付きの空の反射とチャンネル別の指数フォグ。ピクセルごとの時間ジッタでモーションブラーを模倣
 - オリジナルでは既定で無効のオーディオビジュアライザ機能(`iChannel0` のサウンドテクスチャ)は移植時に除去
 
-Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17/28はテクスチャも使用。
+### シェーダー34: Glass Cube
+- **解析的ガラスボックス**: レイ/ボックス交差と、フレネル(IOR 1.33)による床の反射 + キューブ内部での2回の屈折/内部反射
+- **双線形パッチの層**: 60°ずつ回転した3枚の鞍型(双線形)パッチを解析的に交差判定し、自己交差を処理したうえで奥から手前へソートして正しく半透明合成
+- **微分フィルタ付きパレット**: `fcos()` が `fwidth` で高周波の余弦バンドをフェードアウトさせ、スーパーサンプリングなしで反転写像カラーパターンをアンチエイリアス
+- **床へのソフトシャドウ**: iq の解析的 `boxSoftShadow()` + AO 減衰。床は写真背景(`london.jpg`)の上にフェードアウト(BG_ALPHA)
+
+Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17/28/34はテクスチャも使用。
 
 ## ビルド
 
@@ -447,7 +455,8 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 
 | バージョン | 主な変更 |
 |----------|---------|
-| **v1.0.4** | シェーダー33(Synthwave Sunset)を追加 |
+| **v1.0.5** | シェーダー34(Glass Cube)を追加 |
+| v1.0.4 | シェーダー33(Synthwave Sunset)を追加 |
 | v1.0.3 | シェーダー32(4D Apollonian)を追加 |
 | v1.0.2 | シェーダー31(Water Cave)を追加 |
 | v1.0.1 | シェーダー29(Star Nest)・30(Icosphere)を追加 |
@@ -499,3 +508,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 31 | [Water Cave](https://www.shadertoy.com/view/XcVyWD) | — | 発光する球を配した地下水路のボリューメトリックガラス/水表現。`tanh` イージング運動 + 2パス屈折 | CC BY-NC-SA 3.0 |
 | 32 | [Yet another 4D Apollonian](https://www.shadertoy.com/view/N3VXz1) | mrange | 4次元回転でスライスした4D Apollonianフラクタル。ボリューメトリック発光の累積 + `tanh` トーンマッピング | CC0 1.0 |
 | 33 | [another synthwave sunset thing](https://www.shadertoy.com/view/tsScRK) | stduhpf | 発光グリッド付きの疑似テッセレーション三角ノイズ地形とレトロな太陽・星空 | CC BY-NC-SA 3.0 |
+| 34 | [Glass Cube](https://www.shadertoy.com/view/NslGRN) | Danil (@danilw) | ソート・自己交差対応の半透明双線形パッチを内包する屈折ガラスキューブ。写真背景との合成 | CC BY-NC-SA 3.0 |

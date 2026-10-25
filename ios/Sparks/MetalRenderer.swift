@@ -45,6 +45,7 @@ class MetalRenderer {
     private let noiseSmallTexture: MTLTexture?
     private let noise3DTexture: MTLTexture?
     private let noiseSmall64Texture: MTLTexture?
+    private let londonTexture: MTLTexture?
     private let samplerState: MTLSamplerState
 
     private let startTime: CFAbsoluteTime
@@ -76,7 +77,7 @@ class MetalRenderer {
         "grid", "interstellar", "mandelbulb", "cyberspace", "tunnel", "fractal",
         "mandelbulb2", "octgrams", "palette", "primitives", "voxellines", "protean",
         "rocaille", "hudrings", "flighthud", "metalball", "heart", "jellyfish",
-        "hypertunnel", "fluid", "furball", "starnest", "icosphere", "watercave", "apollonian", "synthwave"
+        "hypertunnel", "fluid", "furball", "starnest", "icosphere", "watercave", "apollonian", "synthwave", "glasscube"
     ]
 
     var shaderDisplayName: String {
@@ -106,7 +107,7 @@ class MetalRenderer {
         let library = lib
 
         // Index 26 reserved for fluid (multi-pass, separate path) -> nil placeholder.
-        let fragmentNames: [String?] = ["sparks_fragment", "cosmic_fragment", "starship_fragment", "clouds_fragment", "seascape_fragment", "rainforest_fragment", "plasma_fragment", "grid_fragment", "interstellar_fragment", "mandelbulb_fragment", "cyberspace_fragment", "tunnel_fragment", "fractal_fragment", "mandelbulb2_fragment", "octgrams_fragment", "palette_fragment", "primitives_fragment", "voxellines_fragment", "protean_fragment", "rocaille_fragment", "hudrings_fragment", "flighthud_fragment", "metalball_fragment", "heart_fragment", "jellyfish_fragment", "hypertunnel_fragment", nil, "furball_fragment", "starnest_fragment", "icosphere_fragment", "watercave_fragment", "apollonian_fragment", "synthwave_fragment"]
+        let fragmentNames: [String?] = ["sparks_fragment", "cosmic_fragment", "starship_fragment", "clouds_fragment", "seascape_fragment", "rainforest_fragment", "plasma_fragment", "grid_fragment", "interstellar_fragment", "mandelbulb_fragment", "cyberspace_fragment", "tunnel_fragment", "fractal_fragment", "mandelbulb2_fragment", "octgrams_fragment", "palette_fragment", "primitives_fragment", "voxellines_fragment", "protean_fragment", "rocaille_fragment", "hudrings_fragment", "flighthud_fragment", "metalball_fragment", "heart_fragment", "jellyfish_fragment", "hypertunnel_fragment", nil, "furball_fragment", "starnest_fragment", "icosphere_fragment", "watercave_fragment", "apollonian_fragment", "synthwave_fragment", "glasscube_fragment"]
         var states: [MTLRenderPipelineState?] = []
         for name in fragmentNames {
             guard let n = name else {
@@ -137,6 +138,7 @@ class MetalRenderer {
         self.noiseSmallTexture = Self.loadTexture(loader: loader, name: "rgba_noise_large", ext: "png", options: texOpts) // iChannel1: 1024x1024 for texelFetch dithering
         self.noise3DTexture = Self.load3DTexture(device: device, name: "grey_noise_3d", ext: "bin", width: 32, height: 32, depth: 32)
         self.noiseSmall64Texture = Self.loadTexture(loader: loader, name: "rgba_noise_small", ext: "png", options: texOpts)
+        self.londonTexture = Self.loadTexture(loader: loader, name: "london", ext: "jpg", options: texOpts)
 
         let samplerDescriptor = MTLSamplerDescriptor()
         samplerDescriptor.minFilter = .linear
@@ -486,6 +488,8 @@ class MetalRenderer {
                 encoder.setFragmentTexture(tex, index: 0)
                 encoder.setFragmentTexture(tex, index: 1)
             }
+        case 33: // glasscube
+            if let tex = londonTexture { encoder.setFragmentTexture(tex, index: 0) }
         default:
             break
         }

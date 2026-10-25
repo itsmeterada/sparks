@@ -57,6 +57,8 @@
 		A10063 /* watercave.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10063 /* watercave.metal */; };
 		A10064 /* apollonian.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10064 /* apollonian.metal */; };
 		A10065 /* synthwave.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10065 /* synthwave.metal */; };
+		A10066 /* glasscube.metal in Sources */ = {isa = PBXBuildFile; fileRef = B10066 /* glasscube.metal */; };
+		A10067 /* london.jpg in Resources */ = {isa = PBXBuildFile; fileRef = B10067 /* london.jpg */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -114,6 +116,8 @@
 		B10063 /* watercave.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = watercave.metal; sourceTree = "<group>"; };
 		B10064 /* apollonian.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = apollonian.metal; sourceTree = "<group>"; };
 		B10065 /* synthwave.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = synthwave.metal; sourceTree = "<group>"; };
+		B10066 /* glasscube.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = glasscube.metal; sourceTree = "<group>"; };
+		B10067 /* london.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = london.jpg; sourceTree = "<group>"; };
 		B10099 /* Sparks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sparks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -195,6 +199,7 @@
 				B10063 /* watercave.metal */,
 				B10064 /* apollonian.metal */,
 				B10065 /* synthwave.metal */,
+				B10066 /* glasscube.metal */,
 				B10009 /* ParticleTypes.h */,
 				B10010 /* Sparks-Bridging-Header.h */,
 			);
@@ -209,6 +214,7 @@
 				B10014 /* rgba_noise_large.png */,
 				B10015 /* grey_noise_3d.bin */,
 				B10016 /* rgba_noise_small.png */,
+				B10067 /* london.jpg */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -284,6 +290,7 @@
 				A10013 /* rgba_noise_large.png in Resources */,
 				A10014 /* grey_noise_3d.bin in Resources */,
 				A10015 /* rgba_noise_small.png in Resources */,
+				A10067 /* london.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -339,6 +346,7 @@
 				A10063 /* watercave.metal in Sources */,
 				A10064 /* apollonian.metal in Sources */,
 				A10065 /* synthwave.metal in Sources */,
+				A10066 /* glasscube.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

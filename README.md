@@ -2,7 +2,7 @@
 
 [Japanese (日本語)](README_jp.md)
 
-Fullscreen GPU shader demo **and benchmark** — 33 Shadertoy shaders ported to native mobile (Vulkan / Metal), with a built-in GPU benchmark that follows the industry-standard methodology used by 3DMark, Unigine Superposition, and GFXBench (warmup → timed measurement → cooldown, 1% low / p99 frame time, harmonic-mean score). Tap the buttons in the top-right to switch shaders or run the benchmark.
+Fullscreen GPU shader demo **and benchmark** — 34 Shadertoy shaders ported to native mobile (Vulkan / Metal), with a built-in GPU benchmark that follows the industry-standard methodology used by 3DMark, Unigine Superposition, and GFXBench (warmup → timed measurement → cooldown, 1% low / p99 frame time, harmonic-mean score). Tap the buttons in the top-right to switch shaders or run the benchmark.
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -37,8 +37,8 @@ Fullscreen GPU shader demo **and benchmark** — 33 Shadertoy shaders ported to 
 | ![Star Nest](./screenshots/screenshot29.png) | ![Icosphere](./screenshots/screenshot30.png) |
 | **Water Cave** | **4D Apollonian** |
 | ![Water Cave](./screenshots/screenshot31.png) | ![4D Apollonian](./screenshots/screenshot32.png) |
-| **Synthwave Sunset** | |
-| ![Synthwave Sunset](./screenshots/screenshot33.png) | |
+| **Synthwave Sunset** | **Glass Cube** |
+| ![Synthwave Sunset](./screenshots/screenshot33.png) | ![Glass Cube](./screenshots/screenshot34.png) |
 
 ## Benchmark Mode
 
@@ -47,7 +47,7 @@ A built-in GPU benchmark that runs each shader in sequence and reports per-shade
 Tap the **BM** button in the top-right controls to choose:
 
 - **Current shader** — benchmark only the shader currently on screen (~15 s)
-- **All shaders** — sweep all 33 shaders (~7 minutes)
+- **All shaders** — sweep all 34 shaders (~7 minutes)
 
 ### What this measures
 
@@ -175,6 +175,7 @@ sparks/
 │   ├── watercave.frag.glsl   # Shader 31 Water Cave
 │   ├── apollonian.frag.glsl  # Shader 32 4D Apollonian
 │   ├── synthwave.frag.glsl   # Shader 33 Synthwave Sunset
+│   ├── glasscube.frag.glsl   # Shader 34 Glass Cube
 │   ├── fxaa.frag.glsl         # FXAA post-process shader
 │   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
 ├── android/            # Android Studio project (Vulkan)
@@ -217,7 +218,8 @@ sparks/
         ├── icosphere.metal        # Icosphere
         ├── watercave.metal        # Water Cave
         ├── apollonian.metal       # 4D Apollonian
-        └── synthwave.metal        # Synthwave Sunset
+        ├── synthwave.metal        # Synthwave Sunset
+        └── glasscube.metal        # Glass Cube
 ```
 
 ## How It Works
@@ -422,7 +424,13 @@ Each effect runs as a fragment shader on a fullscreen triangle. No geometry or p
 - **Reflective surface**: Fresnel-weighted sky reflection on the terrain plus per-channel exponential fog; per-pixel time jitter emulates motion blur
 - The audio-visualizer path (sound texture in `iChannel0`) is disabled by default in the original and folded out of the port
 
-Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9/17/28 also use textures.
+### Shader 34: Glass Cube
+- **Analytic glass box**: ray/box intersection, Fresnel (IOR 1.33) reflection of the floor + two refraction/internal-reflection bounces inside the cube
+- **Bilinear-patch layers**: three analytically intersected saddle (bilinear) patches rotated by 60° each, with self-intersection handling and back-to-front sorting for correct transparency
+- **Derivative-filtered palette**: `fcos()` uses `fwidth` to fade out high-frequency cosine bands, antialiasing the inversion-mapped color pattern without supersampling
+- **Soft box shadow on the floor**: iq's analytic `boxSoftShadow()` + AO falloff; the floor fades out (BG_ALPHA) over a photo background (`london.jpg`)
+
+Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9/17/28/34 also use textures.
 
 ## Build
 
@@ -447,7 +455,8 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 
 | Version | Highlights |
 |---------|------------|
-| **v1.0.4** | Added Shader 33 Synthwave Sunset |
+| **v1.0.5** | Added Shader 34 Glass Cube |
+| v1.0.4 | Added Shader 33 Synthwave Sunset |
 | v1.0.3 | Added Shader 32 4D Apollonian |
 | v1.0.2 | Added Shader 31 Water Cave |
 | v1.0.1 | Added Shader 29 Star Nest and 30 Icosphere |
@@ -499,3 +508,4 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 | 31 | [Water Cave](https://www.shadertoy.com/view/XcVyWD) | — | Volumetric glass/water underground river with a glowing ball, `tanh`-eased motion + two-pass refraction | CC BY-NC-SA 3.0 |
 | 32 | [Yet another 4D Apollonian](https://www.shadertoy.com/view/N3VXz1) | mrange | 4D Apollonian fractal sliced by 4D rotation, volumetric glow accumulation + `tanh` tone mapping | CC0 1.0 |
 | 33 | [another synthwave sunset thing](https://www.shadertoy.com/view/tsScRK) | stduhpf | Pseudo-tessellation triangle-noise terrain with glowing grid edges under a retro sun and starfield | CC BY-NC-SA 3.0 |
+| 34 | [Glass Cube](https://www.shadertoy.com/view/NslGRN) | Danil (@danilw) | Refractive glass cube containing sorted, self-intersecting transparent bilinear patches, over a photo background | CC BY-NC-SA 3.0 |

@@ -11,15 +11,15 @@
 #include "benchmark_engine.h"
 
 static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-static constexpr int SHADER_COUNT = 33;       // mPipelines slots (index 26 = fluid placeholder, kept VK_NULL_HANDLE)
-static constexpr int MAX_TEXTURES = 6;
+static constexpr int SHADER_COUNT = 34;       // mPipelines slots (index 26 = fluid placeholder, kept VK_NULL_HANDLE)
+static constexpr int MAX_TEXTURES = 7;
 static constexpr int MAX_TEX_BINDINGS = 3;
 
 // Multi-pass (fluid) infrastructure
 static constexpr int FLUID_PASS_COUNT = 5; // buffer_a, b, c, d, image
 static constexpr int FLUID_TEX_BINDINGS = 4; // iChannel0-3
 static constexpr int FLUID_SHADER_INDEX = 26;
-static constexpr int TOTAL_SHADER_COUNT = 33;
+static constexpr int TOTAL_SHADER_COUNT = 34;
 
 struct PushConstants {
     float iResolutionX;
@@ -166,8 +166,8 @@ private:
     VkSampler mTextureSampler = VK_NULL_HANDLE;
     VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
-    // Descriptor sets: 0=starship, 1=clouds/plasma, 2=history buffer, 3=grid(organic2), 4=furball(noise_small)
-    VkDescriptorSet mDescriptorSets[5] = {};
+    // Descriptor sets: 0=starship, 1=clouds/plasma, 2=history buffer, 3=grid(organic2), 4=furball(noise_small), 5=glasscube(london)
+    VkDescriptorSet mDescriptorSets[6] = {};
 
     // Fluid multi-pass resources
     FluidResources mFluid;

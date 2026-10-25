@@ -428,9 +428,9 @@ sparks/
 - **解析的ガラスボックス**: レイ/ボックス交差と、フレネル(IOR 1.33)による床の反射 + キューブ内部での2回の屈折/内部反射
 - **双線形パッチの層**: 60°ずつ回転した3枚の鞍型(双線形)パッチを解析的に交差判定し、自己交差を処理したうえで奥から手前へソートして正しく半透明合成
 - **微分フィルタ付きパレット**: `fcos()` が `fwidth` で高周波の余弦バンドをフェードアウトさせ、スーパーサンプリングなしで反転写像カラーパターンをアンチエイリアス
-- **床へのソフトシャドウ**: iq の解析的 `boxSoftShadow()` + AO 減衰。床は写真背景(`london.jpg`)の上にフェードアウト(BG_ALPHA)
+- **床へのソフトシャドウ**: iq の解析的 `boxSoftShadow()` + AO 減衰。床は遠方で青いグラデーションの空へフェードアウト
 
-Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17/28/34はテクスチャも使用。
+Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17/28はテクスチャも使用。
 
 ## ビルド
 
@@ -508,4 +508,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 31 | [Water Cave](https://www.shadertoy.com/view/XcVyWD) | — | 発光する球を配した地下水路のボリューメトリックガラス/水表現。`tanh` イージング運動 + 2パス屈折 | CC BY-NC-SA 3.0 |
 | 32 | [Yet another 4D Apollonian](https://www.shadertoy.com/view/N3VXz1) | mrange | 4次元回転でスライスした4D Apollonianフラクタル。ボリューメトリック発光の累積 + `tanh` トーンマッピング | CC0 1.0 |
 | 33 | [another synthwave sunset thing](https://www.shadertoy.com/view/tsScRK) | stduhpf | 発光グリッド付きの疑似テッセレーション三角ノイズ地形とレトロな太陽・星空 | CC BY-NC-SA 3.0 |
-| 34 | [Glass Cube](https://www.shadertoy.com/view/NslGRN) | Danil (@danilw) | ソート・自己交差対応の半透明双線形パッチを内包する屈折ガラスキューブ。写真背景との合成 | CC BY-NC-SA 3.0 |
+| 34 | [Glass Cube](https://www.shadertoy.com/view/NslGRN) | Danil (@danilw) | ソート・自己交差対応の半透明双線形パッチを内包する屈折ガラスキューブ。解析的ソフトシャドウ付き | CC BY-NC-SA 3.0 |

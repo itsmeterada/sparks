@@ -9,8 +9,7 @@ using namespace metal;
 //
 // Glass box with refracted, sorted, self-intersecting transparent bilinear-patch
 // layers inside. Uses iq's intersectors (https://iquilezles.org/articles/intersectors).
-// BG_ALPHA is enabled so the scene background is composited over iChannel0 (london.jpg).
-// DEBUG / AA / wallpaper option paths of the original are folded out.
+// DEBUG / AA / wallpaper option paths (iChannel0 background compositing) of the original are folded out.
 
 #define GC_ROTATION_SPEED 0.8999
 #define GC_tshift 53.
@@ -389,9 +388,7 @@ static float4 gc_insides(float3 ro, float3 rd, float3 nor_c, float3 l_dir, threa
 }
 
 fragment float4 glasscube_fragment(VertexOut in [[stage_in]],
-                                   constant Uniforms& uniforms [[buffer(0)]],
-                                   texture2d<float> iChannel0 [[texture(0)]],
-                                   sampler samp [[sampler(0)]]) {
+                                   constant Uniforms& uniforms [[buffer(0)]]) {
     float2 iResolution = uniforms.iResolution;
     float iTime = uniforms.iTime;
     float4 iMouse = uniforms.iMouse;
@@ -473,18 +470,12 @@ fragment float4 glasscube_fragment(VertexOut in [[stage_in]],
         col = mix(mix(colo[1].rgb * colo[1].a, colo[0].rgb, colo[0].a) * fadeborders, reflcol, pow(fresnel, 1.5));
         col = clamp(col, 0., 1.);
 
-        // BG_ALPHA: the cube is always opaque
-        tot += float4(col, 1.);
+        tot += float4(col, clamp(0.15 * dot(eye, ro), 0., 1.));
     } else {
         float alpha;
-        float3 bg = gc_background(eye, rd, l_dir, alpha);
-        // BG_ALPHA: background alpha fades the floor out into the photo
-        tot += float4(bg, alpha);
+        tot += float4(gc_background(eye, rd, l_dir, alpha), 0.15);
     }
     float4 fragColor = tot;
     fragColor.rgb = clamp(fragColor.rgb, 0., 1.);
-    // image row 0 is the top of the picture, fragCoord.y points up
-    float2 tuv = float2(fragCoord.x / iResolution.x, 1. - fragCoord.y / iResolution.y);
-    fragColor.rgb = fragColor.rgb * fragColor.w + iChannel0.sample(samp, tuv).rgb * (1. - fragColor.w);
     return float4(fragColor.rgb, 1.0);
 }

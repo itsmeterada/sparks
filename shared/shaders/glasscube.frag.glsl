@@ -7,8 +7,7 @@
 //
 // Glass box with refracted, sorted, self-intersecting transparent bilinear-patch
 // layers inside. Uses iq's intersectors (https://iquilezles.org/articles/intersectors).
-// BG_ALPHA is enabled so the scene background is composited over iChannel0 (london.jpg).
-// DEBUG / AA / wallpaper option paths of the original are folded out.
+// DEBUG / AA / wallpaper option paths (iChannel0 background compositing) of the original are folded out.
 
 layout(location = 0) in vec2 vUV;
 layout(location = 0) out vec4 outColor;
@@ -21,10 +20,6 @@ layout(push_constant) uniform PushConstants {
     int mode;
     int iFrame;
 };
-
-layout(set = 0, binding = 0) uniform sampler2D iChannel0; // london.jpg (background)
-
-#define BG_ALPHA
 
 // speed of ROTATION
 #define ROTATION_SPEED 0.8999
@@ -487,26 +482,13 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         col = mix(mix(colo[1].rgb * colo[1].a, colo[0].rgb, colo[0].a) * fadeborders, reflcol, pow(fresnel, 1.5));
         col = clamp(col, 0., 1.);
 
-        vec4 tcolx = vec4(col, clamp(0.15 * dot(eye, ro), 0., 1.));
-#ifdef BG_ALPHA
-        tcolx.w = 1.;
-#endif
-        tot += tcolx;
+        tot += vec4(col, clamp(0.15 * dot(eye, ro), 0., 1.));
     } else {
         float alpha;
-        vec4 tcolx = vec4(background(eye, rd, l_dir, alpha), 0.15);
-#ifdef BG_ALPHA
-        tcolx.w = alpha;
-#endif
-        tot += tcolx;
+        tot += vec4(background(eye, rd, l_dir, alpha), 0.15);
     }
     fragColor = tot;
     fragColor.rgb = clamp(fragColor.rgb, 0., 1.);
-#ifdef BG_ALPHA
-    // image row 0 is the top of the picture, fragCoord.y points up
-    vec2 tuv = vec2(fragCoord.x / iResolution.x, 1. - fragCoord.y / iResolution.y);
-    fragColor.rgb = fragColor.rgb * fragColor.w + texture(iChannel0, tuv).rgb * (1. - fragColor.w);
-#endif
 }
 
 void main() {

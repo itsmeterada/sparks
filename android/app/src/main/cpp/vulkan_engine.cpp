@@ -412,7 +412,6 @@ bool VulkanEngine::createTextures() {
     if (!loadTexture3D("textures/grey_noise_3d.bin", 3, 32, 32, 32)) return false;
     if (!loadTexture("textures/organic2.png", 4)) return false;
     if (!loadTexture("textures/rgba_noise_small.png", 5)) return false;
-    if (!loadTexture("textures/london.jpg", 6)) return false;
 
     // Sampler
     VkSamplerCreateInfo si{}; si.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -433,17 +432,17 @@ bool VulkanEngine::createTextures() {
     li.bindingCount = MAX_TEX_BINDINGS; li.pBindings = bindings;
     if (vkCreateDescriptorSetLayout(mDevice, &li, nullptr, &mDescriptorSetLayout) != VK_SUCCESS) return false;
 
-    // Descriptor pool (6 sets total)
+    // Descriptor pool (5 sets total)
     VkDescriptorPoolSize poolSize{}; poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSize.descriptorCount = MAX_TEX_BINDINGS * 6;
+    poolSize.descriptorCount = MAX_TEX_BINDINGS * 5;
     VkDescriptorPoolCreateInfo pi{}; pi.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pi.poolSizeCount = 1; pi.pPoolSizes = &poolSize; pi.maxSets = 6;
+    pi.poolSizeCount = 1; pi.pPoolSizes = &poolSize; pi.maxSets = 5;
     if (vkCreateDescriptorPool(mDevice, &pi, nullptr, &mDescriptorPool) != VK_SUCCESS) return false;
 
-    // Allocate 6 descriptor sets
-    VkDescriptorSetLayout layouts[6] = {mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout};
+    // Allocate 5 descriptor sets
+    VkDescriptorSetLayout layouts[5] = {mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout, mDescriptorSetLayout};
     VkDescriptorSetAllocateInfo dsai{}; dsai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    dsai.descriptorPool = mDescriptorPool; dsai.descriptorSetCount = 6; dsai.pSetLayouts = layouts;
+    dsai.descriptorPool = mDescriptorPool; dsai.descriptorSetCount = 5; dsai.pSetLayouts = layouts;
     if (vkAllocateDescriptorSets(mDevice, &dsai, mDescriptorSets) != VK_SUCCESS) return false;
 
     // Update descriptor set 0 (starship): all bindings → stars texture
@@ -495,19 +494,6 @@ bool VulkanEngine::createTextures() {
         VkWriteDescriptorSet writes[MAX_TEX_BINDINGS]{};
         for (int i = 0; i < MAX_TEX_BINDINGS; i++) {
             writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET; writes[i].dstSet = mDescriptorSets[4];
-            writes[i].dstBinding = i; writes[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            writes[i].descriptorCount = 1; writes[i].pImageInfo = &imgInfo;
-        }
-        vkUpdateDescriptorSets(mDevice, MAX_TEX_BINDINGS, writes, 0, nullptr);
-    }
-
-    // Update descriptor set 5 (glasscube): all bindings → london texture
-    {
-        VkDescriptorImageInfo imgInfo{}; imgInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imgInfo.imageView = mTextures[6].imageView; imgInfo.sampler = mTextureSampler;
-        VkWriteDescriptorSet writes[MAX_TEX_BINDINGS]{};
-        for (int i = 0; i < MAX_TEX_BINDINGS; i++) {
-            writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET; writes[i].dstSet = mDescriptorSets[5];
             writes[i].dstBinding = i; writes[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             writes[i].descriptorCount = 1; writes[i].pImageInfo = &imgInfo;
         }
@@ -1310,7 +1296,6 @@ void VulkanEngine::render() {
         if (mCurrentShader == 5) return 2;
         if (mCurrentShader == 7) return 3;
         if (mCurrentShader == 27) return 4; // furball
-        if (mCurrentShader == 33) return 5; // glasscube
         return 0;
     };
 

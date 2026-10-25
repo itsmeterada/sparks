@@ -428,9 +428,9 @@ Each effect runs as a fragment shader on a fullscreen triangle. No geometry or p
 - **Analytic glass box**: ray/box intersection, Fresnel (IOR 1.33) reflection of the floor + two refraction/internal-reflection bounces inside the cube
 - **Bilinear-patch layers**: three analytically intersected saddle (bilinear) patches rotated by 60° each, with self-intersection handling and back-to-front sorting for correct transparency
 - **Derivative-filtered palette**: `fcos()` uses `fwidth` to fade out high-frequency cosine bands, antialiasing the inversion-mapped color pattern without supersampling
-- **Soft box shadow on the floor**: iq's analytic `boxSoftShadow()` + AO falloff; the floor fades out (BG_ALPHA) over a photo background (`london.jpg`)
+- **Soft box shadow on the floor**: iq's analytic `boxSoftShadow()` + AO falloff; the floor fades out into a blue gradient sky
 
-Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9/17/28/34 also use textures.
+Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9/17/28 also use textures.
 
 ## Build
 
@@ -508,4 +508,4 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 | 31 | [Water Cave](https://www.shadertoy.com/view/XcVyWD) | — | Volumetric glass/water underground river with a glowing ball, `tanh`-eased motion + two-pass refraction | CC BY-NC-SA 3.0 |
 | 32 | [Yet another 4D Apollonian](https://www.shadertoy.com/view/N3VXz1) | mrange | 4D Apollonian fractal sliced by 4D rotation, volumetric glow accumulation + `tanh` tone mapping | CC0 1.0 |
 | 33 | [another synthwave sunset thing](https://www.shadertoy.com/view/tsScRK) | stduhpf | Pseudo-tessellation triangle-noise terrain with glowing grid edges under a retro sun and starfield | CC BY-NC-SA 3.0 |
-| 34 | [Glass Cube](https://www.shadertoy.com/view/NslGRN) | Danil (@danilw) | Refractive glass cube containing sorted, self-intersecting transparent bilinear patches, over a photo background | CC BY-NC-SA 3.0 |
+| 34 | [Glass Cube](https://www.shadertoy.com/view/NslGRN) | Danil (@danilw) | Refractive glass cube containing sorted, self-intersecting transparent bilinear patches, with analytic soft shadows | CC BY-NC-SA 3.0 |

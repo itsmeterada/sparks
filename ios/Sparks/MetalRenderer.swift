@@ -45,7 +45,6 @@ class MetalRenderer {
     private let noiseSmallTexture: MTLTexture?
     private let noise3DTexture: MTLTexture?
     private let noiseSmall64Texture: MTLTexture?
-    private let londonTexture: MTLTexture?
     private let samplerState: MTLSamplerState
 
     private let startTime: CFAbsoluteTime
@@ -138,7 +137,6 @@ class MetalRenderer {
         self.noiseSmallTexture = Self.loadTexture(loader: loader, name: "rgba_noise_large", ext: "png", options: texOpts) // iChannel1: 1024x1024 for texelFetch dithering
         self.noise3DTexture = Self.load3DTexture(device: device, name: "grey_noise_3d", ext: "bin", width: 32, height: 32, depth: 32)
         self.noiseSmall64Texture = Self.loadTexture(loader: loader, name: "rgba_noise_small", ext: "png", options: texOpts)
-        self.londonTexture = Self.loadTexture(loader: loader, name: "london", ext: "jpg", options: texOpts)
 
         let samplerDescriptor = MTLSamplerDescriptor()
         samplerDescriptor.minFilter = .linear
@@ -488,8 +486,6 @@ class MetalRenderer {
                 encoder.setFragmentTexture(tex, index: 0)
                 encoder.setFragmentTexture(tex, index: 1)
             }
-        case 33: // glasscube
-            if let tex = londonTexture { encoder.setFragmentTexture(tex, index: 0) }
         default:
             break
         }

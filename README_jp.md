@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-フルスクリーンGPUシェーダーデモ **+ ベンチマーク** — Shadertoy シェーダー31本をネイティブモバイル (Vulkan / Metal) に移植し、3DMark / Unigine Superposition / GFXBench 準拠の手法(ウォームアップ → 固定時間計測 → クールダウン、1% low / p99 フレームタイム、調和平均スコア)で動作する GPU ベンチマークを内蔵。右上のボタンでシェーダー切替・ベンチマーク起動。
+フルスクリーンGPUシェーダーデモ **+ ベンチマーク** — Shadertoy シェーダー32本をネイティブモバイル (Vulkan / Metal) に移植し、3DMark / Unigine Superposition / GFXBench 準拠の手法(ウォームアップ → 固定時間計測 → クールダウン、1% low / p99 フレームタイム、調和平均スコア)で動作する GPU ベンチマークを内蔵。右上のボタンでシェーダー切替・ベンチマーク起動。
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -35,8 +35,8 @@
 | ![Fluid](./screenshots/screenshot27.png) | ![Fur Ball](./screenshots/screenshot28.png) |
 | **Star Nest** | **Icosphere** |
 | ![Star Nest](./screenshots/screenshot29.png) | ![Icosphere](./screenshots/screenshot30.png) |
-| **Water Cave** | |
-| ![Water Cave](./screenshots/screenshot31.png) | |
+| **Water Cave** | **4D Apollonian** |
+| ![Water Cave](./screenshots/screenshot31.png) | ![4D Apollonian](./screenshots/screenshot32.png) |
 
 ## ベンチマークモード
 
@@ -45,7 +45,7 @@
 右上のコントロール列にある **BM** ボタンから:
 
 - **Current shader** — いま表示中のシェーダのみを計測(約15秒)
-- **All shaders** — 全31シェーダを連続計測(約7分)
+- **All shaders** — 全32シェーダを連続計測(約7分)
 
 ### 何を計測しているか
 
@@ -171,6 +171,7 @@ sparks/
 │   ├── starnest.frag.glsl    # シェーダー29 Star Nest
 │   ├── icosphere.frag.glsl   # シェーダー30 Icosphere
 │   ├── watercave.frag.glsl   # シェーダー31 Water Cave
+│   ├── apollonian.frag.glsl  # シェーダー32 4D Apollonian
 │   ├── fxaa.frag.glsl         # FXAAポストプロセスシェーダー
 │   └── compile_spirv.sh       # GLSL → SPIR-V コンパイルスクリプト
 ├── android/            # Android Studio プロジェクト (Vulkan)
@@ -211,7 +212,8 @@ sparks/
         ├── furball.metal          # Fur Ball
         ├── starnest.metal         # Star Nest
         ├── icosphere.metal        # Icosphere
-        └── watercave.metal        # Water Cave
+        ├── watercave.metal        # Water Cave
+        └── apollonian.metal       # 4D Apollonian
 ```
 
 ## 仕組み
@@ -403,6 +405,12 @@ sparks/
 - **2パスガラス屈折**: プライマリヒットを屈折(`refract`、IOR 1.33)させてボリューム内を再マーチし、フレネル項で屈折色をブレンドしてガラス状の水表現を実現
 - **バンプマップ岩肌 + エッジ/AO**: `bumpMap()` が放射状バリューノイズで壁面法線を摂動。ラプラシアンエッジ検出と4タップAOで溝を暗く
 
+### シェーダー32: 4D Apollonian
+- **4次元Apollonianフラクタル**: 4D点を `p -= 2*round(p/2)`(タイリング)と球面反転 `p *= 2/dot(p,p)` で5回折り畳み、累積スケールで距離を正規化
+- **4次元回転**: w=0.6 を持つレイ位置を xw / wy / zw 平面でゆっくり回る `mat2` で回転させ、3Dスライスを時間とともに変形
+- **ボリューメトリック発光の累積**: 表面シェーディングではなく、77ステップのレイマーチで `1/d` 重み付きの色(`dot(o.xy, o.zw)` 駆動の余弦パレット)をガウス深度減衰付きで加算
+- **トーンマッピング**: 累積したHDR発光を `tanh` で圧縮し、チャンネル別の放射状ビネットを合成
+
 Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (int)。シェーダー3/4/7/8/9/17/28はテクスチャも使用。
 
 ## ビルド
@@ -428,7 +436,8 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 
 | バージョン | 主な変更 |
 |----------|---------|
-| **v1.0.2** | シェーダー31(Water Cave)を追加 |
+| **v1.0.3** | シェーダー32(4D Apollonian)を追加 |
+| v1.0.2 | シェーダー31(Water Cave)を追加 |
 | v1.0.1 | シェーダー29(Star Nest)・30(Icosphere)を追加 |
 | v1.0.0rc | ベンチマークスコアを解像度と `halfRes` で正規化 |
 | v0.9.0 | シェーダー28(Fur Ball)を追加 |
@@ -476,3 +485,4 @@ Uniform は `iResolution` (vec2)、`iTime` (float)、`iMouse` (vec4)、`mode` (i
 | 29 | [Star Nest](https://www.shadertoy.com/view/XlfGRj) | Pablo Roman Andrioli | タイリング折り畳み+magic formulaによる宇宙星雲のボリューメトリックレイマーチング | MIT |
 | 30 | [Icosphere](https://www.shadertoy.com/view/XcXXzS) | (コメントは Shane) | 六角トンネル+正20面体面に大円弧で六角形を描いた2バウンス反射レイマーチ | CC BY-NC-SA 3.0 |
 | 31 | [Water Cave](https://www.shadertoy.com/view/XcVyWD) | — | 発光する球を配した地下水路のボリューメトリックガラス/水表現。`tanh` イージング運動 + 2パス屈折 | CC BY-NC-SA 3.0 |
+| 32 | [Yet another 4D Apollonian](https://www.shadertoy.com/view/N3VXz1) | mrange | 4次元回転でスライスした4D Apollonianフラクタル。ボリューメトリック発光の累積 + `tanh` トーンマッピング | CC0 1.0 |

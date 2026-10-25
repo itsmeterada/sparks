@@ -76,7 +76,7 @@ class MetalRenderer {
         "grid", "interstellar", "mandelbulb", "cyberspace", "tunnel", "fractal",
         "mandelbulb2", "octgrams", "palette", "primitives", "voxellines", "protean",
         "rocaille", "hudrings", "flighthud", "metalball", "heart", "jellyfish",
-        "hypertunnel", "fluid", "furball", "starnest", "icosphere", "watercave"
+        "hypertunnel", "fluid", "furball", "starnest", "icosphere", "watercave", "apollonian"
     ]
 
     var shaderDisplayName: String {
@@ -106,7 +106,7 @@ class MetalRenderer {
         let library = lib
 
         // Index 26 reserved for fluid (multi-pass, separate path) -> nil placeholder.
-        let fragmentNames: [String?] = ["sparks_fragment", "cosmic_fragment", "starship_fragment", "clouds_fragment", "seascape_fragment", "rainforest_fragment", "plasma_fragment", "grid_fragment", "interstellar_fragment", "mandelbulb_fragment", "cyberspace_fragment", "tunnel_fragment", "fractal_fragment", "mandelbulb2_fragment", "octgrams_fragment", "palette_fragment", "primitives_fragment", "voxellines_fragment", "protean_fragment", "rocaille_fragment", "hudrings_fragment", "flighthud_fragment", "metalball_fragment", "heart_fragment", "jellyfish_fragment", "hypertunnel_fragment", nil, "furball_fragment", "starnest_fragment", "icosphere_fragment", "watercave_fragment"]
+        let fragmentNames: [String?] = ["sparks_fragment", "cosmic_fragment", "starship_fragment", "clouds_fragment", "seascape_fragment", "rainforest_fragment", "plasma_fragment", "grid_fragment", "interstellar_fragment", "mandelbulb_fragment", "cyberspace_fragment", "tunnel_fragment", "fractal_fragment", "mandelbulb2_fragment", "octgrams_fragment", "palette_fragment", "primitives_fragment", "voxellines_fragment", "protean_fragment", "rocaille_fragment", "hudrings_fragment", "flighthud_fragment", "metalball_fragment", "heart_fragment", "jellyfish_fragment", "hypertunnel_fragment", nil, "furball_fragment", "starnest_fragment", "icosphere_fragment", "watercave_fragment", "apollonian_fragment"]
         var states: [MTLRenderPipelineState?] = []
         for name in fragmentNames {
             guard let n = name else {

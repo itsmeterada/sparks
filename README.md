@@ -2,7 +2,7 @@
 
 [Japanese (日本語)](README_jp.md)
 
-Fullscreen GPU shader demo **and benchmark** — 31 Shadertoy shaders ported to native mobile (Vulkan / Metal), with a built-in GPU benchmark that follows the industry-standard methodology used by 3DMark, Unigine Superposition, and GFXBench (warmup → timed measurement → cooldown, 1% low / p99 frame time, harmonic-mean score). Tap the buttons in the top-right to switch shaders or run the benchmark.
+Fullscreen GPU shader demo **and benchmark** — 32 Shadertoy shaders ported to native mobile (Vulkan / Metal), with a built-in GPU benchmark that follows the industry-standard methodology used by 3DMark, Unigine Superposition, and GFXBench (warmup → timed measurement → cooldown, 1% low / p99 frame time, harmonic-mean score). Tap the buttons in the top-right to switch shaders or run the benchmark.
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -35,8 +35,8 @@ Fullscreen GPU shader demo **and benchmark** — 31 Shadertoy shaders ported to 
 | ![Fluid](./screenshots/screenshot27.png) | ![Fur Ball](./screenshots/screenshot28.png) |
 | **Star Nest** | **Icosphere** |
 | ![Star Nest](./screenshots/screenshot29.png) | ![Icosphere](./screenshots/screenshot30.png) |
-| **Water Cave** | |
-| ![Water Cave](./screenshots/screenshot31.png) | |
+| **Water Cave** | **4D Apollonian** |
+| ![Water Cave](./screenshots/screenshot31.png) | ![4D Apollonian](./screenshots/screenshot32.png) |
 
 ## Benchmark Mode
 
@@ -45,7 +45,7 @@ A built-in GPU benchmark that runs each shader in sequence and reports per-shade
 Tap the **BM** button in the top-right controls to choose:
 
 - **Current shader** — benchmark only the shader currently on screen (~15 s)
-- **All shaders** — sweep all 31 shaders (~7 minutes)
+- **All shaders** — sweep all 32 shaders (~7 minutes)
 
 ### What this measures
 
@@ -171,6 +171,7 @@ sparks/
 │   ├── starnest.frag.glsl    # Shader 29 Star Nest
 │   ├── icosphere.frag.glsl   # Shader 30 Icosphere
 │   ├── watercave.frag.glsl   # Shader 31 Water Cave
+│   ├── apollonian.frag.glsl  # Shader 32 4D Apollonian
 │   ├── fxaa.frag.glsl         # FXAA post-process shader
 │   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
 ├── android/            # Android Studio project (Vulkan)
@@ -211,7 +212,8 @@ sparks/
         ├── furball.metal          # Fur Ball
         ├── starnest.metal         # Star Nest
         ├── icosphere.metal        # Icosphere
-        └── watercave.metal        # Water Cave
+        ├── watercave.metal        # Water Cave
+        └── apollonian.metal       # 4D Apollonian
 ```
 
 ## How It Works
@@ -403,6 +405,12 @@ Each effect runs as a fragment shader on a fullscreen triangle. No geometry or p
 - **Two-pass glass refraction**: the primary hit refracts (`refract`, IOR 1.33) and re-marches through the volume, blending the refracted color by a Fresnel term for a glassy water look
 - **Bump-mapped rock + edge/AO**: `bumpMap()` perturbs the wall normal with radial value noise; Laplacian edge detection and 4-tap AO darken creases
 
+### Shader 32: 4D Apollonian
+- **4D Apollonian fractal**: a 4D point is folded 5 times by `p -= 2*round(p/2)` (tiling) followed by sphere inversion `p *= 2/dot(p,p)`, with the accumulated scale used to normalize distance
+- **4D rotation**: the ray position (with w = 0.6) is rotated in the xw / wy / zw planes by a slowly turning `mat2`, so the 3D slice morphs over time
+- **Volumetric glow accumulation**: 77 raymarch steps add `1/d`-weighted color (cosine palette driven by `dot(o.xy, o.zw)`) with Gaussian depth falloff instead of shading a hit surface
+- **Tone mapping**: `tanh` compresses the accumulated HDR glow, combined with a per-channel radial vignette
+
 Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9/17/28 also use textures.
 
 ## Build
@@ -428,7 +436,8 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 
 | Version | Highlights |
 |---------|------------|
-| **v1.0.2** | Added Shader 31 Water Cave |
+| **v1.0.3** | Added Shader 32 4D Apollonian |
+| v1.0.2 | Added Shader 31 Water Cave |
 | v1.0.1 | Added Shader 29 Star Nest and 30 Icosphere |
 | v1.0.0rc | Benchmark score normalized by resolution and `halfRes` |
 | v0.9.0 | Added Shader 28 Fur Ball |
@@ -476,3 +485,4 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 | 29 | [Star Nest](https://www.shadertoy.com/view/XlfGRj) | Pablo Roman Andrioli | Volumetric raymarched cosmic nebula via tiling fold + magic formula | MIT |
 | 30 | [Icosphere](https://www.shadertoy.com/view/XcXXzS) | (commented by Shane) | Hex tunnel + icosahedron with great-circle hex face inscriptions, two-bounce reflective raymarch | CC BY-NC-SA 3.0 |
 | 31 | [Water Cave](https://www.shadertoy.com/view/XcVyWD) | — | Volumetric glass/water underground river with a glowing ball, `tanh`-eased motion + two-pass refraction | CC BY-NC-SA 3.0 |
+| 32 | [Yet another 4D Apollonian](https://www.shadertoy.com/view/N3VXz1) | mrange | 4D Apollonian fractal sliced by 4D rotation, volumetric glow accumulation + `tanh` tone mapping | CC0 1.0 |

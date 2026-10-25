@@ -2,7 +2,7 @@
 
 [Japanese (日本語)](README_jp.md)
 
-Fullscreen GPU shader demo **and benchmark** — 32 Shadertoy shaders ported to native mobile (Vulkan / Metal), with a built-in GPU benchmark that follows the industry-standard methodology used by 3DMark, Unigine Superposition, and GFXBench (warmup → timed measurement → cooldown, 1% low / p99 frame time, harmonic-mean score). Tap the buttons in the top-right to switch shaders or run the benchmark.
+Fullscreen GPU shader demo **and benchmark** — 33 Shadertoy shaders ported to native mobile (Vulkan / Metal), with a built-in GPU benchmark that follows the industry-standard methodology used by 3DMark, Unigine Superposition, and GFXBench (warmup → timed measurement → cooldown, 1% low / p99 frame time, harmonic-mean score). Tap the buttons in the top-right to switch shaders or run the benchmark.
 
 | Sparks | Cosmic |
 |:---:|:---:|
@@ -37,6 +37,8 @@ Fullscreen GPU shader demo **and benchmark** — 32 Shadertoy shaders ported to 
 | ![Star Nest](./screenshots/screenshot29.png) | ![Icosphere](./screenshots/screenshot30.png) |
 | **Water Cave** | **4D Apollonian** |
 | ![Water Cave](./screenshots/screenshot31.png) | ![4D Apollonian](./screenshots/screenshot32.png) |
+| **Synthwave Sunset** | |
+| ![Synthwave Sunset](./screenshots/screenshot33.png) | |
 
 ## Benchmark Mode
 
@@ -45,7 +47,7 @@ A built-in GPU benchmark that runs each shader in sequence and reports per-shade
 Tap the **BM** button in the top-right controls to choose:
 
 - **Current shader** — benchmark only the shader currently on screen (~15 s)
-- **All shaders** — sweep all 32 shaders (~7 minutes)
+- **All shaders** — sweep all 33 shaders (~7 minutes)
 
 ### What this measures
 
@@ -172,6 +174,7 @@ sparks/
 │   ├── icosphere.frag.glsl   # Shader 30 Icosphere
 │   ├── watercave.frag.glsl   # Shader 31 Water Cave
 │   ├── apollonian.frag.glsl  # Shader 32 4D Apollonian
+│   ├── synthwave.frag.glsl   # Shader 33 Synthwave Sunset
 │   ├── fxaa.frag.glsl         # FXAA post-process shader
 │   └── compile_spirv.sh       # GLSL to SPIR-V compilation script
 ├── android/            # Android Studio project (Vulkan)
@@ -213,7 +216,8 @@ sparks/
         ├── starnest.metal         # Star Nest
         ├── icosphere.metal        # Icosphere
         ├── watercave.metal        # Water Cave
-        └── apollonian.metal       # 4D Apollonian
+        ├── apollonian.metal       # 4D Apollonian
+        └── synthwave.metal        # Synthwave Sunset
 ```
 
 ## How It Works
@@ -411,6 +415,13 @@ Each effect runs as a fragment shader on a fullscreen triangle. No geometry or p
 - **Volumetric glow accumulation**: 77 raymarch steps add `1/d`-weighted color (cosine palette driven by `dot(o.xy, o.zw)`) with Gaussian depth falloff instead of shading a hit surface
 - **Tone mapping**: `tanh` compresses the accumulated HDR glow, combined with a per-channel radial vignette
 
+### Shader 33: Synthwave Sunset
+- **Pseudo-tessellation noise terrain**: `trinoise()` skews the plane into a triangle lattice and interpolates per-vertex hashes across each triangle, giving a faceted low-poly heightfield; the same barycentric weights produce the glowing magenta grid lines via `edgeMin()`
+- **Valley + wave**: `amp()` flattens a central road strip, and a `pow512` sine pulse rolls diagonal waves across the mountains over time
+- **Retro sky**: haze gradient, banded sun via `sin(exp(...))` cut-outs, and hashed star field (`starnoise()`) with rotating octave layers
+- **Reflective surface**: Fresnel-weighted sky reflection on the terrain plus per-channel exponential fog; per-pixel time jitter emulates motion blur
+- The audio-visualizer path (sound texture in `iChannel0`) is disabled by default in the original and folded out of the port
+
 Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). Shaders 3/4/7/8/9/17/28 also use textures.
 
 ## Build
@@ -436,7 +447,8 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 
 | Version | Highlights |
 |---------|------------|
-| **v1.0.3** | Added Shader 32 4D Apollonian |
+| **v1.0.4** | Added Shader 33 Synthwave Sunset |
+| v1.0.3 | Added Shader 32 4D Apollonian |
 | v1.0.2 | Added Shader 31 Water Cave |
 | v1.0.1 | Added Shader 29 Star Nest and 30 Icosphere |
 | v1.0.0rc | Benchmark score normalized by resolution and `halfRes` |
@@ -486,3 +498,4 @@ Uniforms: `iResolution` (vec2), `iTime` (float), `iMouse` (vec4), `mode` (int). 
 | 30 | [Icosphere](https://www.shadertoy.com/view/XcXXzS) | (commented by Shane) | Hex tunnel + icosahedron with great-circle hex face inscriptions, two-bounce reflective raymarch | CC BY-NC-SA 3.0 |
 | 31 | [Water Cave](https://www.shadertoy.com/view/XcVyWD) | — | Volumetric glass/water underground river with a glowing ball, `tanh`-eased motion + two-pass refraction | CC BY-NC-SA 3.0 |
 | 32 | [Yet another 4D Apollonian](https://www.shadertoy.com/view/N3VXz1) | mrange | 4D Apollonian fractal sliced by 4D rotation, volumetric glow accumulation + `tanh` tone mapping | CC0 1.0 |
+| 33 | [another synthwave sunset thing](https://www.shadertoy.com/view/tsScRK) | stduhpf | Pseudo-tessellation triangle-noise terrain with glowing grid edges under a retro sun and starfield | CC BY-NC-SA 3.0 |
